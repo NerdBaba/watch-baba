@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
-import GenreFilter from '../components/GenreFilter';
-import tmdbApi, { getTopRatedMovies, getUpcomingMovies, getNowPlayingMovies } from '../services/tmdbApi';
+import { getTopRatedMovies, getUpcomingMovies, getNowPlayingMovies } from '../services/tmdbApi';
 
 const Grid = styled.div`
   display: grid;
@@ -17,13 +16,7 @@ const FilterContainer = styled.div`
   margin-bottom: 20px;
 `;
 
-const Select = styled.select`
-  padding: 10px;
-  background-color: #333;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-`;
+
 
 const CategorySelect = styled.select`
   padding: 10px;
