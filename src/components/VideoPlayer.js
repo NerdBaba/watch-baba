@@ -35,7 +35,7 @@ function VideoPlayer({ imdbId, season, episode }) {
   let embedUrl = '';
 
   if (season && episode) {
-    embedUrl = `https://multiembed.mov/?video_id=${imdbId}&s=${season}&e=${episode}`;
+    embedUrl = `https://multiembed.mov/?video_id=${imdbId}&tmdb=1&s=${season}&e=${episode}`;
   } else {
     embedUrl = `https://multiembed.mov/?video_id=${imdbId}`;
   }
