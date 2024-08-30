@@ -125,7 +125,7 @@ function MovieDetails() {
           <p>Genres: {movie.genres.map(genre => genre.name).join(', ')}</p>
         </Info>
       </MovieInfo>
-      <VideoPlayer imdbId={movie.imdb_id} />
+      <VideoPlayer imdbId={movie.id} />
       <h3>Cast</h3>
       <CastContainer>
   {cast.map((member) => (
