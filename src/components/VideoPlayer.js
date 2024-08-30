@@ -19,7 +19,7 @@ const Iframe = styled.iframe`
   border: none;
 `;
 
-// Blocker overlay to capture clicks and prevent interaction with unwanted elements in the iframe
+// // Blocker overlay to capture clicks and prevent interaction with unwanted elements in the iframe
 // const Blocker = styled.div`
 //   position: absolute;
 //   top: 0;
@@ -43,6 +43,7 @@ function VideoPlayer({ imdbId, season, episode }) {
   return (
     <PlayerContainer>
       {/* Embed the video using an iframe */}
+      <Iframe src={embedUrl} allowFullScreen />
       {/* Invisible blocker overlay to prevent interaction with popups or ads */}
     </PlayerContainer>
   );
