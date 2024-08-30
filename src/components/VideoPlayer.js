@@ -20,22 +20,22 @@ const Iframe = styled.iframe`
 `;
 
 // Blocker overlay to capture clicks and prevent interaction with unwanted elements in the iframe
-const Blocker = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10; /* Ensure it's above the iframe */
-  pointer-events: none; /* Allow clicks to pass through to the iframe */
-`;
+// const Blocker = styled.div`
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   width: 100%;
+//   height: 100%;
+//   z-index: 10; /* Ensure it's above the iframe */
+//   pointer-events: none; /* Allow clicks to pass through to the iframe */
+// `;
 
 function VideoPlayer({ imdbId, season, episode }) {
   // Construct the embed URL based on whether it's a movie or a TV show
   let embedUrl = '';
 
   if (season && episode) {
-    embedUrl = `hhttps://vidsrc.rip/embed/tv/${imdbId}/${season}/${episode}`;
+    embedUrl = `https://vidsrc.rip/embed/tv/${imdbId}/${season}/${episode}`;
   } else {
     embedUrl = `https://vidsrc.rip/embed/movie/${imdbId}`;
   }
@@ -43,9 +43,7 @@ function VideoPlayer({ imdbId, season, episode }) {
   return (
     <PlayerContainer>
       {/* Embed the video using an iframe */}
-      <Iframe src={embedUrl} allowFullScreen />
       {/* Invisible blocker overlay to prevent interaction with popups or ads */}
-      <Blocker />
     </PlayerContainer>
   );
 }
