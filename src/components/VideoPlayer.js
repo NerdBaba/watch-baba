@@ -35,9 +35,9 @@ function VideoPlayer({ imdbId, season, episode }) {
   let embedUrl = '';
 
   if (season && episode) {
-    embedUrl = `https://vidsrc.rip/embed/tv/${imdbId}/${season}/${episode}`;
+    embedUrl = `https://vidsrc.cc/embed/tv/${imdbId}/${season}/${episode}`;
   } else {
-    embedUrl = `https://vidsrc.rip/embed/movie/${imdbId}`;
+    embedUrl = `https://vidsrc.cc/embed/movie/${imdbId}`;
   }
 
   return (
