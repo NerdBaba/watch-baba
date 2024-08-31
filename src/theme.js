@@ -1,26 +1,31 @@
-// src/theme.js
 export const themes = {
   default: { name: 'Default', primary: '#ffd700', background: '#1a1a1a', text: '#ffffff' },
   nord: { name: 'Nord', primary: '#88C0D0', background: '#2E3440', text: '#D8DEE9' },
   gruvbox: { name: 'Gruvbox', primary: '#FE8019', background: '#282828', text: '#EBDBB2' },
   dracula: { name: 'Dracula', primary: '#BD93F9', background: '#282A36', text: '#F8F8F2' },
-  monokai: { name: 'Monokai', primary: '#F92672', background: '#272822', text: '#F8F8F2' },
   github: { name: 'GitHub', primary: '#0366D6', background: '#F6F8FA', text: '#24292E' },
   tomorrow: { name: 'Tomorrow', primary: '#F5871F', background: '#FFFFFF', text: '#4D4D4C' },
   oceanic: { name: 'Oceanic', primary: '#6699CC', background: '#1B2B34', text: '#D8DEE9' },
-  material: { name: 'Material', primary: '#82AAFF', background: '#263238', text: '#EEFFFF' },
-  solarized: { name: 'Solarized', primary: '#268BD2', background: '#002B36', text: '#839496' },
   ayu: { name: 'Ayu', primary: '#FF9940', background: '#0F1419', text: '#E6E1CF' },
   oneDark: { name: 'One Dark', primary: '#61AFEF', background: '#282C34', text: '#ABB2BF' },
   synthwave: { name: 'Synthwave', primary: '#FF7EDB', background: '#2B213A', text: '#F8F8F2' },
   cyberpunk: { name: 'Cyberpunk', primary: '#FFE600', background: '#372963', text: '#00FF9C' },
-  atelier: { name: 'Atelier', primary: '#A16A94', background: '#1B1918', text: '#A8A19F' },
   tokyoNight: { name: 'Tokyo Night', primary: '#7AA2F7', background: '#1A1B26', text: '#A9B1D6' },
   rouge: { name: 'Rouge', primary: '#F92672', background: '#1B1D1E', text: '#F8F8F2' },
   gotham: { name: 'Gotham', primary: '#98D1CE', background: '#0A0F14', text: '#98D1CE' },
-  iceberg: { name: 'Iceberg', primary: '#84A0C6', background: '#161821', text: '#C6C8D1' },
   noctis: { name: 'Noctis', primary: '#7E57C2', background: '#1E1E1E', text: '#D3D0C8' },
   paperColor: { name: 'PaperColor', primary: '#005F87', background: '#EEEEEE', text: '#444444' },
-  spaceGray: { name: 'Space Gray', primary: '#B3B8C3', background: '#2B303B', text: '#C0C5CE' },
   horizon: { name: 'Horizon', primary: '#FAB795', background: '#1C1E26', text: '#CBCED0' },
+  
+  // New themes
+  netflix: { name: 'Netflix', primary: '#E50914', background: '#000000', text: '#FFFFFF' },
+  reddit: { name: 'Reddit', primary: '#FF4500', background: '#DAE0E6', text: '#1A1A1B' },
+  spotify: { name: 'Spotify', primary: '#1DB954', background: '#121212', text: '#FFFFFF' },
+  discord: { name: 'Discord', primary: '#7289DA', background: '#36393F', text: '#FFFFFF' },
+  twitter: { name: 'Twitter', primary: '#1DA1F2', background: '#FFFFFF', text: '#14171A' },
+  facebook: { name: 'Facebook', primary: '#1877F2', background: '#F0F2F5', text: '#050505' },
+  amazon: { name: 'Amazon', primary: '#FF9900', background: '#FFFFFF', text: '#111111' },
+  youtube: { name: 'YouTube', primary: '#FF0000', background: '#FFFFFF', text: '#282828' },
+  twitch: { name: 'Twitch', primary: '#9146FF', background: '#0E0E10', text: '#EFEFF1' },
+  slack: { name: 'Slack', primary: '#4A154B', background: '#FFFFFF', text: '#1D1C1D' }
 };
