@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import styled, { ThemeContext } from 'styled-components';
-import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars, FaPalette } from 'react-icons/fa';
+import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars} from 'react-icons/fa';
 import { themes } from '../theme';
 
 const SidebarContainer = styled.nav`

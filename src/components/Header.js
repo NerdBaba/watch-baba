@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaSearch, FaDice, FaBars } from 'react-icons/fa';
 import { getPopularMovies, getPopularTvShows } from '../services/tmdbApi';
-import Sidebar from './Sidebar';
 
 const HeaderContainer = styled.header`
   display: flex;
