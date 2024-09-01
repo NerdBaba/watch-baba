@@ -15,8 +15,11 @@ const SidebarContainer = styled.nav`
   z-index: 1000;
   top: 0;
   left: 0;
-`;
 
+  @media (max-width: 768px) {
+    left: ${(props) => (props.isOpen ? '0' : '-60px')};
+  }
+`;
 
 const NavItem = styled(Link)`
   display: flex;
@@ -71,35 +74,45 @@ function Sidebar({ setTheme, isOpen, setIsOpen }) {
     setIsOpen(!isOpen);
   };
 
-const handleThemeChange = (e) => {
-  const themeName = e.target.value;
-  console.log('Selected theme:', themeName);
-  setTheme(themeName);  // Pass the theme name, not the theme object
-};
+  const handleThemeChange = (e) => {
+    const themeName = e.target.value;
+    console.log('Selected theme:', themeName);
+    setTheme(themeName);
+  };
+
   return (
     <SidebarContainer isOpen={isOpen}>
       <ToggleButton onClick={toggleSidebar} isOpen={isOpen}>
         {isOpen ? <FaTimes /> : <FaBars />}
       </ToggleButton>
-      <NavItem to="/" isOpen={isOpen}><IconWrapper isOpen={isOpen}><FaHome /></IconWrapper> {isOpen && 'Home'}</NavItem>
-      <NavItem to="/discovery" isOpen={isOpen}><IconWrapper isOpen={isOpen}><FaCompass /></IconWrapper> {isOpen && 'Discovery'}</NavItem>
-      <NavItem to="/movies" isOpen={isOpen}><IconWrapper isOpen={isOpen}><FaFilm /></IconWrapper> {isOpen && 'Movies'}</NavItem>
-      <NavItem to="/tv-shows" isOpen={isOpen}><IconWrapper isOpen={isOpen}><FaTv /></IconWrapper> {isOpen && 'Series'}</NavItem>
-      <NavItem to="/actors" isOpen={isOpen}><IconWrapper isOpen={isOpen}><FaUser /></IconWrapper> {isOpen && 'Actors'}</NavItem>
+      <NavItem to="/">
+        <IconWrapper isOpen={isOpen}><FaHome /></IconWrapper>
+        {isOpen && 'Home'}
+      </NavItem>
+      <NavItem to="/discovery">
+        <IconWrapper isOpen={isOpen}><FaCompass /></IconWrapper>
+        {isOpen && 'Discovery'}
+      </NavItem>
+      <NavItem to="/movies">
+        <IconWrapper isOpen={isOpen}><FaFilm /></IconWrapper>
+        {isOpen && 'Movies'}
+      </NavItem>
+      <NavItem to="/tv">
+        <IconWrapper isOpen={isOpen}><FaTv /></IconWrapper>
+        {isOpen && 'Series'}
+      </NavItem>
+      <NavItem to="/actors">
+        <IconWrapper isOpen={isOpen}><FaUser /></IconWrapper>
+        {isOpen && 'Actors'}
+      </NavItem>
       {isOpen && (
-        <div>
-          <NavItem as="div"><IconWrapper isOpen={isOpen}><FaPalette /></IconWrapper> Theme</NavItem>
-          <ThemeSelector 
-  onChange={handleThemeChange} 
-  value={Object.keys(themes).find(key => themes[key] === theme) || 'default'}
->
-  {Object.keys(themes).map((key) => (
-    <option key={key} value={key}>
-      {themes[key].name}
-    </option>
-  ))}
-</ThemeSelector>
-        </div>
+        <ThemeSelector onChange={handleThemeChange} value={(Object.keys(themes).find(key => themes[key] === theme) || 'default')}>
+          {Object.keys(themes).map((key) => (
+            <option key={key} value={key}>
+              {themes[key].name}
+            </option>
+          ))}
+        </ThemeSelector>
       )}
     </SidebarContainer>
   );

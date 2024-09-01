@@ -14,9 +14,7 @@ import TvShowDetails from './pages/TvShowDetails';
 import SearchResults from './pages/SearchResults';
 import ActorDetails from './pages/ActorDetails';
 import { themes } from './theme';
-
 import { saveTheme, loadTheme } from './utils/themeStorage';
-
 
 const AppContainer = styled.div`
   display: flex;
@@ -29,6 +27,13 @@ const MainContent = styled.main`
   flex: 1;
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.3s;
+  margin-left: ${props => props.sidebarOpen ? '200px' : '60px'};
+
+  @media (max-width: 768px) {
+    margin-left: 0;
+    width: 100%;
+  }
 `;
 
 const ContentWrapper = styled.div`
@@ -62,60 +67,66 @@ const GlobalStyle = createGlobalStyle`
       background-color: ${props => props.theme.accent1};
     }
   }
-`;
-const isLocalStorageAvailable = () => {
-  try {
-    localStorage.setItem('test', 'test');
-    localStorage.removeItem('test');
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
 
-console.log('Is localStorage available?', isLocalStorageAvailable());
+  @media (max-width: 768px) {
+    body {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      font-size: 12px;
+    }
+  }
+`;
 
 function App() {
   const [currentTheme, setCurrentTheme] = useState(themes.default);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   useEffect(() => {
-  const savedThemeName = loadTheme();
-  console.log('Loaded theme name:', savedThemeName);
-  if (savedThemeName && themes[savedThemeName]) {
-    console.log('Setting theme to:', themes[savedThemeName]);
-    setCurrentTheme(themes[savedThemeName]);
-  } else {
-    console.log('No saved theme found or invalid theme name');
-  }
-}, []);
+    const savedThemeName = loadTheme();
+    if (savedThemeName && themes[savedThemeName]) {
+      setCurrentTheme(themes[savedThemeName]);
+    }
+
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
 
   const changeTheme = (themeName) => {
-  console.log('Changing theme to:', themeName); // Log the theme name, not the object
-  if (themes[themeName]) {
-    setCurrentTheme(themes[themeName]);
-    saveTheme(themeName);
-    console.log('Theme saved:', themeName);
-  }
-};
+    if (themes[themeName]) {
+      setCurrentTheme(themes[themeName]);
+      saveTheme(themeName);
+    }
+  };
 
   return (
     <ThemeProvider theme={currentTheme}>
       <Router>
         <GlobalStyle />
         <AppContainer>
-          <Sidebar 
-            setTheme={changeTheme} 
-            isOpen={isSidebarOpen} 
-            setIsOpen={setIsSidebarOpen}
-          />
-          <MainContent style={{ marginLeft: isSidebarOpen ? '210px' : '70px' }}>
-            <Header />
+          <Sidebar setTheme={changeTheme} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+          <MainContent sidebarOpen={isSidebarOpen}>
+            <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
             <ContentWrapper>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/discovery" element={<Discovery />} />
                 <Route path="/movies" element={<Movies />} />
-                <Route path="/tv-shows" element={<TvShows />} />
+                <Route path="/tv" element={<TvShows />} />
                 <Route path="/actors" element={<Actors />} />
                 <Route path="/movie/:id" element={<MovieDetails />} />
                 <Route path="/tv/:id" element={<TvShowDetails />} />

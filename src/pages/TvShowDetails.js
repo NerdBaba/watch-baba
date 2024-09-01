@@ -5,6 +5,36 @@ import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits } from '..
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 
+const fontFamilies = {
+  drama: 'Dancing Script, cursive',
+  romance: 'Dancing Script, cursive',
+  action: 'Bebas Neue, sans-serif',
+  adventure: 'Bebas Neue, sans-serif',
+  comedy: 'Comic Neue, cursive',
+  horror: 'Creepster, cursive',
+  thriller: 'Creepster, cursive',
+  sciFi: 'Orbitron, sans-serif',
+  fantasy: 'Orbitron, sans-serif',
+  documentary: 'Roboto Slab, serif',
+  animation: 'Permanent Marker, cursive',
+
+  // Additional genres
+  mystery: 'Libre Baskerville, serif',
+  crime: 'Mukta, sans-serif',
+  musical: 'Abril Fatface, cursive',
+  family: 'Comfortaa, cursive',
+  western: 'Playfair Display, serif',
+  war: 'Staatliches, sans-serif',
+  history: 'Merriweather, serif',
+  biography: 'Lora, serif',
+  sport: 'Exo, sans-serif',
+  music: 'Fugaz One, cursive',
+  talkShow: 'PT Sans, sans-serif',
+  reality: 'Raleway, sans-serif',
+  kids: 'Bangers, cursive',
+};
+
+
 const TvShowContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -33,11 +63,17 @@ const Info = styled.div`
   min-width: 300px;
 `;
 
+const Title = styled.h2`
+  font-family: ${(props) => props.fontFamily};
+  font-size: 2.5rem;
+`;
+
 const SelectorsContainer = styled.div`
   display: flex;
   gap: 20px;
   margin-top: 20px;
 `;
+
 
 const SelectorWrapper = styled.div`
   display: flex;
@@ -150,6 +186,9 @@ function TvShowDetails() {
 
   if (!tvShow) return <div>Loading...</div>;
 
+  const genre = tvShow.genres[0]?.name.toLowerCase();
+  const fontFamily = fontFamilies[genre] || 'Roboto, sans-serif';
+
   const handleSeasonChange = (event) => {
     setSelectedSeason(parseInt(event.target.value));
     setSelectedEpisode(1);
@@ -164,7 +203,7 @@ function TvShowDetails() {
       <TvShowInfo>
         <Poster src={`https://image.tmdb.org/t/p/w500${tvShow.poster_path}`} alt={tvShow.name} />
         <Info>
-          <h2>{tvShow.name}</h2>
+          <Title fontFamily={fontFamily}>{tvShow.name}</Title>
           <p>{tvShow.overview}</p>
           <p>First Air Date: {tvShow.first_air_date}</p>
           <p>Number of Seasons: {tvShow.number_of_seasons}</p>
@@ -192,7 +231,7 @@ function TvShowDetails() {
                 )}
               </Select>
             </SelectorWrapper>
-          </SelectorsContainer>
+           </SelectorsContainer>
         </Info>
       </TvShowInfo>
       <h3>Cast</h3>

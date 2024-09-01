@@ -6,25 +6,60 @@ import { getTopRatedMovies, getUpcomingMovies, getNowPlayingMovies } from '../se
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 `;
 
-const FilterContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
+
+const SelectWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  max-width: 300px;
   margin-bottom: 20px;
 `;
 
-
-
 const CategorySelect = styled.select`
-  padding: 10px;
-  background-color: #333;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  margin-right: 10px;
+  appearance: none;
+  width: 100%;
+  padding: 12px 20px;
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.text};
+  border: 2px solid ${props => props.theme.primary};
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s;
+
+  &:hover {
+    background-color: ${props => props.theme.background}ee;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px ${props => props.theme.primary}80;
+  }
+`;
+
+const SelectArrow = styled.div`
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid ${props => props.theme.primary};
+  pointer-events: none;
 `;
 
 function Discovery() {
@@ -70,16 +105,17 @@ function Discovery() {
     setCurrentPage(1);
   };
 
-  return (
+return (
     <div>
       <h2>Discover Movies</h2>
-      <FilterContainer>
+      <SelectWrapper>
         <CategorySelect value={category} onChange={handleCategoryChange}>
           <option value="top_rated">Top Rated</option>
           <option value="upcoming">Upcoming</option>
           <option value="now_playing">Now Playing</option>
         </CategorySelect>
-      </FilterContainer>
+        <SelectArrow />
+      </SelectWrapper>
       <Grid>
         {movies.map((movie) => (
           <MovieCard key={movie.id} movie={movie} />
@@ -94,4 +130,4 @@ function Discovery() {
   );
 }
 
-export default Discovery;
+export default Discovery

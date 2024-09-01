@@ -7,8 +7,21 @@ import { getPopularMovies, getMovieGenres, discoverMovies } from '../services/tm
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+`;
+
+const FilterWrapper = styled.div`
+  margin-bottom: 20px;
 `;
 
 function Movies() {
@@ -60,14 +73,16 @@ function Movies() {
     setCurrentPage(1);
   };
 
-  return (
+ return (
     <div>
       <h2>Popular Movies</h2>
-      <GenreFilter
-        genres={genres}
-        selectedGenre={selectedGenre}
-        onGenreSelect={handleGenreSelect}
-      />
+      <FilterWrapper>
+        <GenreFilter
+          genres={genres}
+          selectedGenre={selectedGenre}
+          onGenreSelect={handleGenreSelect}
+        />
+      </FilterWrapper>
       <Grid>
         {movies.map((movie) => (
           <MovieCard key={movie.id} movie={movie} genres={genres} />

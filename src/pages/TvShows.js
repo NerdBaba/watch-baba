@@ -7,8 +7,21 @@ import { getPopularTvShows, getTvShowGenres, discoverTvShows } from '../services
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+`;
+
+const FilterWrapper = styled.div`
+  margin-bottom: 20px;
 `;
 
 function TvShows() {
@@ -59,15 +72,16 @@ function TvShows() {
     setSelectedGenre(genreId);
     setCurrentPage(1);
   };
-
-  return (
+ return (
     <div>
       <h2>Popular TV Shows</h2>
-      <GenreFilter
-        genres={genres}
-        selectedGenre={selectedGenre}
-        onGenreSelect={handleGenreSelect}
-      />
+      <FilterWrapper>
+        <GenreFilter
+          genres={genres}
+          selectedGenre={selectedGenre}
+          onGenreSelect={handleGenreSelect}
+        />
+      </FilterWrapper>
       <Grid>
         {tvShows.map((show) => (
           <MovieCard

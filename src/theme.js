@@ -6,8 +6,6 @@ export const themes = {
   dracula: { name: 'Dracula', primary: '#BD93F9', background: '#282A36', text: '#F8F8F2' },
   github: { name: 'GitHub', primary: '#0366D6', background: '#F6F8FA', text: '#24292E' },
   tomorrow: { name: 'Tomorrow', primary: '#F5871F', background: '#FFFFFF', text: '#4D4D4C' },
-  oceanic: { name: 'Oceanic', primary: '#6699CC', background: '#1B2B34', text: '#D8DEE9' },
-  spotify: { name: 'Green Goblin', primary: '#1DB954', background: '#121212', text: '#FFFFFF' },
   ayu: { name: 'Ayu', primary: '#FF9940', background: '#0F1419', text: '#E6E1CF' },
   twitch: { name: 'Twitch', primary: '#9146FF', background: '#0E0E10', text: '#EFEFF1' },
   synthwave: { name: 'Synthwave', primary: '#FF7EDB', background: '#2B213A', text: '#F8F8F2' },

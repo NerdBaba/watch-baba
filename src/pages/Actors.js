@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import tmdbApi from '../services/tmdbApi';
@@ -6,8 +6,17 @@ import Pagination from '../components/Pagination';
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 `;
 
 const ActorCard = styled(Link)`
@@ -24,14 +33,20 @@ const ActorCard = styled(Link)`
 
 const ProfilePic = styled.img`
   width: 100%;
-  height: 300px;
+  height: auto;
+  aspect-ratio: 2 / 3;
   object-fit: cover;
 `;
 
 const Name = styled.h3`
-  font-size: 15px;
+  font-size: 14px;
   text-align: center;
   color: ${props => props.theme.primary};
+  margin: 10px 0;
+
+  @media (min-width: 480px) {
+    font-size: 15px;
+  }
 `;
 
 function Actors() {
@@ -48,11 +63,21 @@ function Actors() {
     });
   }, [currentPage]);
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-    window.scrollTo(0, 0);
-  };
+  const handlePageChange = useCallback((pageNumber) => {
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    };
 
+    scrollToTop();
+
+    // Wait for the scroll to complete before changing the page
+    setTimeout(() => {
+      setCurrentPage(pageNumber);
+    }, 500); // Adjust this timeout if needed
+  }, []);
   return (
     <div>
       <h2>Popular Actors</h2>

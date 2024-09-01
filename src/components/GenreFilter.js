@@ -1,11 +1,10 @@
-// components/GenreFilter.js
 import React from 'react';
 import styled from 'styled-components';
 
 const FilterContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 20px;
 `;
 
@@ -13,11 +12,16 @@ const GenreButton = styled.button`
   background-color: ${props => props.active ? props.theme.primary : props.theme.secondary};
   color: ${props => props.active ? props.theme.text : props.theme.secondary};
   border: none;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 20px;
   cursor: pointer;
-  font-size : 15px;
+  font-size: 13px;
   transition: all 0.3s;
+
+  @media (min-width: 768px) {
+    padding: 8px 12px;
+    font-size: 15px;
+  }
 
   &:hover {
     background-color: ${props => props.theme.primary};
