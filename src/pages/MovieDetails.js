@@ -1,5 +1,5 @@
 // pages/MovieDetails.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { getMovieDetails, getMovieCredits, getMovieRecommendations } from '../services/tmdbApi';
@@ -96,6 +96,27 @@ const RecommendationsContainer = styled.div`
   }
 `;
 
+const WatchOptions = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+`;
+
+const WatchButton = styled.button`
+  padding: 10px 20px;
+  background-color: ${props => props.active ? '#4CAF50' : '#ddd'};
+  color: ${props => props.active ? 'white' : 'black'};
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+`;
+
+
+const EmbedPlayer = styled.iframe`
+  width: 100%;
+  height: 450px;
+  border: none;
+`;
 
 
 
@@ -104,6 +125,7 @@ function MovieDetails() {
   const [movie, setMovie] = useState(null);
   const [cast, setCast] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
+  const [watchOption, setWatchOption] = useState('server1');
 
   useEffect(() => {
     getMovieDetails(id).then((response) => setMovie(response.data));
@@ -125,22 +147,37 @@ function MovieDetails() {
           <p>Genres: {movie.genres.map(genre => genre.name).join(', ')}</p>
         </Info>
       </MovieInfo>
-      <VideoPlayer imdbId={movie.id} />
+
+      <WatchOptions>
+        <WatchButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</WatchButton>
+        <WatchButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</WatchButton>
+      </WatchOptions>
+
+      {watchOption === 'server1' ? (
+        <VideoPlayer imdbId={movie.imdb_id || id} />
+      ) : (
+        <EmbedPlayer 
+          src={`https://flixcloud.co/embed/movie?id=${id}`}
+          allowFullScreen
+        />
+      )}
+
       <h3>Cast</h3>
       <CastContainer>
-  {cast.map((member) => (
-    <CastMember key={member.id} to={`/actor/${member.id}`}>
-      <CastImage src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} alt={member.name} />
-      <p>{member.name}</p>
-    </CastMember>
-  ))}
-</CastContainer>
+        {cast.map((member) => (
+          <CastMember key={member.id} to={`/actor/${member.id}`}>
+            <CastImage src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} alt={member.name} />
+            <p>{member.name}</p>
+          </CastMember>
+        ))}
+      </CastContainer>
+
       <h3>Recommendations</h3>
       <RecommendationsContainer>
-  {recommendations.map((movie) => (
-    <MovieCard key={movie.id} movie={movie} />
-  ))}
-</RecommendationsContainer>
+        {recommendations.map((movie) => (
+          <MovieCard key={movie.id} movie={movie} />
+        ))}
+      </RecommendationsContainer>
     </MovieContainer>
   );
 }
