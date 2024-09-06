@@ -1,11 +1,10 @@
 // pages/MovieDetails.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { getMovieDetails, getMovieCredits, getMovieRecommendations } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
-import axios from 'axios';
 
 const MovieContainer = styled.div`
   display: flex;
