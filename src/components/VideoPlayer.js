@@ -39,6 +39,7 @@ function VideoPlayer({ imdbId, season, episode }) {
   } else {
     embedUrl = `https://vidsrc.cc/v3/embed/movie/${imdbId}`;
   }
+ 
 
   return (
     <PlayerContainer>
