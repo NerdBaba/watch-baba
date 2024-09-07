@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
-const BASE_URL = 'https://api.themoviedb.org/3';
+const BASE_URL = 'https://proxy-api-server-woz1.onrender.com/v1/tmdb/3';
 
 const tmdbApi = axios.create({
   baseURL: BASE_URL,
