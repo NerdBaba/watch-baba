@@ -1,5 +1,5 @@
 export const themes = {
-  netflix : { name: 'Netflix', primary: '#E50914', background: '#000000', text: '#FFFFFF' },
+  default : { name: 'Netflix', primary: '#E50914', background: '#000000', text: '#FFFFFF' },
   Yellowjacket: { name: 'Yellowjacket', primary: '#ffd700', background: '#1a1a1a', text: '#ffffff' },
   nord: { name: 'Nord', primary: '#88C0D0', background: '#2E3440', text: '#D8DEE9' },
   gruvbox: { name: 'Gruvbox', primary: '#FE8019', background: '#282828', text: '#EBDBB2' },
