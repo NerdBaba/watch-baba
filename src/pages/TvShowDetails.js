@@ -170,6 +170,27 @@ const CastImage = styled.img`
   border-radius: 5px;
 `;
 
+const WatchOptions = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+`;
+
+const WatchButton = styled.button`
+  padding: 10px 20px;
+  background-color: ${props => props.active ? '#4CAF50' : '#ddd'};
+  color: ${props => props.active ? 'white' : 'black'};
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+`;
+
+const EmbedPlayer = styled.iframe`
+  width: 100%;
+  height: 450px;
+  border: none;
+`;
+
 function TvShowDetails() {
   const { id } = useParams();
   const [tvShow, setTvShow] = useState(null);
@@ -177,6 +198,7 @@ function TvShowDetails() {
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [cast, setCast] = useState([]);
+  const [watchOption, setWatchOption] = useState('server1');
 
   useEffect(() => {
     getTvShowDetails(id).then((response) => setTvShow(response.data));
@@ -246,7 +268,20 @@ function TvShowDetails() {
           </CastMember>
         ))}
       </CastContainer>
-      <VideoPlayer imdbId={tvShow.id} season={selectedSeason} episode={selectedEpisode} />
+         <WatchOptions>
+        <WatchButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</WatchButton>
+        <WatchButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</WatchButton>
+      </WatchOptions>
+
+      {watchOption === 'server1' ? (
+        <VideoPlayer imdbId={tvShow.id} season={selectedSeason} episode={selectedEpisode} />
+      ) : (
+        <EmbedPlayer 
+          src={`https://vidlink.pro/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+          allowFullScreen
+        />
+      )}
+
       <h3>Recommendations</h3>
       <RecommendationsContainer>
         {recommendations.map((tvShow) => (
