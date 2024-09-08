@@ -1,5 +1,6 @@
 // pages/MovieDetails.js
 import React, { useState, useEffect} from 'react';
+import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { getMovieDetails, getMovieCredits, getMovieRecommendations } from '../services/tmdbApi';
@@ -117,6 +118,28 @@ const EmbedPlayer = styled.iframe`
   height: 450px;
   border: none;
 `;
+const TamilYogiButton = styled(WatchButton)`
+  // Add any specific styles for the TamilYogi button
+`;
+
+const TamilYogiResultsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+`;
+
+const TamilYogiResultButton = styled.button`
+  padding: 10px;
+  background-color: ${props => props.theme.primary};
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
+`;
 
 
 
@@ -126,12 +149,75 @@ function MovieDetails() {
   const [cast, setCast] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [watchOption, setWatchOption] = useState('server1');
+  const [tamilYogiResults, setTamilYogiResults] = useState([]);
+  const [selectedTamilYogiLink, setSelectedTamilYogiLink] = useState('');
 
   useEffect(() => {
     getMovieDetails(id).then((response) => setMovie(response.data));
     getMovieCredits(id).then((response) => setCast(response.data.cast.slice(0, 10)));
     getMovieRecommendations(id).then((response) => setRecommendations(response.data.results.slice(0, 20)));
   }, [id]);
+
+   const fetchTamilYogiResults = async () => {
+    if (!movie) return;
+    const searchTerm = movie.title.split(' ').slice(0, 2).join('+');
+    const url = `https://simple-proxy.mda2233.workers.dev/?destination=https://tamilyogi.fm/?s=${searchTerm}`;
+    
+    try {
+      const response = await axios.get(url);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(response.data, 'text/html');
+      const results = Array.from(doc.querySelectorAll('.ml-item')).slice(0, 5).map(item => ({
+        title: item.querySelector('.mli-info h2').textContent,
+        link: item.querySelector('a').href
+      }));
+      setTamilYogiResults(results);
+    } catch (error) {
+      console.error('Error fetching TamilYogi results:', error);
+    }
+  };
+
+   useEffect(() => {
+  if (watchOption === 'tamilyogi') {
+    fetchTamilYogiResults();
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [watchOption, movie]);
+
+
+  const renderPlayer = () => {
+    switch(watchOption) {
+      case 'server1':
+        return <VideoPlayer imdbId={movie.imdb_id || id} />;
+      case 'server2':
+        return (
+          <EmbedPlayer 
+            src={`https://vidlink.pro/movie/${id}`}
+            allowFullScreen
+          />
+        );
+      case 'tamilyogi':
+  return selectedTamilYogiLink ? (
+    <EmbedPlayer src={selectedTamilYogiLink}
+      allowFullScreen
+     />
+  ) : (
+    <TamilYogiResultsContainer>
+      {tamilYogiResults.map((result, index) => (
+        <TamilYogiResultButton 
+          key={index} 
+          onClick={() => setSelectedTamilYogiLink(result.link)}
+        >
+          {result.title}
+        </TamilYogiResultButton>
+      ))}
+    </TamilYogiResultsContainer>
+  );
+      default:
+        return null;
+    }
+  };
+
 
   if (!movie) return <div>Loading...</div>;
 
@@ -147,20 +233,13 @@ function MovieDetails() {
           <p>Genres: {movie.genres.map(genre => genre.name).join(', ')}</p>
         </Info>
       </MovieInfo>
-
       <WatchOptions>
         <WatchButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</WatchButton>
         <WatchButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</WatchButton>
+        <TamilYogiButton active={watchOption === 'tamilyogi'} onClick={() => setWatchOption('tamilyogi')}>TamilYogi</TamilYogiButton>
       </WatchOptions>
 
-      {watchOption === 'server1' ? (
-        <VideoPlayer imdbId={movie.imdb_id || id} />
-      ) : (
-        <EmbedPlayer 
-          src={`https://vidlink.pro/movie/${id}`}
-          allowFullScreen
-        />
-      )}
+      {renderPlayer()}
 
       <h3>Cast</h3>
       <CastContainer>
