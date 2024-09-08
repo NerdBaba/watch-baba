@@ -157,7 +157,7 @@ function MovieDetails() {
         <VideoPlayer imdbId={movie.imdb_id || id} />
       ) : (
         <EmbedPlayer 
-          src={`https://vidlink.pro/movie/id=${id}`}
+          src={`https://vidlink.pro/movie/${id}`}
           allowFullScreen
         />
       )}
