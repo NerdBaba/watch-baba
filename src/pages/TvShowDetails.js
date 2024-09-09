@@ -277,7 +277,7 @@ function TvShowDetails() {
         <VideoPlayer imdbId={tvShow.id} season={selectedSeason} episode={selectedEpisode} />
       ) : (
         <EmbedPlayer 
-          src={`https://vidlink.pro/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+          src={`https://player.smashy.stream/tv/${tvShow.id}?s=${selectedSeason}&e=${selectedEpisode}`}
           allowFullScreen
         />
       )}

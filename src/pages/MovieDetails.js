@@ -192,7 +192,7 @@ function MovieDetails() {
       case 'server2':
         return (
           <EmbedPlayer 
-            src={`https://vidlink.pro/movie/${id}`}
+            src={`https://player.smashy.stream/movie/${id}`}
             allowFullScreen
           />
         );
