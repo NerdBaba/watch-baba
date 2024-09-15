@@ -70,8 +70,6 @@ export const discoverTrendingTvShowsInIndia = (page = 1, genreId = '') => {
       sort_by: 'popularity.desc',
       region: 'IN',
       with_origin_country: 'IN',
-      'air_date.gte': getLastMonthDate(),
-      'air_date.lte': getCurrentDate()
     }
   });
 };
