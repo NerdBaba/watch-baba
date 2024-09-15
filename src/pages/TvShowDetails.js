@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds} from '../services/tmdbApi';
+import axios from 'axios';
+import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
+import DownloadOption from '../components/DownloadOption';
+import OpenPlayerJS from 'openplayerjs';
+import 'openplayerjs/dist/openplayer.css';
 
 const fontFamilies = {
   drama: 'Dancing Script, cursive',
@@ -17,8 +21,6 @@ const fontFamilies = {
   fantasy: 'Orbitron, sans-serif',
   documentary: 'Roboto Slab, serif',
   animation: 'Permanent Marker, cursive',
-
-  // Additional genres
   mystery: 'Libre Baskerville, serif',
   crime: 'Mukta, sans-serif',
   musical: 'Abril Fatface, cursive',
@@ -34,7 +36,6 @@ const fontFamilies = {
   kids: 'Bangers, cursive',
 };
 
-
 const TvShowContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -43,37 +44,64 @@ const TvShowContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 10px;
+
+  @media (max-width: 768px) {
+    padding: 5px;
+  }
 `;
 
 const TvShowInfo = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 20px;
   flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
 const Poster = styled.img`
   width: 300px;
   height: auto;
   object-fit: cover;
-  padding: 20px
+  padding: 20px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    padding: 10px;
+  }
 `;
 
 const Info = styled.div`
   flex: 1;
   min-width: 300px;
+
+  @media (max-width: 768px) {
+    min-width: 100%;
+  }
 `;
 
 const Title = styled.h2`
   font-family: ${(props) => props.fontFamily};
   font-size: 2.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
 `;
 
 const SelectorsContainer = styled.div`
   display: flex;
   gap: 20px;
   margin-top: 20px;
-`;
+  flex-wrap: wrap;
 
+  @media (max-width: 768px) {
+    gap: 10px;
+  }
+`;
 
 const SelectorWrapper = styled.div`
   display: flex;
@@ -174,16 +202,8 @@ const WatchOptions = styled.div`
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 `;
-
-// const WatchButton = styled.button`
-//   padding: 10px 20px;
-//   background-color: ${props => props.active ? '#4CAF50' : '#ddd'};
-//   color: ${props => props.active ? 'white' : 'black'};
-//   border: none;
-//   cursor: pointer;
-//   border-radius: 5px;
-// `;
 
 const ServerButton = styled.button`
   padding: 10px 20px;
@@ -198,12 +218,22 @@ const ServerButton = styled.button`
   &:hover {
     opacity: 0.8;
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
 `;
 
 const EmbedPlayer = styled.iframe`
   width: 100%;
   height: 450px;
   border: none;
+
+  @media (max-width: 768px) {
+    height: 250px;
+  }
 `;
 
 function TvShowDetails() {
@@ -215,6 +245,30 @@ function TvShowDetails() {
   const [cast, setCast] = useState([]);
   const [watchOption, setWatchOption] = useState('server1');
   const [externalIds, setExternalIds] = useState(null);
+  const [videoSources, setVideoSources] = useState([]);
+  const [server4Data, setServer4Data] = useState(null);
+  const playerRef = useRef(null);
+
+  const fetchVideoSources = useCallback(async (embedUrl) => {
+    try {
+      const response = await axios.get(embedUrl);
+      const html = response.data;
+      const sourceMatch = html.match(/src: (\[[^\]]+\])/);
+      if (sourceMatch) {
+        const sourcesArray = JSON.parse(sourceMatch[1]);
+        const formattedSources = sourcesArray.map(source => ({
+          src: source.src,
+          quality: `${source.height}p`
+        }));
+        setVideoSources(formattedSources);
+      } else {
+        setVideoSources([]);
+      }
+    } catch (error) {
+      console.error('Error fetching video sources:', error);
+      setVideoSources([]);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchTvShowData = async () => {
@@ -230,13 +284,69 @@ function TvShowDetails() {
         setRecommendations(recommendationsResponse.data.results.slice(0, 20));
         setCast(creditsResponse.data.cast.slice(0, 10));
         setExternalIds(externalIdsResponse.data);
+
+        if (watchOption === 'server3') {
+          const currentSeason = detailsResponse.data.seasons.find(season => season.season_number === selectedSeason);
+          const totalEpisodes = detailsResponse.data.seasons.reduce((sum, season) => sum + season.episode_count, 0);
+          const embedData = {
+            type: "Series",
+            title: detailsResponse.data.name,
+            year: detailsResponse.data.first_air_date.split('-')[0],
+            poster: `https://image.tmdb.org/t/p/original${detailsResponse.data.poster_path}`,
+            season: selectedSeason.toString(),
+            totalSeasons: detailsResponse.data.number_of_seasons.toString(),
+            episode: selectedEpisode.toString(),
+            totalEpisodes: totalEpisodes.toString(),
+            seasonNumber: selectedSeason,
+            totalSeasonsNumber: detailsResponse.data.number_of_seasons,
+            episodeNumber: selectedEpisode,
+            totalEpisodesNumber: currentSeason ? currentSeason.episode_count : 0,
+            seasonId: currentSeason ? currentSeason.id.toString() : "",
+            episodeId: "",
+            tmdbId: detailsResponse.data.id.toString(),
+            imdbId: externalIdsResponse.data.imdb_id || "",
+            runtime: detailsResponse.data.episode_run_time[0] || 0
+          };
+          const embedUrl = `https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`;
+          fetchVideoSources(embedUrl);
+        }
       } catch (error) {
         console.error('Error fetching TV show data:', error);
       }
     };
 
     fetchTvShowData();
-  }, [id]);
+  }, [id, watchOption, selectedSeason, selectedEpisode, fetchVideoSources]);
+
+   const fetchServer4Data = useCallback(async () => {
+    try {
+      const response = await axios.get(`https://hugo.vidlink.pro/api/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}?multiLang=1`);
+      setServer4Data(response.data);
+    } catch (error) {
+      console.error('Error fetching server 4 data:', error);
+    }
+  }, [tvShow, selectedSeason, selectedEpisode]);
+
+  useEffect(() => {
+    if (watchOption === 'server4' && tvShow) {
+      fetchServer4Data();
+    }
+  }, [watchOption, tvShow, fetchServer4Data]);
+
+    useEffect(() => {
+    if (watchOption === 'server4' && server4Data && playerRef.current) {
+      const player = new OpenPlayerJS('server4-player', {
+        controls: {
+          layers: {
+            left: ['play', 'time', 'volume'],
+            middle: ['progress'],
+            right: ['captions', 'settings', 'levels', 'fullscreen'],
+          }
+        },
+        detachMenus: true, // This will create a separate menu for quality levels
+      });
+      player.init();
+  }}, [watchOption, server4Data]);
 
   if (!tvShow || !externalIds) return <div>Loading...</div>;
 
@@ -257,7 +367,7 @@ function TvShowDetails() {
     episodeNumber: selectedEpisode,
     totalEpisodesNumber: currentSeason ? currentSeason.episode_count : 0,
     seasonId: currentSeason ? currentSeason.id.toString() : "",
-    episodeId: "", // We don't have this information readily available
+    episodeId: "",
     tmdbId: tvShow.id.toString(),
     imdbId: externalIds.imdb_id || "",
     runtime: tvShow.episode_run_time[0] || 0
@@ -323,7 +433,7 @@ function TvShowDetails() {
           </CastMember>
         ))}
       </CastContainer>
-         <WatchOptions>
+      <WatchOptions>
         <ServerButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</ServerButton>
         <ServerButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</ServerButton>
         <ServerButton active={watchOption === 'server3'} onClick={() => setWatchOption('server3')}>Server 3 (4K)</ServerButton>
@@ -338,16 +448,33 @@ function TvShowDetails() {
           allowFullScreen
         />
       ) : watchOption === 'server3' ? (
-        <EmbedPlayer 
-          src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
-          allowFullScreen
-        />
-      ) : (
-        <EmbedPlayer 
-          src={`https://vidlink.pro/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}?player=jw&multiLang=true`}
-          allowFullScreen
-        />
-      )}
+        <>
+          <EmbedPlayer 
+            src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
+            allowFullScreen
+          />
+          <DownloadOption 
+            sources={videoSources}
+            title={`${tvShow.name} S${selectedSeason}E${selectedEpisode}`}
+          />
+        </>
+      ) : watchOption === 'server4' && server4Data ? (
+        <div>
+          <video id="server4-player" className="op-player__media" controls playsInline ref={playerRef}>
+            <source src={server4Data.stream.playlist} type="application/x-mpegURL" />
+            {server4Data.stream.captions.map((caption, index) => (
+              <track 
+                key={index}
+                kind="captions"
+                label={caption.language}
+                srcLang={caption.language.toLowerCase()}
+                src={caption.url}
+                
+              />
+            ))}
+          </video>
+        </div>
+      ) : null}
 
       <h3>Recommendations</h3>
       <RecommendationsContainer>
