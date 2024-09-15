@@ -35,7 +35,20 @@ const Info = styled.div`
   min-width: 300px;
 `;
 
+const ServerButton = styled.button`
+  padding: 10px 20px;
+  background-color: ${props => props.active ? props.theme.primary : props.theme.background};
+  color: ${props => props.active ? props.theme.background : props.theme.text};
+  border: 1px solid ${props => props.theme.primary};
+  cursor: pointer;
+  border-radius: 5px;
+  margin-right: 10px;
+  transition: all 0.3s ease;
 
+  &:hover {
+    opacity: 0.8;
+  }
+`;
 const CastContainer = styled.div`
   display: flex;
   overflow-x: auto;
@@ -103,14 +116,7 @@ const WatchOptions = styled.div`
   margin-bottom: 20px;
 `;
 
-const WatchButton = styled.button`
-  padding: 10px 20px;
-  background-color: ${props => props.active ? '#4CAF50' : '#ddd'};
-  color: ${props => props.active ? 'white' : 'black'};
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-`;
+
 
 
 const EmbedPlayer = styled.iframe`
@@ -118,9 +124,8 @@ const EmbedPlayer = styled.iframe`
   height: 450px;
   border: none;
 `;
-const TamilYogiButton = styled(WatchButton)`
-  // Add any specific styles for the TamilYogi button
-`;
+
+
 
 const TamilYogiResultsContainer = styled.div`
   display: flex;
@@ -186,37 +191,57 @@ function MovieDetails() {
 
 
   const renderPlayer = () => {
-    switch(watchOption) {
-      case 'server1':
-        return <VideoPlayer imdbId={movie.imdb_id || id} />;
-      case 'server2':
-        return (
-          <EmbedPlayer 
-            src={`https://player.smashy.stream/movie/${id}`}
-            allowFullScreen
-          />
-        );
-      case 'tamilyogi':
-  return selectedTamilYogiLink ? (
-    <EmbedPlayer src={selectedTamilYogiLink}
-      allowFullScreen
-     />
-  ) : (
-    <TamilYogiResultsContainer>
-      {tamilYogiResults.map((result, index) => (
-        <TamilYogiResultButton 
-          key={index} 
-          onClick={() => setSelectedTamilYogiLink(result.link)}
-        >
-          {result.title}
-        </TamilYogiResultButton>
-      ))}
-    </TamilYogiResultsContainer>
-  );
-      default:
-        return null;
-    }
-  };
+  switch(watchOption) {
+    case 'server1':
+      return <VideoPlayer imdbId={movie.imdb_id || id} />;
+    case 'server2':
+      return (
+        <EmbedPlayer 
+          src={`https://player.smashy.stream/movie/${id}`}
+          allowFullScreen
+        />
+      );
+    case 'server3':
+      return (
+        <EmbedPlayer 
+          src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify({
+            type: "Movie",
+            title: movie.title,
+            year: movie.release_date.split('-')[0],
+            poster: `https://image.tmdb.org/t/p/original${movie.poster_path}`,
+            tmdbId: movie.id.toString(),
+            imdbId: movie.imdb_id,
+            runtime: movie.runtime
+          }))}`}
+          allowFullScreen
+        />
+      );
+    case 'server4':
+      return (
+        <EmbedPlayer 
+          src={`https://vidlink.pro/movie/${movie.id}?player=jw&multiLang=true`}
+          allowFullScreen
+        />
+      );
+    case 'tamilyogi':
+      return selectedTamilYogiLink ? (
+        <EmbedPlayer src={selectedTamilYogiLink} allowFullScreen />
+      ) : (
+        <TamilYogiResultsContainer>
+          {tamilYogiResults.map((result, index) => (
+            <TamilYogiResultButton 
+              key={index} 
+              onClick={() => setSelectedTamilYogiLink(result.link)}
+            >
+              {result.title}
+            </TamilYogiResultButton>
+          ))}
+        </TamilYogiResultsContainer>
+      );
+    default:
+      return null;
+  }
+};
 
 
   if (!movie) return <div>Loading...</div>;
@@ -234,10 +259,12 @@ function MovieDetails() {
         </Info>
       </MovieInfo>
       <WatchOptions>
-        <WatchButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</WatchButton>
-        <WatchButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</WatchButton>
-        <TamilYogiButton active={watchOption === 'tamilyogi'} onClick={() => setWatchOption('tamilyogi')}>TamilYogi</TamilYogiButton>
-      </WatchOptions>
+  <ServerButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</ServerButton>
+  <ServerButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</ServerButton>
+  <ServerButton active={watchOption === 'server3'} onClick={() => setWatchOption('server3')}>Server 3 (4K)</ServerButton>
+  <ServerButton active={watchOption === 'server4'} onClick={() => setWatchOption('server4')}>Server 4</ServerButton>
+  <ServerButton active={watchOption === 'tamilyogi'} onClick={() => setWatchOption('tamilyogi')}>TamilYogi</ServerButton>
+</WatchOptions>
 
       {renderPlayer()}
 

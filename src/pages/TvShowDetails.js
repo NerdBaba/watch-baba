@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits } from '../services/tmdbApi';
+import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds} from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 
@@ -176,13 +176,28 @@ const WatchOptions = styled.div`
   margin-bottom: 20px;
 `;
 
-const WatchButton = styled.button`
+// const WatchButton = styled.button`
+//   padding: 10px 20px;
+//   background-color: ${props => props.active ? '#4CAF50' : '#ddd'};
+//   color: ${props => props.active ? 'white' : 'black'};
+//   border: none;
+//   cursor: pointer;
+//   border-radius: 5px;
+// `;
+
+const ServerButton = styled.button`
   padding: 10px 20px;
-  background-color: ${props => props.active ? '#4CAF50' : '#ddd'};
-  color: ${props => props.active ? 'white' : 'black'};
-  border: none;
+  background-color: ${props => props.active ? props.theme.primary : props.theme.background};
+  color: ${props => props.active ? props.theme.background : props.theme.text};
+  border: 1px solid ${props => props.theme.primary};
   cursor: pointer;
   border-radius: 5px;
+  margin-right: 10px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 const EmbedPlayer = styled.iframe`
@@ -199,14 +214,54 @@ function TvShowDetails() {
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [cast, setCast] = useState([]);
   const [watchOption, setWatchOption] = useState('server1');
+  const [externalIds, setExternalIds] = useState(null);
 
   useEffect(() => {
-    getTvShowDetails(id).then((response) => setTvShow(response.data));
-    getTvShowRecommendations(id).then((response) => setRecommendations(response.data.results.slice(0, 20)));
-    getTvShowCredits(id).then((response) => setCast(response.data.cast.slice(0, 10)));
+    const fetchTvShowData = async () => {
+      try {
+        const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse] = await Promise.all([
+          getTvShowDetails(id),
+          getTvShowRecommendations(id),
+          getTvShowCredits(id),
+          getTvShowExternalIds(id)
+        ]);
+
+        setTvShow(detailsResponse.data);
+        setRecommendations(recommendationsResponse.data.results.slice(0, 20));
+        setCast(creditsResponse.data.cast.slice(0, 10));
+        setExternalIds(externalIdsResponse.data);
+      } catch (error) {
+        console.error('Error fetching TV show data:', error);
+      }
+    };
+
+    fetchTvShowData();
   }, [id]);
 
-  if (!tvShow) return <div>Loading...</div>;
+  if (!tvShow || !externalIds) return <div>Loading...</div>;
+
+  const currentSeason = tvShow.seasons.find(season => season.season_number === selectedSeason);
+  const totalEpisodes = tvShow.seasons.reduce((sum, season) => sum + season.episode_count, 0);
+
+  const embedData = {
+    type: "Series",
+    title: tvShow.name,
+    year: tvShow.first_air_date.split('-')[0],
+    poster: `https://image.tmdb.org/t/p/original${tvShow.poster_path}`,
+    season: selectedSeason.toString(),
+    totalSeasons: tvShow.number_of_seasons.toString(),
+    episode: selectedEpisode.toString(),
+    totalEpisodes: totalEpisodes.toString(),
+    seasonNumber: selectedSeason,
+    totalSeasonsNumber: tvShow.number_of_seasons,
+    episodeNumber: selectedEpisode,
+    totalEpisodesNumber: currentSeason ? currentSeason.episode_count : 0,
+    seasonId: currentSeason ? currentSeason.id.toString() : "",
+    episodeId: "", // We don't have this information readily available
+    tmdbId: tvShow.id.toString(),
+    imdbId: externalIds.imdb_id || "",
+    runtime: tvShow.episode_run_time[0] || 0
+  };
 
   const genre = tvShow.genres[0]?.name.toLowerCase();
   const fontFamily = fontFamilies[genre] || 'Roboto, sans-serif';
@@ -269,15 +324,27 @@ function TvShowDetails() {
         ))}
       </CastContainer>
          <WatchOptions>
-        <WatchButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</WatchButton>
-        <WatchButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</WatchButton>
+        <ServerButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</ServerButton>
+        <ServerButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</ServerButton>
+        <ServerButton active={watchOption === 'server3'} onClick={() => setWatchOption('server3')}>Server 3 (4K)</ServerButton>
+        <ServerButton active={watchOption === 'server4'} onClick={() => setWatchOption('server4')}>Server 4</ServerButton>
       </WatchOptions>
 
       {watchOption === 'server1' ? (
-        <VideoPlayer imdbId={tvShow.id} season={selectedSeason} episode={selectedEpisode} />
-      ) : (
+        <VideoPlayer imdbId={externalIds.imdb_id} season={selectedSeason} episode={selectedEpisode} />
+      ) : watchOption === 'server2' ? (
         <EmbedPlayer 
           src={`https://player.smashy.stream/tv/${tvShow.id}?s=${selectedSeason}&e=${selectedEpisode}`}
+          allowFullScreen
+        />
+      ) : watchOption === 'server3' ? (
+        <EmbedPlayer 
+          src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
+          allowFullScreen
+        />
+      ) : (
+        <EmbedPlayer 
+          src={`https://vidlink.pro/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}?player=jw&multiLang=true`}
           allowFullScreen
         />
       )}

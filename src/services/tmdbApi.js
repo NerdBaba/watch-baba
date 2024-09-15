@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+// const API_KEY = '374ed57246cdd0d51e7f9c7eb9e682f0';
 const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const BASE_URL = 'https://proxy-api-server-woz1.onrender.com/v1/tmdb/3';
 
@@ -66,6 +66,8 @@ export const discoverTvShows = (page = 1, genreId = '') => {
     }
   });
 };
+
+export const getTvShowExternalIds = (id) => tmdbApi.get(`/tv/${id}/external_ids`);
 
 export const getMovieDetails = (id) => tmdbApi.get(`/movie/${id}`);
 export const getTvShowDetails = (id) => tmdbApi.get(`/tv/${id}`);
