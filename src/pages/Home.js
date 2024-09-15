@@ -29,7 +29,7 @@ function Home() {
       try {
         const [moviesRes, tvShowsRes, movieGenresRes, tvGenresRes] = await Promise.all([
           getPopularMovies(),
-          getPopularTvShows(),
+          getPopularTvShowsInIndia(),
           getMovieGenres(),
           getTvShowGenres()
         ]);
