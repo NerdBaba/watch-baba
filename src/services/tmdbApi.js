@@ -53,6 +53,29 @@ export const getPopularTvShows = (page = 1) => {
   });
 };
 
+export const getPopularTvShowsInIndia = (page = 1) => {
+  return tmdbApi.get('/trending/tv/week', {
+    params: {
+      page,
+      region: 'IN'
+    }
+  });
+};
+
+export const discoverTrendingTvShowsInIndia = (page = 1, genreId = '') => {
+  return tmdbApi.get('/discover/tv', {
+    params: {
+      page,
+      with_genres: genreId,
+      sort_by: 'popularity.desc',
+      region: 'IN',
+      with_origin_country: 'IN',
+      'air_date.gte': getLastMonthDate(),
+      'air_date.lte': getCurrentDate()
+    }
+  });
+};
+
 export const getTvShowGenres = () => {
   return tmdbApi.get('/genre/tv/list');
 };
