@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
 import GenreFilter from '../components/GenreFilter';
-import { getPopularTvShows, getPopularTvShowsInIndia , getTvShowGenres,  discoverTrendingTvShowsInIndia } from '../services/tmdbApi';
+import {getPopularTvShowsInIndia , getTvShowGenres,  discoverTrendingTvShowsInIndia } from '../services/tmdbApi';
 
 const Grid = styled.div`
   display: grid;
