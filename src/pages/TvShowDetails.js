@@ -26,9 +26,16 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+
+-webkit-tap-highlight-color: transparent;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
   }
 `;
 
+    
 const TvShowContainer = styled.div`
   width: 100%;
   max-width: 1400px;
