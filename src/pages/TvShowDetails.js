@@ -1,162 +1,184 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
 import { useParams, Link } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
 import axios from 'axios';
 import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 import DownloadOption from '../components/DownloadOption';
-import OpenPlayerJS from 'openplayerjs';
-import 'openplayerjs/dist/openplayer.css';
+import { MediaPlayer, MediaProvider } from '@vidstack/react';
+import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
+import { FaPlay, FaInfoCircle, FaTimes} from 'react-icons/fa';
+import '@vidstack/react/player/styles/default/theme.css';
+import '@vidstack/react/player/styles/default/layouts/video.css';
 
-const fontFamilies = {
-  drama: 'Dancing Script, cursive',
-  romance: 'Dancing Script, cursive',
-  action: 'Bebas Neue, sans-serif',
-  adventure: 'Bebas Neue, sans-serif',
-  comedy: 'Comic Neue, cursive',
-  horror: 'Creepster, cursive',
-  thriller: 'Creepster, cursive',
-  sciFi: 'Orbitron, sans-serif',
-  fantasy: 'Orbitron, sans-serif',
-  documentary: 'Roboto Slab, serif',
-  animation: 'Permanent Marker, cursive',
-  mystery: 'Libre Baskerville, serif',
-  crime: 'Mukta, sans-serif',
-  musical: 'Abril Fatface, cursive',
-  family: 'Comfortaa, cursive',
-  western: 'Playfair Display, serif',
-  war: 'Staatliches, sans-serif',
-  history: 'Merriweather, serif',
-  biography: 'Lora, serif',
-  sport: 'Exo, sans-serif',
-  music: 'Fugaz One, cursive',
-  talkShow: 'PT Sans, sans-serif',
-  reality: 'Raleway, sans-serif',
-  kids: 'Bangers, cursive',
+const theme = {
+  background: '#141414',
+  text: 'white',
+  secondary: '#6D6D6E',
 };
 
+const GlobalStyle = createGlobalStyle`
+  body {
+    background-color: ${props => props.theme.background};
+    color: ${props => props.theme.text};
+    font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+`;
+
 const TvShowContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 10px;
-
-  @media (max-width: 768px) {
-    padding: 5px;
-  }
-`;
-
-const TvShowInfo = styled.div`
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-`;
-
-const Poster = styled.img`
-  width: 300px;
-  height: auto;
-  object-fit: cover;
   padding: 20px;
 
   @media (max-width: 768px) {
-    width: 100%;
-    max-width: 300px;
-    margin: 0 auto;
     padding: 10px;
   }
 `;
 
-const Info = styled.div`
-  flex: 1;
-  min-width: 300px;
+const CustomMediaPlayer = styled(MediaPlayer)`
+  --media-brand: ${props => props.theme.background};
+  --media-focus-ring-color: ${props => props.theme.primary};
+`;
+
+
+const Hero = styled.div`
+  position: relative;
+  height: 80vh;
+  background-image: url(${props => props.backdrop});
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  padding: 40px;
 
   @media (max-width: 768px) {
-    min-width: 100%;
+    height: 60vh;
+    padding: 20px;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(20,20,20,0.8) 0%, rgba(20,20,20,0) 60%, rgba(20,20,20,0.8) 100%);
   }
 `;
 
-const Title = styled.h2`
-  font-family: ${(props) => props.fontFamily};
-  font-size: 2.5rem;
+const HeroContent = styled.div`
+  position: relative;
+  z-index: 2;
+  max-width: 50%;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 3rem;
+  margin-bottom: 2px;
 
   @media (max-width: 768px) {
     font-size: 2rem;
   }
 `;
 
-const SelectorsContainer = styled.div`
-  display: flex;
-  gap: 20px;
-  margin-top: 20px;
-  flex-wrap: wrap;
+const Overview = styled.p`
+  font-size: 1.2rem;
+  margin-bottom: 20px;
 
   @media (max-width: 768px) {
-    gap: 10px;
+    font-size: 1rem;
   }
 `;
 
-const SelectorWrapper = styled.div`
+const ButtonGroup = styled.div`
   display: flex;
-  flex-direction: column;
+  gap: 10px;
+  flex-wrap: wrap;
 `;
 
-const Label = styled.label`
-  font-size: 16px;
-  font-weight: 500;
-  color: #757575;
-  margin-bottom: 8px;
-`;
-
-const Select = styled.select`
-  font-size: 16px;
-  padding: 10px 16px;
+const Button = styled.button`
+  padding: 10px 20px;
+  font-size: 1.1rem;
   border: none;
   border-radius: 4px;
-  background-color: #f5f5f5;
-  color: #333;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
 
   &:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    opacity: 0.8;
   }
 
-  &:focus {
-    outline: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    background-color: #e0e0e0;
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    padding: 8px 16px;
+  }
+`;
+const Tagline = styled.p`
+  font-style: italic;
+  color: white;
+  margin-bottom: 10px;
+`;
+
+const Ratings = styled.div`
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+`;
+
+const RatingItem = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  
+  svg {
+    color: ${props => props.theme.accent};
+  }
+`;
+const PlayButton = styled(Button)`
+  background-color: ${props => props.theme.text};
+  color: ${props => props.theme.background};
+  border-radius: 9px;
+  @font-face {
+    font-family: 'GeistVF';
+    src: url('fonts/GeistVF.ttf') format('truetype');
+  }
+  font-family: 'GeistVF';
+`;
+
+const InfoButton = styled(Button)`
+  background-color: rgba(109, 109, 110, 0.7);
+  color: ${props => props.theme.text};
+  border-radius: 9px;
+  font-family: 'GeistVF';
+`;
+
+const Section = styled.section`
+  margin: 40px 0;
+
+  @media (max-width: 768px) {
+    margin: 20px 0;
   }
 `;
 
-const RecommendationsContainer = styled.div`
-  display: flex;
-  overflow-x: auto;
-  gap: 20px;
-  padding: 10px 10px;
-  scrollbar-width: thin;
-  scrollbar-color: #888 #000;
+const SectionTitle = styled.h2`
+  font-size: 1.5rem;
+  margin-bottom: 20px;
 
-  &::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #000;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #888;
-    border-radius: 20px;
-    border: 3px solid #000;
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
   }
 `;
 
@@ -166,74 +188,139 @@ const CastContainer = styled.div`
   gap: 20px;
   padding: 20px 0;
   scrollbar-width: thin;
-  scrollbar-color: #888 #000;
+  scrollbar-color: ${props => props.theme.secondary} ${props => props.theme.background};
 
   &::-webkit-scrollbar {
     height: 8px;
   }
 
   &::-webkit-scrollbar-track {
-    background: #000;
+    background: ${props => props.theme.background};
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: #888;
+    background-color: ${props => props.theme.secondary};
     border-radius: 20px;
-    border: 3px solid #000;
+    border: 3px solid ${props => props.theme.background};
   }
 `;
 
 const CastMember = styled(Link)`
   text-align: center;
-  width: 100px;
+  width: 120px;
   flex-shrink: 0;
   text-decoration: none;
   color: inherit;
+
+  @media (max-width: 768px) {
+    width: 100px;
+  }
 `;
 
 const CastImage = styled.img`
-  width: 100px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   object-fit: cover;
-  border-radius: 5px;
-`;
-
-const WatchOptions = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-`;
-
-const ServerButton = styled.button`
-  padding: 10px 20px;
-  background-color: ${props => props.active ? props.theme.primary : props.theme.background};
-  color: ${props => props.active ? props.theme.background : props.theme.text};
-  border: 1px solid ${props => props.theme.primary};
-  cursor: pointer;
-  border-radius: 5px;
-  margin-right: 10px;
-  transition: all 0.3s ease;
-
-  &:hover {
-    opacity: 0.8;
-  }
+  border-radius: 50%;
+  margin-bottom: 10px;
 
   @media (max-width: 768px) {
-    width: 100%;
-    margin-right: 0;
-    margin-bottom: 10px;
+    width: 100px;
+    height: 100px;
   }
 `;
 
+const CastName = styled.p`
+  font-size: 0.9rem;
+  margin: 0;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
+`;
+
+const RecommendationsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+`;
+
+const Backdrop = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+`;
+
+const VideoContainer = styled.div`
+  position: relative;
+  width: 90%;
+  max-width: 1200px;
+  aspect-ratio: 16 / 9;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: transparent;
+  color: ${props => props.theme.text};
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+`;
 const EmbedPlayer = styled.iframe`
   width: 100%;
-  height: 450px;
+  height: 100%;
   border: none;
+  aspect-ratio: 16 / 9;
 
   @media (max-width: 768px) {
-    height: 250px;
+    height: 56.25vw;
   }
+`;
+const ControlsContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  margin-bottom: 10px;
+`;
+
+const Select = styled.select`
+  background-color: ${props => props.theme.secondary};
+  color: ${props => props.theme.text};
+  border: none;
+  padding: 8px;
+  font-family: 'GeistVF';
+  font-weight: heavy;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+const ServerDropdown = styled(Select)`
+  margin-left: 10px;
+  font-family: 'GeistVF';
 `;
 
 function TvShowDetails() {
@@ -243,11 +330,15 @@ function TvShowDetails() {
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [cast, setCast] = useState([]);
-  const [watchOption, setWatchOption] = useState('server1');
   const [externalIds, setExternalIds] = useState(null);
+  const [isWatching, setIsWatching] = useState(false);
+  const [watchOption, setWatchOption] = useState('server1');
   const [videoSources, setVideoSources] = useState([]);
   const [server4Data, setServer4Data] = useState(null);
-  const playerRef = useRef(null);
+  // const playerRef = useRef(null);
+  const [showMoreInfo, setShowMoreInfo] = useState(false);
+
+  // ... (keep all the existing useEffect and useCallback functions)
 
   const fetchVideoSources = useCallback(async (embedUrl) => {
     try {
@@ -258,7 +349,7 @@ function TvShowDetails() {
         const sourcesArray = JSON.parse(sourceMatch[1]);
         const formattedSources = sourcesArray.map(source => ({
           src: source.src,
-          quality: `${source.height}p`
+          quality: `${source.height}p`,
         }));
         setVideoSources(formattedSources);
       } else {
@@ -277,7 +368,7 @@ function TvShowDetails() {
           getTvShowDetails(id),
           getTvShowRecommendations(id),
           getTvShowCredits(id),
-          getTvShowExternalIds(id)
+          getTvShowExternalIds(id),
         ]);
 
         setTvShow(detailsResponse.data);
@@ -305,7 +396,7 @@ function TvShowDetails() {
             episodeId: "",
             tmdbId: detailsResponse.data.id.toString(),
             imdbId: externalIdsResponse.data.imdb_id || "",
-            runtime: detailsResponse.data.episode_run_time[0] || 0
+            runtime: detailsResponse.data.episode_run_time[0] || 0,
           };
           const embedUrl = `https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`;
           fetchVideoSources(embedUrl);
@@ -318,7 +409,7 @@ function TvShowDetails() {
     fetchTvShowData();
   }, [id, watchOption, selectedSeason, selectedEpisode, fetchVideoSources]);
 
-   const fetchServer4Data = useCallback(async () => {
+ const fetchServer4Data = useCallback(async () => {
     try {
       const response = await axios.get(`https://hugo.vidlink.pro/api/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}?multiLang=1`);
       setServer4Data(response.data);
@@ -333,25 +424,9 @@ function TvShowDetails() {
     }
   }, [watchOption, tvShow, fetchServer4Data]);
 
-    useEffect(() => {
-    if (watchOption === 'server4' && server4Data && playerRef.current) {
-      const player = new OpenPlayerJS('server4-player', {
-        controls: {
-          layers: {
-            left: ['play', 'time', 'volume'],
-            middle: ['progress'],
-            right: ['captions', 'settings', 'levels', 'fullscreen'],
-          }
-        },
-        detachMenus: true, // This will create a separate menu for quality levels
-      });
-      player.init();
-  }}, [watchOption, server4Data]);
+
 
   if (!tvShow || !externalIds) return <div>Loading...</div>;
-
-  const currentSeason = tvShow.seasons.find(season => season.season_number === selectedSeason);
-  const totalEpisodes = tvShow.seasons.reduce((sum, season) => sum + season.episode_count, 0);
 
   const embedData = {
     type: "Series",
@@ -361,128 +436,148 @@ function TvShowDetails() {
     season: selectedSeason.toString(),
     totalSeasons: tvShow.number_of_seasons.toString(),
     episode: selectedEpisode.toString(),
-    totalEpisodes: totalEpisodes.toString(),
+    totalEpisodes: tvShow.seasons.reduce((sum, season) => sum + season.episode_count, 0).toString(),
     seasonNumber: selectedSeason,
     totalSeasonsNumber: tvShow.number_of_seasons,
     episodeNumber: selectedEpisode,
-    totalEpisodesNumber: currentSeason ? currentSeason.episode_count : 0,
-    seasonId: currentSeason ? currentSeason.id.toString() : "",
+    totalEpisodesNumber: tvShow.seasons.find(season => season.season_number === selectedSeason)?.episode_count || 0,
+    seasonId: tvShow.seasons.find(season => season.season_number === selectedSeason)?.id.toString() || "",
     episodeId: "",
     tmdbId: tvShow.id.toString(),
     imdbId: externalIds.imdb_id || "",
-    runtime: tvShow.episode_run_time[0] || 0
-  };
-
-  const genre = tvShow.genres[0]?.name.toLowerCase();
-  const fontFamily = fontFamilies[genre] || 'Roboto, sans-serif';
-
-  const handleSeasonChange = (event) => {
-    setSelectedSeason(parseInt(event.target.value));
-    setSelectedEpisode(1);
-  };
-
-  const handleEpisodeChange = (event) => {
-    setSelectedEpisode(parseInt(event.target.value));
+    runtime: tvShow.episode_run_time[0] || 0,
   };
 
   return (
-    <TvShowContainer>
-      <TvShowInfo>
-        <Poster src={`https://image.tmdb.org/t/p/w500${tvShow.poster_path}`} alt={tvShow.name} />
-        <Info>
-          <Title fontFamily={fontFamily}>{tvShow.name}</Title>
-          <p>{tvShow.overview}</p>
-          <p>First Air Date: {tvShow.first_air_date}</p>
-          <p>Number of Seasons: {tvShow.number_of_seasons}</p>
-          <p>Number of Episodes: {tvShow.number_of_episodes}</p>
-          <SelectorsContainer>
-            <SelectorWrapper>
-              <Label htmlFor="season">Season:</Label>
-              <Select id="season" value={selectedSeason} onChange={handleSeasonChange}>
-                {[...Array(tvShow.number_of_seasons)].map((_, index) => (
-                  <option key={index + 1} value={index + 1}>
-                    {index + 1}
-                  </option>
-                ))}
-              </Select>
-            </SelectorWrapper>
-            <SelectorWrapper>
-              <Label htmlFor="episode">Episode:</Label>
-              <Select id="episode" value={selectedEpisode} onChange={handleEpisodeChange}>
-                {[...Array(tvShow.seasons.find((season) => season.season_number === selectedSeason)?.episode_count || 0)].map(
-                  (_, index) => (
-                    <option key={index + 1} value={index + 1}>
-                      {index + 1}
-                    </option>
-                  )
-                )}
-              </Select>
-            </SelectorWrapper>
-           </SelectorsContainer>
-        </Info>
-      </TvShowInfo>
-      <h3>Cast</h3>
-      <CastContainer>
-        {cast.map((member) => (
-          <CastMember key={member.id} to={`/actor/${member.id}`}>
-            <CastImage 
-              src={member.profile_path ? `https://image.tmdb.org/t/p/w200${member.profile_path}` : '/placeholder.png'} 
-              alt={member.name} 
-            />
-            <p>{member.name}</p>
-          </CastMember>
-        ))}
-      </CastContainer>
-      <WatchOptions>
-        <ServerButton active={watchOption === 'server1'} onClick={() => setWatchOption('server1')}>Server 1</ServerButton>
-        <ServerButton active={watchOption === 'server2'} onClick={() => setWatchOption('server2')}>Server 2</ServerButton>
-        <ServerButton active={watchOption === 'server3'} onClick={() => setWatchOption('server3')}>Server 3 (4K)</ServerButton>
-        <ServerButton active={watchOption === 'server4'} onClick={() => setWatchOption('server4')}>Server 4</ServerButton>
-      </WatchOptions>
+    <ThemeProvider theme={theme}>
+      <GlobalStyle />
+      <TvShowContainer>
+        <Hero backdrop={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`}>
+    <HeroContent>
+  <Title>{tvShow.name}</Title>
+  {tvShow.tagline && <Tagline>{tvShow.tagline}</Tagline>}
+  {showMoreInfo && (
+    <>
+      <Overview>{tvShow.overview}</Overview>
+      <Ratings>
+        <RatingItem>IMDb: {tvShow.vote_average.toFixed(1)}/10</RatingItem>
+        {tvShow.external_ids?.imdb_id && (
+          <RatingItem>
+            Rotten Tomatoes: {/* Fetch Rotten Tomatoes rating */}
+          </RatingItem>
+        )}
+      </Ratings>
+    </>
+  )}
+  <ButtonGroup>
+    <PlayButton onClick={() => {
+      setIsWatching(true);
+      setWatchOption('server1');
+    }}>
+      <FaPlay /> Play
+    </PlayButton>
+    <InfoButton onClick={() => setShowMoreInfo(!showMoreInfo)}>
+      <FaInfoCircle /> {showMoreInfo ? 'Less Info' : 'More Info'}
+    </InfoButton>
+  </ButtonGroup>
+</HeroContent>
+        </Hero>
 
-      {watchOption === 'server1' ? (
-        <VideoPlayer imdbId={externalIds.imdb_id} season={selectedSeason} episode={selectedEpisode} />
-      ) : watchOption === 'server2' ? (
-        <EmbedPlayer 
-          src={`https://player.smashy.stream/tv/${tvShow.id}?s=${selectedSeason}&e=${selectedEpisode}`}
-          allowFullScreen
-        />
-      ) : watchOption === 'server3' ? (
-        <>
-          <EmbedPlayer 
-            src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
-            allowFullScreen
-          />
-          <DownloadOption 
-            sources={videoSources}
-            title={`${tvShow.name} S${selectedSeason}E${selectedEpisode}`}
-          />
-        </>
-      ) : watchOption === 'server4' && server4Data ? (
-        <div>
-          <video id="server4-player" className="op-player__media" controls playsInline ref={playerRef}>
-            <source src={server4Data.stream.playlist} type="application/x-mpegURL" />
-            {server4Data.stream.captions.map((caption, index) => (
-              <track 
-                key={index}
-                kind="captions"
-                label={caption.language}
-                srcLang={caption.language.toLowerCase()}
-                src={caption.url}
-                
-              />
+        <Section>
+          <SectionTitle>Cast</SectionTitle>
+          <CastContainer>
+            {cast.map((member) => (
+              <CastMember key={member.id} to={`/actor/${member.id}`}>
+                <CastImage 
+                  src={member.profile_path ? `https://image.tmdb.org/t/p/w200${member.profile_path}` : '/placeholder.png'} 
+                  alt={member.name} 
+                />
+                <CastName>{member.name}</CastName>
+              </CastMember>
             ))}
-          </video>
-        </div>
-      ) : null}
+          </CastContainer>
+        </Section>
 
-      <h3>Recommendations</h3>
-      <RecommendationsContainer>
-        {recommendations.map((tvShow) => (
-          <MovieCard key={tvShow.id} movie={tvShow} />
-        ))}
-      </RecommendationsContainer>
-    </TvShowContainer>
+        <Section>
+          <SectionTitle>More Like This</SectionTitle>
+          <RecommendationsContainer>
+            {recommendations.map((tvShow) => (
+              <MovieCard key={tvShow.id} movie={tvShow} />
+            ))}
+          </RecommendationsContainer>
+        </Section>
+
+        {isWatching && (
+          <Backdrop onClick={() => setIsWatching(false)}>
+            <VideoContainer onClick={(e) => e.stopPropagation()}>
+              <CloseButton onClick={() => setIsWatching(false)}>
+                <FaTimes />
+              </CloseButton>
+              <ControlsContainer>
+                <Select value={selectedSeason} onChange={(e) => setSelectedSeason(Number(e.target.value))}>
+                  {tvShow.seasons.map((season) => (
+                    <option key={season.id} value={season.season_number}>
+                      Season {season.season_number}
+                    </option>
+                  ))}
+                </Select>
+                <Select value={selectedEpisode} onChange={(e) => setSelectedEpisode(Number(e.target.value))}>
+                  {[...Array(tvShow.seasons.find(s => s.season_number === selectedSeason)?.episode_count || 0)].map((_, index) => (
+                    <option key={index} value={index + 1}>
+                      Episode {index + 1}
+                    </option>
+                  ))}
+                </Select>
+                <ServerDropdown value={watchOption} onChange={(e) => setWatchOption(e.target.value)}>
+                  <option value="server1">Server 1</option>
+                  <option value="server2">Server 2</option>
+                  <option value="server3">Server 3 (4K)</option>
+                  <option value="server4">Server 4</option>
+                </ServerDropdown>
+              </ControlsContainer>
+              {watchOption === 'server1' && (
+                <VideoPlayer imdbId={externalIds.imdb_id} season={selectedSeason} episode={selectedEpisode} />
+              )}
+              {watchOption === 'server2' && (
+                <EmbedPlayer 
+                  src={`https://player.smashy.stream/tv/${tvShow.id}?s=${selectedSeason}&e=${selectedEpisode}`}
+                  allowFullScreen
+                />
+              )}
+              {watchOption === 'server3' && (
+                <>
+                  <EmbedPlayer 
+                    src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
+                    allowFullScreen
+                  />
+                  <DownloadOption 
+                    sources={videoSources}
+                    title={`${tvShow.name} S${selectedSeason}E${selectedEpisode}`}
+                  />
+                </>
+              )}
+              {watchOption === 'server4' && server4Data && (
+                <CustomMediaPlayer
+                  title={`${tvShow.name} S${selectedSeason}E${selectedEpisode}`}
+                  src={server4Data.stream.playlist}
+                >
+                  <MediaProvider>
+                    <track
+                      kind="subtitles"
+                      src={server4Data.stream.captions.find(caption => caption.language.toLowerCase() === 'english')?.url}
+                      srcLang="en"
+                      label="English"
+                      default
+                    />
+                  </MediaProvider>
+                  <DefaultVideoLayout icons={defaultLayoutIcons} />
+                </CustomMediaPlayer>
+              )}
+            </VideoContainer>
+          </Backdrop>
+        )}
+      </TvShowContainer>
+    </ThemeProvider>
   );
 }
 

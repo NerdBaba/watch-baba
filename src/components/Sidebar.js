@@ -7,7 +7,7 @@ import { themes } from '../theme';
 const SidebarContainer = styled.nav`
   width: ${(props) => (props.isOpen ? '200px' : '60px')};
   background-color: ${(props) => props.theme.background};
-  padding: 20px 10px;
+  padding: 20px 8px;
   transition: all 0.3s ease;
   position: fixed;
   height: 100%;

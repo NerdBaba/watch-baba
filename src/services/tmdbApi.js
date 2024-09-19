@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 // const API_KEY = '374ed57246cdd0d51e7f9c7eb9e682f0';
 const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const BASE_URL = 'https://proxy-api-server-woz1.onrender.com/v1/tmdb/3';
@@ -90,12 +91,24 @@ export const discoverTvShows = (page = 1, genreId = '') => {
 export const getTvShowExternalIds = (id) => tmdbApi.get(`/tv/${id}/external_ids`);
 
 export const getMovieDetails = (id) => tmdbApi.get(`/movie/${id}`);
+
 export const getTvShowDetails = (id) => tmdbApi.get(`/tv/${id}`);
+
 export const searchMulti = (query, page = 1) => tmdbApi.get('/search/multi', { params: { query, page } });
+
 export const getMovieRecommendations = (id) => tmdbApi.get(`/movie/${id}/recommendations`);
+
 export const getTvShowRecommendations = (id) => tmdbApi.get(`/tv/${id}/recommendations`);
+
 export const getMovieCredits = (id) => tmdbApi.get(`/movie/${id}/credits`);
+
 export const getMovieGenres = () => tmdbApi.get('/genre/movie/list');
+
 export const getTvShowCredits = (id) => tmdbApi.get(`/tv/${id}/credits`);
+
+// New function for fetching TV season details
+export const getTvShowSeasonEpisodes = (tvShowId, seasonNumber) => {
+  return tmdbApi.get(`/tv/${tvShowId}/season/${seasonNumber}`);
+};
 
 export default tmdbApi;
