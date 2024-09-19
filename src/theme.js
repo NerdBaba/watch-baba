@@ -1,7 +1,7 @@
 export const themes = {
-  default: { name: 'Default', primary: '#ffd700', background: '#1a1a1a', text: '#ffffff' },
+  default : { name: 'Netflix', primary: '#E50914', background: '#000000', text: '#FFFFFF' },
+  Yellowjacket: { name: 'Yellowjacket', primary: '#ffd700', background: '#1a1a1a', text: '#ffffff' },
   nord: { name: 'Nord', primary: '#88C0D0', background: '#2E3440', text: '#D8DEE9' },
-  netflix: { name: 'Netflix', primary: '#E50914', background: '#000000', text: '#FFFFFF' },
   gruvbox: { name: 'Gruvbox', primary: '#FE8019', background: '#282828', text: '#EBDBB2' },
   dracula: { name: 'Dracula', primary: '#BD93F9', background: '#282A36', text: '#F8F8F2' },
   github: { name: 'GitHub', primary: '#0366D6', background: '#F6F8FA', text: '#24292E' },

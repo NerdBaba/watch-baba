@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
-import { getPopularMovies, getPopularTvShows, getMovieGenres, getTvShowGenres } from '../services/tmdbApi';
+import { getPopularMovies, getPopularTvShowsInIndia, getMovieGenres, getTvShowGenres } from '../services/tmdbApi';
 
 const Grid = styled.div`
   display: grid;
@@ -29,7 +29,7 @@ function Home() {
       try {
         const [moviesRes, tvShowsRes, movieGenresRes, tvGenresRes] = await Promise.all([
           getPopularMovies(),
-          getPopularTvShows(),
+          getPopularTvShowsInIndia(),
           getMovieGenres(),
           getTvShowGenres()
         ]);

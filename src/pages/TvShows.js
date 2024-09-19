@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
 import GenreFilter from '../components/GenreFilter';
-import { getPopularTvShows, getTvShowGenres, discoverTvShows } from '../services/tmdbApi';
+import {getPopularTvShowsInIndia , getTvShowGenres,  discoverTrendingTvShowsInIndia } from '../services/tmdbApi';
 
 const Grid = styled.div`
   display: grid;
@@ -36,9 +36,9 @@ function TvShows() {
       try {
         let response;
         if (selectedGenre) {
-          response = await discoverTvShows(currentPage, selectedGenre);
+          response = await discoverTrendingTvShowsInIndia(currentPage, selectedGenre);
         } else {
-          response = await getPopularTvShows(currentPage);
+          response = await getPopularTvShowsInIndia(currentPage);
         }
         setTvShows(response.data.results);
         setTotalPages(response.data.total_pages);
