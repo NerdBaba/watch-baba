@@ -22,7 +22,7 @@ const Card = styled(Link)`
   }
 
   @media (max-width: 480px) {
-    max-width: 130px;
+    max-width: 430px;
   }
 `;
 

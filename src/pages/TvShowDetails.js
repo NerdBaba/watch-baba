@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback, useRef} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
 import axios from 'axios';
@@ -20,27 +20,24 @@ const theme = {
 
 const GlobalStyle = createGlobalStyle`
   body {
-    background-color: ${props => props.theme.background};
     color: ${props => props.theme.text};
     font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-
--webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: transparent;
   }
-
   * {
     -webkit-tap-highlight-color: transparent;
   }
 `;
 
-    
 const TvShowContainer = styled.div`
   width: 100%;
-  max-width: 1400px;
+  max-width: 1400px; // Adjust this value as needed
   margin: 0 auto;
   padding: 20px;
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
     padding: 10px;
@@ -174,6 +171,7 @@ const InfoButton = styled(Button)`
 
 const Section = styled.section`
   margin: 40px 0;
+  width: 100%;
 
   @media (max-width: 768px) {
     margin: 20px 0;
@@ -277,6 +275,11 @@ const VideoContainer = styled.div`
   width: 90%;
   max-width: 1200px;
   aspect-ratio: 16 / 9;
+
+
+  @media (min-width: 768px) and (max-width: 1024px) {
+    width: 95%;
+  }
 `;
 
 const CloseButton = styled.button`
@@ -298,36 +301,60 @@ const EmbedPlayer = styled.iframe`
   @media (max-width: 768px) {
     height: 56.25vw;
   }
+
+   @media (max-width: 1024px) {
+    height: 56.25vw;
+  }
 `;
 const ControlsContainer = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
   padding: 10px;
   background-color: rgba(0, 0, 0, 0.7);
   border-radius: 5px;
   margin-bottom: 10px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
 `;
 
 const Select = styled.select`
   background-color: ${props => props.theme.secondary};
   color: ${props => props.theme.text};
   border: none;
-  padding: 8px;
+  padding: 10px;
   font-family: 'GeistVF';
-  font-weight: heavy;
+  font-weight: bold;
   border-radius: 4px;
   font-size: 1rem;
   cursor: pointer;
+  margin-bottom: 10px;
+  width: 100%;
 
   &:focus {
     outline: none;
   }
+
+  @media (min-width: 768px) {
+    width: auto;
+    margin-bottom: 0;
+    margin-right: 10px;
+  }
 `;
 
+
+
 const ServerDropdown = styled(Select)`
-  margin-left: 10px;
+  // margin-left: 10px;
   font-family: 'GeistVF';
+
+  @media (min-width: 768px) {
+    margin-right: 0;
+  }
 `;
 
 function TvShowDetails() {
@@ -431,7 +458,30 @@ function TvShowDetails() {
     }
   }, [watchOption, tvShow, fetchServer4Data]);
 
+// Fullscreen Fix For Mobiles
+  const videoContainerRef = useRef(null);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        // Exiting fullscreen
+        document.body.style.zoom = 1;
+        document.body.style.width = '100%';
+        if (videoContainerRef.current) {
+          videoContainerRef.current.style.width = '100%';
+          videoContainerRef.current.style.height = 'auto';
+        }
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   if (!tvShow || !externalIds) return <div>Loading...</div>;
 
@@ -516,7 +566,7 @@ function TvShowDetails() {
 
         {isWatching && (
           <Backdrop onClick={() => setIsWatching(false)}>
-            <VideoContainer onClick={(e) => e.stopPropagation()}>
+           <VideoContainer ref={videoContainerRef} onClick={(e) => e.stopPropagation()}>
               <CloseButton onClick={() => setIsWatching(false)}>
                 <FaTimes />
               </CloseButton>
@@ -564,22 +614,27 @@ function TvShowDetails() {
                 </>
               )}
               {watchOption === 'server4' && server4Data && (
-                <CustomMediaPlayer
-                  title={`${tvShow.name} S${selectedSeason}E${selectedEpisode}`}
-                  src={server4Data.stream.playlist}
-                >
-                  <MediaProvider>
-                    <track
-                      kind="subtitles"
-                      src={server4Data.stream.captions.find(caption => caption.language.toLowerCase() === 'english')?.url}
-                      srcLang="en"
-                      label="English"
-                      default
-                    />
-                  </MediaProvider>
-                  <DefaultVideoLayout icons={defaultLayoutIcons} />
-                </CustomMediaPlayer>
-              )}
+  <CustomMediaPlayer
+    title={`${tvShow.name} S${selectedSeason}E${selectedEpisode}`}
+    src={server4Data.stream.playlist}
+  >
+    <MediaProvider>
+      {server4Data.stream.captions
+        .filter(caption => caption.language.toLowerCase().includes('english'))
+        .map((caption, index) => (
+          <track
+            key={index}
+            kind="subtitles"
+            src={caption.url}
+            srcLang="en"
+            label={`English ${index + 1}`}
+            default={index === 0}
+          />
+        ))}
+    </MediaProvider>
+    <DefaultVideoLayout icons={defaultLayoutIcons} />
+  </CustomMediaPlayer>
+)}
             </VideoContainer>
           </Backdrop>
         )}

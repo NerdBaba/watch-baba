@@ -7,7 +7,7 @@ import {getPopularTvShowsInIndia , getTvShowGenres,  discoverTrendingTvShowsInIn
 
 const Grid = styled.div`
  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 
   @media (max-width: 768px) {

@@ -9,6 +9,7 @@ const HeaderContainer = styled.header`
   flex-direction: column;
   align-items: center;
   padding: 20px;
+  padding-bottom: 0;
   background-color: ${props => props.theme.secondary};
 
   @media (min-width: 768px) {
@@ -87,10 +88,19 @@ const RandomButton = styled.button`
   @media (min-width: 768px) {
     width: auto;
   }
+
+  @media (max-width: 768px) {
+    padding: 10px;
+    width: auto;
+  }
 `;
 
 const DiceIcon = styled(FaDice)`
   margin-right: 5px;
+
+  @media (max-width: 768px) {
+    margin-right: 0;
+  }
 `;
 
 const MenuButton = styled.button`
@@ -103,8 +113,23 @@ const MenuButton = styled.button`
 
   @media (max-width: 768px) {
     display: block;
+    position: absolute;
+    left: 20px;
+    top: 20px;
   }
 `;
+
+const MobileControls = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 15px;
+  }
+`;
+
 function Header({toggleSidebar}) {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -143,7 +168,7 @@ function Header({toggleSidebar}) {
 
   return (
     <HeaderContainer>
-    <MenuButton onClick={toggleSidebar}>
+      <MenuButton onClick={toggleSidebar}>
         <FaBars />
       </MenuButton>
       <Logo>Watch.Baba</Logo>
@@ -159,8 +184,11 @@ function Header({toggleSidebar}) {
         </SearchBarContainer>
       </SearchForm>
       <RandomButton onClick={handleRandomClick}>
-        <DiceIcon /> Random
+        <DiceIcon />
+        <span className="random-text">Random</span>
       </RandomButton>
+      <MobileControls>
+      </MobileControls>
     </HeaderContainer>
   );
 }
