@@ -100,7 +100,7 @@ const Overview = styled.p`
   font-family: 'GeistVF';
 
   @media (max-width: 768px) {
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
 `;
 
