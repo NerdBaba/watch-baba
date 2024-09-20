@@ -89,6 +89,8 @@ export const discoverTvShows = (page = 1, genreId = '') => {
 };
 
 export const getTvShowExternalIds = (id) => tmdbApi.get(`/tv/${id}/external_ids`);
+export const getMovieExternalIds = (id) => tmdbApi.get(`/movie/${id}/external_ids`);
+
 
 export const getMovieDetails = (id) => tmdbApi.get(`/movie/${id}`);
 
