@@ -15,3 +15,8 @@ code {
   font-family: 'Pacify Angry';
   src: url('/public/fonts/Pacify%20Angry.ttf') format('truetype');
 }
+
+@font-face {
+  font-family: 'GeistVF';
+  src: url('/public/fonts/GeistVF.ttf') format('truetype');
+}

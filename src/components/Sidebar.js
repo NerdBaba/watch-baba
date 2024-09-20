@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled, { ThemeContext } from 'styled-components';
 import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars} from 'react-icons/fa';
@@ -7,7 +7,7 @@ import { themes } from '../theme';
 const SidebarContainer = styled.nav`
   width: ${(props) => (props.isOpen ? '200px' : '60px')};
   background-color: ${(props) => props.theme.background};
-  padding: 20px 10px;
+  padding: 20px 8px;
   transition: all 0.3s ease;
   position: fixed;
   height: 100%;
@@ -67,7 +67,7 @@ const ThemeSelector = styled.select`
   border-radius: 5px;
 `;
 
-function Sidebar({ setTheme, isOpen, setIsOpen }) {
+const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
   const theme = useContext(ThemeContext);
 
   const toggleSidebar = () => {
@@ -81,7 +81,7 @@ function Sidebar({ setTheme, isOpen, setIsOpen }) {
   };
 
   return (
-    <SidebarContainer isOpen={isOpen}>
+    <SidebarContainer ref={ref} isOpen={isOpen}>
       <ToggleButton onClick={toggleSidebar} isOpen={isOpen}>
         {isOpen ? <FaTimes /> : <FaBars />}
       </ToggleButton>
@@ -116,6 +116,6 @@ function Sidebar({ setTheme, isOpen, setIsOpen }) {
       )}
     </SidebarContainer>
   );
-}
+});
 
 export default Sidebar;

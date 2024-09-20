@@ -2,13 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
-import Pagination from '../components/Pagination';
-import { searchMulti } from '../services/tmdbApi'; // Importing searchMulti
+import { searchMulti } from '../services/tmdbApi';
 
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+`;
+
+const LoadMoreButton = styled.button`
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: ${props => props.theme.primary};
+  color: ${props => props.theme.text};
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: ${props => props.theme.secondary};
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 15px;
+  }
 `;
 
 function SearchResults() {
@@ -20,18 +46,29 @@ function SearchResults() {
 
   useEffect(() => {
     if (searchQuery) {
-      searchMulti(searchQuery, currentPage).then((response) => {
-        setResults(response.data.results);
-        setTotalPages(response.data.total_pages);
-      }).catch(error => {
-        console.error('Error fetching search results:', error);
-      });
+      setResults([]);
+      setCurrentPage(1);
+      loadResults(1);
     }
-  }, [searchQuery, currentPage]);
+  }, [searchQuery]);
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-    window.scrollTo(0, 0);
+  const loadResults = (page) => {
+    searchMulti(searchQuery, page).then((response) => {
+      setResults(prevResults => {
+        const newResults = response.data.results.filter(
+          newItem => !prevResults.some(existingItem => existingItem.id === newItem.id)
+        );
+        return [...prevResults, ...newResults];
+      });
+      setTotalPages(response.data.total_pages);
+      setCurrentPage(page);
+    }).catch(error => {
+      console.error('Error fetching search results:', error);
+    });
+  };
+
+  const handleLoadMore = () => {
+    loadResults(currentPage + 1);
   };
 
   return (
@@ -45,11 +82,11 @@ function SearchResults() {
           return null;
         })}
       </Grid>
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      {currentPage < totalPages && (
+        <LoadMoreButton onClick={handleLoadMore}>
+          Load More
+        </LoadMoreButton>
+      )}
     </div>
   );
 }

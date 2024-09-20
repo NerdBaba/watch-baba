@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createGlobalStyle, styled } from 'styled-components';
 import Header from './components/Header';
@@ -15,6 +15,9 @@ import SearchResults from './pages/SearchResults';
 import ActorDetails from './pages/ActorDetails';
 import { themes } from './theme';
 import { saveTheme, loadTheme } from './utils/themeStorage';
+// import '@vidstack/react/player/styles/default/theme.css';
+// import '@vidstack/react/player/styles/default/layouts/video.css';
+
 
 const AppContainer = styled.div`
   display: flex;
@@ -68,12 +71,22 @@ const GlobalStyle = createGlobalStyle`
     }
   }
 
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
     body {
       font-size: 14px;
     }
-  }
 
+    /* Transparent highlight for mobile devices */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  }
   @media (max-width: 480px) {
     body {
       font-size: 12px;
@@ -84,7 +97,7 @@ const GlobalStyle = createGlobalStyle`
 function App() {
   const [currentTheme, setCurrentTheme] = useState(themes.default);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const sidebarRef = useRef(null);
   useEffect(() => {
     const savedThemeName = loadTheme();
     if (savedThemeName && themes[savedThemeName]) {
@@ -113,12 +126,28 @@ function App() {
     }
   };
 
+useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (window.innerWidth <= 768 && 
+          sidebarRef.current && 
+          !sidebarRef.current.contains(event.target)) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+
   return (
     <ThemeProvider theme={currentTheme}>
       <Router>
         <GlobalStyle />
         <AppContainer>
-          <Sidebar setTheme={changeTheme} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+          <Sidebar ref={sidebarRef} setTheme={changeTheme} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
           <MainContent sidebarOpen={isSidebarOpen}>
             <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
             <ContentWrapper>

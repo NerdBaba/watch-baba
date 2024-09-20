@@ -6,11 +6,16 @@
     "@fortawesome/free-brands-svg-icons": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@radix-ui/react-icons": "^1.3.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@vidstack/react": "^1.12.10",
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "hls.js": "^1.5.15",
     "openplayerjs": "^2.14.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -19,6 +24,8 @@
     "react-router-dom": "^6.26.1",
     "react-scripts": "5.0.1",
     "styled-components": "^6.1.12",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -44,5 +51,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.12"
   }
 }

@@ -5,20 +5,14 @@ import Pagination from '../components/Pagination';
 import { getTopRatedMovies, getUpcomingMovies, getNowPlayingMovies } from '../services/tmdbApi';
 
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 15px;
+ display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
 
-  @media (min-width: 480px) {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-  }
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
 `;
-
 
 const SelectWrapper = styled.div`
   position: relative;
