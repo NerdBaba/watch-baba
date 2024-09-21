@@ -612,6 +612,8 @@ function TvShowDetails() {
                   <option value="server4">Server 4</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
+                  <option value="server7">Server 7</option>
+                  <option value="server8">Server 8</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -647,10 +649,23 @@ function TvShowDetails() {
                   allowFullScreen
                 />
               )} 
-              {watchOption === 'server6' && ( // New server embed
+              {watchOption === 'server6' && (
+                <EmbedPlayer
+                src={`https://embed-testing-v7.vercel.app/tests/whatstream/${tvShow.id}-${selectedSeason}-${selectedEpisode}`}
+              allowFullScreen
+              />
+              )}
+              {watchOption === 'server7' && (
+                <EmbedPlayer
+                src={`https://api.fmoviez.online/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server8' && ( // New server embed
                 <EmbedPlayer
                   src={`https://filmex.to/#/media/tmdb-tv-${tvShow.id}/${tvShow.seasons.find(season => season.season_number === selectedSeason)?.id}/${episodeId}`}
                   allowFullScreen
+                  scrolling="no"
                 />
               )}
 

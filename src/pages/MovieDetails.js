@@ -652,7 +652,9 @@ function MovieDetails() {
                   <option value="server4">Server 4</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
+                  <option value="server7">Server 7</option>
                   <option value="tamilyogi">TamilYogi</option>
+                  <option value="server8">Server 8</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -689,6 +691,18 @@ function MovieDetails() {
                 />
               )}
               {watchOption === 'server6' && (
+                <EmbedPlayer
+                src={`https://embed-testing-v7.vercel.app/tests/whatstream/${movie.id}`}
+              allowFullScreen
+              />
+              )}
+              {watchOption === 'server7' && (
+                <EmbedPlayer
+                src={`https://api.fmoviez.online/embed/movie/${movie.id}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server8' && (
               <EmbedPlayer
                   src={`https://filmex.to/#/media/tmdb-movie-${movie.id}`}
                   allowFullScreen
