@@ -2,15 +2,11 @@ import React, { useState, useEffect, useCallback, useRef} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
 import axios from 'axios';
-import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds } from '../services/tmdbApi';
+import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds, getTvShowEpisodeDetails  } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 import DownloadOption from '../components/DownloadOption';
-import { MediaPlayer, MediaProvider } from '@vidstack/react';
-import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { FaPlay, FaInfoCircle, FaTimes} from 'react-icons/fa';
-import '@vidstack/react/player/styles/default/theme.css';
-import '@vidstack/react/player/styles/default/layouts/video.css';
 
 const theme = {
   background: '#141414',
@@ -42,11 +38,6 @@ const TvShowContainer = styled.div`
   @media (max-width: 768px) {
     padding: 10px;
   }
-`;
-
-const CustomMediaPlayer = styled(MediaPlayer)`
-  --media-brand: ${props => props.theme.background};
-  --media-focus-ring-color: ${props => props.theme.primary};
 `;
 
 
@@ -100,7 +91,7 @@ const Overview = styled.p`
   margin-bottom: 20px;
 
   @media (max-width: 768px) {
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
 `;
 
@@ -357,6 +348,17 @@ const ServerDropdown = styled(Select)`
   }
 `;
 
+const LogoImage = styled.img`
+  max-width: 300px;
+  height: auto;
+  margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+   max-width: 200px; 
+   height: auto;
+  }
+`;
+
 function TvShowDetails() {
   const { id } = useParams();
   const [tvShow, setTvShow] = useState(null);
@@ -368,7 +370,8 @@ function TvShowDetails() {
   const [isWatching, setIsWatching] = useState(false);
   const [watchOption, setWatchOption] = useState('server1');
   const [videoSources, setVideoSources] = useState([]);
-  const [server4Data, setServer4Data] = useState(null);
+  const [episodeId, setEpisodeId] = useState(null);
+    const [logoUrl, setLogoUrl] = useState('');
   // const playerRef = useRef(null);
   const [showMoreInfo, setShowMoreInfo] = useState(false);
 
@@ -410,6 +413,10 @@ function TvShowDetails() {
         setCast(creditsResponse.data.cast.slice(0, 10));
         setExternalIds(externalIdsResponse.data);
 
+         if (externalIdsResponse.data.imdb_id) {
+          setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
+        }
+
         if (watchOption === 'server3') {
           const currentSeason = detailsResponse.data.seasons.find(season => season.season_number === selectedSeason);
           const totalEpisodes = detailsResponse.data.seasons.reduce((sum, season) => sum + season.episode_count, 0);
@@ -439,24 +446,33 @@ function TvShowDetails() {
         console.error('Error fetching TV show data:', error);
       }
     };
+    
+
 
     fetchTvShowData();
   }, [id, watchOption, selectedSeason, selectedEpisode, fetchVideoSources]);
 
- const fetchServer4Data = useCallback(async () => {
-    try {
-      const response = await axios.get(`https://hugo.vidlink.pro/api/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}?multiLang=1`);
-      setServer4Data(response.data);
-    } catch (error) {
-      console.error('Error fetching server 4 data:', error);
-    }
-  }, [tvShow, selectedSeason, selectedEpisode]);
+ 
+
+
+ //episode id
 
   useEffect(() => {
-    if (watchOption === 'server4' && tvShow) {
-      fetchServer4Data();
-    }
-  }, [watchOption, tvShow, fetchServer4Data]);
+    const fetchEpisodeDetails = async () => {
+      if (watchOption === 'server6') {
+        try {
+          const episodeResponse = await getTvShowEpisodeDetails(id, selectedSeason, selectedEpisode);
+          setEpisodeId(episodeResponse.data.id);
+        } catch (error) {
+          console.error('Error fetching episode details:', error);
+        }
+      }
+    };
+
+    fetchEpisodeDetails();
+  }, [id, watchOption, selectedSeason, selectedEpisode]);
+
+
 
 // Fullscreen Fix For Mobiles
   const videoContainerRef = useRef(null);
@@ -511,7 +527,11 @@ function TvShowDetails() {
       <TvShowContainer>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`}>
     <HeroContent>
-  <Title>{tvShow.name}</Title>
+   {logoUrl ? (
+              <LogoImage src={logoUrl} alt={tvShow.name} onError={() => setLogoUrl('')} />
+            ) : (
+              <Title>{tvShow.name}</Title>
+            )}
   {tvShow.tagline && <Tagline>{tvShow.tagline}</Tagline>}
   {showMoreInfo && (
     <>
@@ -590,6 +610,8 @@ function TvShowDetails() {
                   <option value="server2">Server 2</option>
                   <option value="server3">Server 3 (4K)</option>
                   <option value="server4">Server 4</option>
+                  <option value="server5">Server 5</option>
+                  <option value="server6">Server 6</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -613,28 +635,25 @@ function TvShowDetails() {
                   />
                 </>
               )}
-              {watchOption === 'server4' && server4Data && (
-  <CustomMediaPlayer
-    title={`${tvShow.name} S${selectedSeason}E${selectedEpisode}`}
-    src={server4Data.stream.playlist}
-  >
-    <MediaProvider>
-      {server4Data.stream.captions
-        .filter(caption => caption.language.toLowerCase().includes('english'))
-        .map((caption, index) => (
-          <track
-            key={index}
-            kind="subtitles"
-            src={caption.url}
-            srcLang="en"
-            label={`English ${index + 1}`}
-            default={index === 0}
-          />
-        ))}
-    </MediaProvider>
-    <DefaultVideoLayout icons={defaultLayoutIcons} />
-  </CustomMediaPlayer>
-)}
+              {watchOption === 'server4' && (
+                <EmbedPlayer 
+                  src={`https://vidlink.mda2233.workers.dev/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                  allowFullScreen
+                />
+              )}
+             {watchOption === 'server5' && (
+                <EmbedPlayer 
+                  src={`https://embed-testing-v04.vercel.app/tests/rollerdice/${tvShow.id}-${selectedSeason}-${selectedEpisode}`}
+                  allowFullScreen
+                />
+              )} 
+              {watchOption === 'server6' && ( // New server embed
+                <EmbedPlayer
+                  src={`https://filmex.to/#/media/tmdb-tv-${tvShow.id}/${tvShow.seasons.find(season => season.season_number === selectedSeason)?.id}/${episodeId}`}
+                  allowFullScreen
+                />
+              )}
+
             </VideoContainer>
           </Backdrop>
         )}

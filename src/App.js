@@ -15,8 +15,7 @@ import SearchResults from './pages/SearchResults';
 import ActorDetails from './pages/ActorDetails';
 import { themes } from './theme';
 import { saveTheme, loadTheme } from './utils/themeStorage';
-// import '@vidstack/react/player/styles/default/theme.css';
-// import '@vidstack/react/player/styles/default/layouts/video.css';
+
 
 
 const AppContainer = styled.div`
