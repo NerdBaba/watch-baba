@@ -113,4 +113,8 @@ export const getTvShowSeasonEpisodes = (tvShowId, seasonNumber) => {
   return tmdbApi.get(`/tv/${tvShowId}/season/${seasonNumber}`);
 };
 
+export const getTvShowEpisodeDetails = (tvShowId, seasonNumber, episodeNumber) => {
+  return tmdbApi.get(`/tv/${tvShowId}/season/${seasonNumber}/episode/${episodeNumber}`);
+};
+
 export default tmdbApi;

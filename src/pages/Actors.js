@@ -55,12 +55,22 @@ function Actors() {
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    tmdbApi.get('/person/popular', {
-      params: { page: currentPage }
-    }).then((response) => {
-      setActors(response.data.results);
-      setTotalPages(response.data.total_pages);
-    });
+    const fetchActors = async () => {
+      try {
+        const [response1, response2] = await Promise.all([
+          tmdbApi.get('/person/popular', { params: { page: currentPage * 2 - 1 } }),
+          tmdbApi.get('/person/popular', { params: { page: currentPage * 2 } })
+        ]);
+
+        const combinedActors = [...response1.data.results, ...response2.data.results];
+        setActors(combinedActors);
+        setTotalPages(Math.ceil(response1.data.total_pages / 2));
+      } catch (error) {
+        console.error('Error fetching actors:', error);
+      }
+    };
+
+    fetchActors();
   }, [currentPage]);
 
   const handlePageChange = useCallback((pageNumber) => {
@@ -73,11 +83,11 @@ function Actors() {
 
     scrollToTop();
 
-    // Wait for the scroll to complete before changing the page
     setTimeout(() => {
       setCurrentPage(pageNumber);
-    }, 500); // Adjust this timeout if needed
+    }, 500);
   }, []);
+
   return (
     <div>
       <h2>Popular Actors</h2>

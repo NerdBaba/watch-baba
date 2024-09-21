@@ -26,13 +26,28 @@ const Card = styled(Link)`
   }
 `;
 
+const PosterContainer = styled.div`
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 5px;
+  background-color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 const Poster = styled.img`
   width: 100%;
-  height: auto;
-  aspect-ratio: 2 / 3;
+  height: 100%;
   object-fit: cover;
   border-radius: 5px;
 `;
+
+const PlaceholderSVG = () => (
+  <svg width="50%" height="50%" viewBox="0 0 24 24" fill="#666">
+    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+  </svg>
+);
 
 const Title = styled.h3`
   margin-top: 10px;
@@ -92,7 +107,13 @@ function MovieCard({ movie, genres = [] }) {
 
   return (
     <Card to={link} onClick={handleClick}>
-      <Poster src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={title} />
+      <PosterContainer>
+        {movie.poster_path ? (
+          <Poster src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={title} />
+        ) : (
+          <PlaceholderSVG src="./movie-recorder-svgrepo-com.svg" />
+        )}
+      </PosterContainer>
       <Title>{title}</Title>
       {movieGenres && <Genre>{movieGenres}</Genre>}
     </Card>

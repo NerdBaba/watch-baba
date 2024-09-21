@@ -17,10 +17,14 @@ const ActorInfo = styled.div`
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
+  justify-content: center;
+
+  font-family: "Geist";
 `;
 
 const ProfilePic = styled.img`
-  width: 300px;
+  width: 100%;
+  max-width: 300px;
   height: auto;
   object-fit: cover;
   border-radius: 8px;
@@ -32,10 +36,14 @@ const Info = styled.div`
 `;
 
 const KnownFor = styled.div`
-  display: flex;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 10px;
   padding: 10px 0;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 `;
 
 function ActorDetails() {
@@ -45,9 +53,13 @@ function ActorDetails() {
 
   useEffect(() => {
     tmdbApi.get(`/person/${id}`).then((response) => setActor(response.data));
-    tmdbApi.get(`/person/${id}/combined_credits`).then((response) => 
-      setKnownFor(response.data.cast.sort((a, b) => b.popularity - a.vote_average).slice(0, 30))
-    );
+    tmdbApi.get(`/person/${id}/combined_credits`).then((response) => {
+      const filteredCredits = response.data.cast
+        .filter(credit => credit.media_type !== 'tv' || credit.genre_ids.indexOf(10767) === -1) // 10767 is the genre ID for talk shows
+        .sort((a, b) => b.popularity - a.popularity)
+        .slice(0, 30);
+      setKnownFor(filteredCredits);
+    });
   }, [id]);
 
   if (!actor) return <div>Loading...</div>;

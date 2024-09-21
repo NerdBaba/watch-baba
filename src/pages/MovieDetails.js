@@ -6,11 +6,7 @@ import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExte
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 import DownloadOption from '../components/DownloadOption';
-import { MediaPlayer, MediaProvider } from '@vidstack/react';
-import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { FaPlay, FaInfoCircle, FaTimes } from 'react-icons/fa';
-import '@vidstack/react/player/styles/default/theme.css';
-import '@vidstack/react/player/styles/default/layouts/video.css';
 
 const theme = {
   background: '#141414',
@@ -44,10 +40,7 @@ const MovieContainer = styled.div`
   }
 `;
 
-const CustomMediaPlayer = styled(MediaPlayer)`
-  --media-brand: ${props => props.theme.background};
-  --media-focus-ring-color: ${props => props.theme.primary};
-`;
+
 
 const Hero = styled.div`
   position: relative;
@@ -377,6 +370,11 @@ const LogoImage = styled.img`
   max-width: 300px;
   height: auto;
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+   max-width: 200px; 
+   height: auto;
+  }
 `;
 
 const LoadingPlaceholder = styled.div`
@@ -385,6 +383,14 @@ const LoadingPlaceholder = styled.div`
   background-color: #333;
   margin-bottom: 20px;
 `;
+
+const TamilYogiNoResults = styled.p`
+  color: ${props => props.theme.text};
+  text-align: center;
+  margin-top: 20px;
+`;
+
+// 
 
 function MovieDetails() {
   const { id } = useParams();
@@ -395,7 +401,6 @@ function MovieDetails() {
   const [isWatching, setIsWatching] = useState(false);
   const [watchOption, setWatchOption] = useState('server1');
   const [videoSources, setVideoSources] = useState([]);
-  const [server4Data, setServer4Data] = useState(null);
   const [tamilYogiResults, setTamilYogiResults] = useState([]);
   const [selectedTamilYogiLink, setSelectedTamilYogiLink] = useState('');
   const [showMoreInfo, setShowMoreInfo] = useState(false);
@@ -414,7 +419,6 @@ function MovieDetails() {
       setExternalIds(externalIdsResponse.data);
       setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
 
-      // Fetch additional data after setting the initial movie details
       const [recommendationsResponse, creditsResponse] = await Promise.all([
         getMovieRecommendations(id),
         getMovieCredits(id)
@@ -431,7 +435,6 @@ function MovieDetails() {
   useEffect(() => {
     fetchMovieData();
   }, [fetchMovieData]);
-
 
   const fetchVideoSources = useCallback(async (embedUrl) => {
     try {
@@ -454,13 +457,12 @@ function MovieDetails() {
     }
   }, []);
 
-const calculateEndTime = (startTime, runtime) => {
+  const calculateEndTime = (startTime, runtime) => {
     const endTime = new Date(startTime.getTime() + runtime * 60000);
     return endTime.toLocaleTimeString();
   };
 
-
-  useEffect(() => {
+ useEffect(() => {
     const fetchMovieData = async () => {
       try {
         const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse] = await Promise.all([
@@ -490,25 +492,7 @@ const calculateEndTime = (startTime, runtime) => {
         }
 
         if (watchOption === 'tamilyogi') {
-          const fetchTamilYogiResults = async () => {
-            const searchTerm = detailsResponse.data.title.split(' ').slice(0, 2).join('+');
-            const url = `https://simple-proxy.mda2233.workers.dev/?destination=https://tamilyogi.fm/?s=${searchTerm}`;
-
-            try {
-              const response = await axios.get(url);
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(response.data, 'text/html');
-              const results = Array.from(doc.querySelectorAll('.ml-item')).slice(0, 5).map(item => ({
-                title: item.querySelector('.mli-info h2').textContent,
-                link: item.querySelector('a').href
-              }));
-              setTamilYogiResults(results);
-            } catch (error) {
-              console.error('Error fetching TamilYogi results:', error);
-            }
-          };
-
-          fetchTamilYogiResults();
+          fetchTamilYogiResults(detailsResponse.data.title);
         }
       } catch (error) {
         console.error('Error fetching movie data:', error);
@@ -518,21 +502,25 @@ const calculateEndTime = (startTime, runtime) => {
     fetchMovieData();
   }, [id, watchOption, fetchVideoSources]);
 
-  const fetchServer4Data = useCallback(async () => {
-    if (!movie) return;
-    try {
-      const response = await axios.get(`https://hugo.vidlink.pro/api/movie/${movie.id}?multiLang=1`);
-      setServer4Data(response.data);
-    } catch (error) {
-      console.error('Error fetching server 4 data:', error);
-    }
-  }, [movie]);
+  const fetchTamilYogiResults = async (title) => {
+    const searchTerm = title.split(' ').slice(0, 2).join('+');
+    const url = `https://simple-proxy.mda2233.workers.dev/?destination=https://tamilyogi.fm/?s=${searchTerm}`;
 
-  useEffect(() => {
-    if (watchOption === 'server4' && movie) {
-      fetchServer4Data();
+    try {
+      const response = await axios.get(url);
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(response.data, 'text/html');
+      const results = Array.from(doc.querySelectorAll('.ml-item')).slice(0, 5).map(item => ({
+        title: item.querySelector('.mli-info h2').textContent,
+        link: item.querySelector('a').href
+      }));
+      setTamilYogiResults(results);
+      setSelectedTamilYogiLink('');
+    } catch (error) {
+      console.error('Error fetching TamilYogi results:', error);
+      setTamilYogiResults([]);
     }
-  }, [watchOption, movie, fetchServer4Data]);
+  };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -563,6 +551,9 @@ const calculateEndTime = (startTime, runtime) => {
     return () => clearInterval(intervalId);
   }, []);
 
+
+ 
+
   if (!movie || !externalIds) return <div>Loading...</div>;
 
   const embedData = {
@@ -581,7 +572,7 @@ const calculateEndTime = (startTime, runtime) => {
       <MovieContainer>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}>
           <HeroContent>
-           <Suspense fallback={<LoadingPlaceholder />}>
+            <Suspense fallback={<LoadingPlaceholder />}>
               <LogoImage src={logoUrl} alt={movie.title} />
             </Suspense>
             {!logoUrl && <Title>{movie.title}</Title>}
@@ -646,12 +637,24 @@ const calculateEndTime = (startTime, runtime) => {
                 <FaTimes />
               </CloseButton>
               <ControlsContainer>
-                <ServerDropdown value={watchOption} onChange={(e) => setWatchOption(e.target.value)}>
+                <ServerDropdown 
+                value={watchOption} 
+                onChange={(e) => {
+                  setWatchOption(e.target.value);
+                  if (e.target.value === 'tamilyogi') {
+                    fetchTamilYogiResults(movie.title);
+                  }
+                }}
+              >
                   <option value="server1">Server 1</option>
                   <option value="server2">Server 2</option>
                   <option value="server3">Server 3 (4K)</option>
                   <option value="server4">Server 4</option>
+                  <option value="server5">Server 5</option>
+                  <option value="server6">Server 6</option>
+                  <option value="server7">Server 7</option>
                   <option value="tamilyogi">TamilYogi</option>
+                  <option value="server8">Server 8</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -675,42 +678,55 @@ const calculateEndTime = (startTime, runtime) => {
                   />
                 </>
               )}
-              {watchOption === 'server4' && server4Data && (
-                <CustomMediaPlayer
-                  title={movie.title}
-                  src={server4Data.stream.playlist}
-                >
-                  <MediaProvider>
-                    {server4Data.stream.captions
-                      .filter(caption => caption.language.toLowerCase().includes('english'))
-                      .map((caption, index) => (
-                        <track
-                          key={index}
-                          kind="subtitles"
-                          src={caption.url}
-                          srcLang="en"
-                          label={`English ${index + 1}`}
-                          default={index === 0}
-                        />
-                      ))}
-                  </MediaProvider>
-                  <DefaultVideoLayout icons={defaultLayoutIcons} />
-                </CustomMediaPlayer>
+              {watchOption === 'server4' && (
+                <EmbedPlayer 
+                  src={`https://vidlink.mda2233.workers.dev/movie/${movie.id}`}
+                  allowFullScreen
+                />
               )}
+              {watchOption === 'server5' && (
+                <EmbedPlayer 
+                  src={`https://embed-testing-v04.vercel.app/tests/rollerdice/${movie.id}`}
+                  allowFullScreen
+                />
+              )}
+              {watchOption === 'server6' && (
+                <EmbedPlayer
+                src={`https://embed-testing-v7.vercel.app/tests/whatstream/${movie.id}`}
+              allowFullScreen
+              />
+              )}
+              {watchOption === 'server7' && (
+                <EmbedPlayer
+                src={`https://api.fmoviez.online/embed/movie/${movie.id}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server8' && (
+              <EmbedPlayer
+                  src={`https://filmex.to/#/media/tmdb-movie-${movie.id}`}
+                  allowFullScreen
+                  scrolling="no"
+                />
+            )}
               {watchOption === 'tamilyogi' && (
-                selectedTamilYogiLink ? (
-                  <EmbedPlayer src={selectedTamilYogiLink} allowFullScreen />
-                ) : (
-                  <TamilYogiResultsContainer>
-                    {tamilYogiResults.map((result, index) => (
+              selectedTamilYogiLink ? (
+                <EmbedPlayer src={selectedTamilYogiLink} allowFullScreen />
+              ) : (
+                <TamilYogiResultsContainer>
+                  {tamilYogiResults.length > 0 ? (
+                    tamilYogiResults.map((result, index) => (
                       <TamilYogiResultButton 
                         key={index} 
                         onClick={() => setSelectedTamilYogiLink(result.link)}
                       >
                         {result.title}
                       </TamilYogiResultButton>
-                    ))}
-                  </TamilYogiResultsContainer>
+                    ))
+                  ) : (
+                    <TamilYogiNoResults>No results found</TamilYogiNoResults>
+                  )}
+                </TamilYogiResultsContainer>
                 )
               )}
             </VideoContainer>
