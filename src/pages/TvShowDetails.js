@@ -628,7 +628,7 @@ function TvShowDetails() {
               )}
               {watchOption === 'server3' && (
                 <EmbedPlayer 
-                  src={`https://vidsrc.cc/v2/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                  src={`https://vidsrc.rip/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                   allowFullScreen
                 />
               )}
