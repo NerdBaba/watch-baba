@@ -9,8 +9,8 @@ import DownloadOption from '../components/DownloadOption';
 import { FaPlay, FaInfoCircle, FaTimes} from 'react-icons/fa';
 
 const theme = {
-  background: '#141414',
   text: 'white',
+  background: 'black',
   secondary: '#6D6D6E',
 };
 
@@ -80,7 +80,7 @@ const HeroContent = styled.div`
 const Title = styled.h1`
   font-size: 3rem;
   margin-bottom: 2px;
-
+font-family: 'GeistVF';
   @media (max-width: 768px) {
     font-size: 2rem;
   }
@@ -155,7 +155,7 @@ const PlayButton = styled(Button)`
 
 const InfoButton = styled(Button)`
   background-color: rgba(109, 109, 110, 0.7);
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.background};
   border-radius: 9px;
   font-family: 'GeistVF';
 `;
@@ -183,11 +183,9 @@ const CastContainer = styled.div`
   overflow-x: auto;
   gap: 20px;
   padding: 20px 0;
-  scrollbar-width: thin;
-  scrollbar-color: ${props => props.theme.secondary} ${props => props.theme.background};
 
   &::-webkit-scrollbar {
-    height: 8px;
+    height: 0px;
   }
 
   &::-webkit-scrollbar-track {
@@ -229,6 +227,7 @@ const CastImage = styled.img`
 const CastName = styled.p`
   font-size: 0.9rem;
   margin: 0;
+  color: ${props => props.theme.primary};
 
   @media (max-width: 768px) {
     font-size: 0.8rem;
@@ -409,7 +408,7 @@ function TvShowDetails() {
         ]);
 
         setTvShow(detailsResponse.data);
-        setRecommendations(recommendationsResponse.data.results.slice(0, 20));
+        setRecommendations(recommendationsResponse.data.results.slice(0, 16));
         setCast(creditsResponse.data.cast.slice(0, 10));
         setExternalIds(externalIdsResponse.data);
 
@@ -527,6 +526,7 @@ function TvShowDetails() {
       <TvShowContainer>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`}>
     <HeroContent>
+   
    {logoUrl ? (
               <LogoImage src={logoUrl} alt={tvShow.name} onError={() => setLogoUrl('')} />
             ) : (
@@ -537,7 +537,7 @@ function TvShowDetails() {
     <>
       <Overview>{tvShow.overview}</Overview>
       <Ratings>
-        <RatingItem>IMDb: {tvShow.vote_average.toFixed(1)}/10</RatingItem>
+        <RatingItem>⭐ {tvShow.vote_average.toFixed(1)}/10</RatingItem>
         {tvShow.external_ids?.imdb_id && (
           <RatingItem>
             Rotten Tomatoes: {/* Fetch Rotten Tomatoes rating */}

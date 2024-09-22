@@ -81,7 +81,7 @@ const HeroContent = styled.div`
 const Title = styled.h1`
   font-size: 3rem;
   margin-bottom: 2px;
-
+  font-family: 'GeistVF';
   @media (max-width: 768px) {
     font-size: 2rem;
   }
@@ -206,11 +206,9 @@ const CastContainer = styled.div`
   overflow-x: auto;
   gap: 20px;
   padding: 20px 0;
-  scrollbar-width: thin;
-  scrollbar-color: ${props => props.theme.secondary} ${props => props.theme.background};
 
   &::-webkit-scrollbar {
-    height: 8px;
+    height: 0px;
   }
 
   &::-webkit-scrollbar-track {
@@ -252,7 +250,7 @@ const CastImage = styled.img`
 const CastName = styled.p`
   font-size: 0.9rem;
   margin: 0;
-
+  color: ${props => props.theme.primary};
   @media (max-width: 768px) {
     font-size: 0.8rem;
   }
@@ -347,13 +345,40 @@ const ServerDropdown = styled.select`
   }
 `;
 
+const LoadingRing = styled.div`
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+  :after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border-radius: 50%;
+    border: 6px solid ${props => props.theme.text};
+    border-color: ${props => props.theme.text} transparent ${props => props.theme.text} transparent;
+    animation: ring 1.2s linear infinite;
+  }
+  @keyframes ring {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 const TamilYogiResultsContainer = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-top: 10px;
+  min-height: 200px; // Ensure there's enough space for the loading ring
 `;
-
 const TamilYogiResultButton = styled.button`
   padding: 10px;
   background-color: ${props => props.theme.primary};
@@ -402,6 +427,7 @@ function MovieDetails() {
   const [watchOption, setWatchOption] = useState('server1');
   const [videoSources, setVideoSources] = useState([]);
   const [tamilYogiResults, setTamilYogiResults] = useState([]);
+  const [isTamilYogiLoading, setIsTamilYogiLoading] = useState(false);
   const [selectedTamilYogiLink, setSelectedTamilYogiLink] = useState('');
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   const videoContainerRef = useRef(null);
@@ -424,7 +450,7 @@ function MovieDetails() {
         getMovieCredits(id)
       ]);
 
-      setRecommendations(recommendationsResponse.data.results.slice(0, 20));
+      setRecommendations(recommendationsResponse.data.results.slice(0, 16));
       setCast(creditsResponse.data.cast.slice(0, 10));
 
     } catch (error) {
@@ -503,24 +529,30 @@ function MovieDetails() {
   }, [id, watchOption, fetchVideoSources]);
 
   const fetchTamilYogiResults = async (title) => {
-    const searchTerm = title.split(' ').slice(0, 2).join('+');
-    const url = `https://simple-proxy.mda2233.workers.dev/?destination=https://tamilyogi.fm/?s=${searchTerm}`;
+  const searchTerm = title.split(' ').slice(0, 2).join('+');
+  const url = `https://simple-proxy.mda2233.workers.dev/?destination=https://tamilyogi.fm/?s=${searchTerm}`;
 
-    try {
-      const response = await axios.get(url);
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(response.data, 'text/html');
-      const results = Array.from(doc.querySelectorAll('.ml-item')).slice(0, 5).map(item => ({
-        title: item.querySelector('.mli-info h2').textContent,
-        link: item.querySelector('a').href
-      }));
-      setTamilYogiResults(results);
-      setSelectedTamilYogiLink('');
-    } catch (error) {
-      console.error('Error fetching TamilYogi results:', error);
-      setTamilYogiResults([]);
-    }
-  };
+  setIsTamilYogiLoading(true);
+  setTamilYogiResults([]);
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 2 second delay
+    const response = await axios.get(url);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(response.data, 'text/html');
+    const results = Array.from(doc.querySelectorAll('.ml-item')).slice(0, 5).map(item => ({
+      title: item.querySelector('.mli-info h2').textContent,
+      link: item.querySelector('a').href
+    }));
+    setTamilYogiResults(results);
+    setSelectedTamilYogiLink('');
+  } catch (error) {
+    console.error('Error fetching TamilYogi results:', error);
+    setTamilYogiResults([]);
+  } finally {
+    setIsTamilYogiLoading(false);
+  }
+};
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -572,11 +604,26 @@ function MovieDetails() {
       <MovieContainer>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}>
           <HeroContent>
-            <Suspense fallback={<LoadingPlaceholder />}>
-              <LogoImage src={logoUrl} alt={movie.title} />
+          <Suspense fallback={<LoadingPlaceholder />}>
+            {logoUrl ? (
+              <LogoImage src={logoUrl} alt={movie.title} onError={() => setLogoUrl('')} />
+            ) : (
+              <Title>{movie.title}</Title>
+            )}
             </Suspense>
-            {!logoUrl && <Title>{movie.title}</Title>}
             {movie.tagline && <Tagline>{movie.tagline}</Tagline>}
+            
+            {showMoreInfo && (
+              <>
+                <Overview>{movie.overview}</Overview>
+                <Ratings>
+                  <RatingItem>⭐ {movie.vote_average.toFixed(1)}/10</RatingItem>
+                </Ratings>
+                <InfoItem>Release Date: {new Date(movie.release_date).toLocaleDateString()}</InfoItem>
+                <InfoItem>Runtime: {movie.runtime} minutes</InfoItem>
+                <InfoItem>Ends at: {calculateEndTime(currentTime, movie.runtime)}</InfoItem>
+              </>
+            )}
             <ButtonGroup>
               <PlayButton onClick={() => {
                 setIsWatching(true);
@@ -588,17 +635,6 @@ function MovieDetails() {
                 <FaInfoCircle /> {showMoreInfo ? 'Less Info' : 'More Info'}
               </InfoButton>
             </ButtonGroup>
-            {showMoreInfo && (
-              <>
-                <Overview>{movie.overview}</Overview>
-                <Ratings>
-                  <RatingItem>IMDb: {movie.vote_average.toFixed(1)}/10</RatingItem>
-                </Ratings>
-                <InfoItem>Release Date: {new Date(movie.release_date).toLocaleDateString()}</InfoItem>
-                <InfoItem>Runtime: {movie.runtime} minutes</InfoItem>
-                <InfoItem>Ends at: {calculateEndTime(currentTime, movie.runtime)}</InfoItem>
-              </>
-            )}
           </HeroContent>
         </Hero>
 
@@ -709,26 +745,28 @@ function MovieDetails() {
                   scrolling="no"
                 />
             )}
-              {watchOption === 'tamilyogi' && (
-              selectedTamilYogiLink ? (
-                <EmbedPlayer src={selectedTamilYogiLink} allowFullScreen />
-              ) : (
-                <TamilYogiResultsContainer>
-                  {tamilYogiResults.length > 0 ? (
-                    tamilYogiResults.map((result, index) => (
-                      <TamilYogiResultButton 
-                        key={index} 
-                        onClick={() => setSelectedTamilYogiLink(result.link)}
-                      >
-                        {result.title}
-                      </TamilYogiResultButton>
-                    ))
-                  ) : (
-                    <TamilYogiNoResults>No results found</TamilYogiNoResults>
-                  )}
-                </TamilYogiResultsContainer>
-                )
-              )}
+            {watchOption === 'tamilyogi' && (
+  selectedTamilYogiLink ? (
+    <EmbedPlayer src={selectedTamilYogiLink} allowFullScreen />
+  ) : (
+    <TamilYogiResultsContainer>
+      {isTamilYogiLoading ? (
+        <LoadingRing />
+      ) : tamilYogiResults.length > 0 ? (
+        tamilYogiResults.map((result, index) => (
+          <TamilYogiResultButton 
+            key={index} 
+            onClick={() => setSelectedTamilYogiLink(result.link)}
+          >
+            {result.title}
+          </TamilYogiResultButton>
+        ))
+      ) : (
+        <TamilYogiNoResults>No results found</TamilYogiNoResults>
+      )}
+    </TamilYogiResultsContainer>
+  )
+)}
             </VideoContainer>
           </Backdrop>
         )}

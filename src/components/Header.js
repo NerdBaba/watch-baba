@@ -84,6 +84,8 @@ const RandomButton = styled.button`
   font-size: 16px;
   width: 100%;
   justify-content: center;
+  font-family: GeistVF, sans-serif;
+  font-weight: heavy; 
 
   @media (min-width: 768px) {
     width: auto;
