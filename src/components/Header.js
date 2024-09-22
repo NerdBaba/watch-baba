@@ -10,7 +10,7 @@ const HeaderContainer = styled.header`
   align-items: center;
   padding: 20px;
   padding-bottom: 0;
-  background-color: ${props => props.theme.secondary};
+  background-color: ${props => props.theme.background};
 
   @media (min-width: 768px) {
     flex-direction: row;
@@ -109,7 +109,7 @@ const MenuButton = styled.button`
   display: none;
   background: none;
   border: none;
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.primary};
   font-size: 1.5rem;
   cursor: pointer;
 

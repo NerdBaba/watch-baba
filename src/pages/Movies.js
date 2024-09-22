@@ -17,6 +17,8 @@ const Grid = styled.div`
 
 const FilterWrapper = styled.div`
   margin-bottom: 20px;
+    background-color: ${props => props.theme.background};
+  color: ${props => props.theme.primary};
 `;
 
 function Movies() {

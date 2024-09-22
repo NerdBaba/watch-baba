@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef} from 'react';
 import { useParams, Link } from 'react-router-dom';
-import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
+import styled from 'styled-components';
 import axios from 'axios';
 import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds, getTvShowEpisodeDetails  } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
@@ -8,25 +8,6 @@ import MovieCard from '../components/MovieCard';
 import DownloadOption from '../components/DownloadOption';
 import { FaPlay, FaInfoCircle, FaTimes} from 'react-icons/fa';
 
-const theme = {
-  text: 'white',
-  background: 'black',
-  secondary: '#6D6D6E',
-};
-
-const GlobalStyle = createGlobalStyle`
-  body {
-    color: ${props => props.theme.text};
-    font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-  }
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
-`;
 
 const TvShowContainer = styled.div`
   width: 100%;
@@ -89,7 +70,7 @@ font-family: 'GeistVF';
 const Overview = styled.p`
   font-size: 1.2rem;
   margin-bottom: 20px;
-
+  color: white;
   @media (max-width: 768px) {
     font-size: 0.8rem;
   }
@@ -131,6 +112,7 @@ const Ratings = styled.div`
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
+  color: white;
 `;
 
 const RatingItem = styled.span`
@@ -143,18 +125,22 @@ const RatingItem = styled.span`
   }
 `;
 const PlayButton = styled(Button)`
-  background-color: ${props => props.theme.text};
-  color: ${props => props.theme.background};
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.primary};
   border-radius: 9px;
   @font-face {
     font-family: 'GeistVF';
     src: url('fonts/GeistVF.ttf') format('truetype');
   }
   font-family: 'GeistVF';
+
+  &:hover {
+      background-color: ${props => props.theme.background};
+    }
 `;
 
 const InfoButton = styled(Button)`
-  background-color: rgba(109, 109, 110, 0.7);
+  background-color: ${props => props.theme.primary};
   color: ${props => props.theme.background};
   border-radius: 9px;
   font-family: 'GeistVF';
@@ -274,13 +260,18 @@ const VideoContainer = styled.div`
 
 const CloseButton = styled.button`
   position: absolute;
-  top: -40px;
+  top: -50px;
+  padding-bottom: 4px;
   right: 0;
   background: transparent;
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.primary};
   border: none;
   font-size: 2rem;
   cursor: pointer;
+
+   &:hover {
+      background-color: ${props => props.theme.background};
+    }
 `;
 const EmbedPlayer = styled.iframe`
   width: 100%;
@@ -302,7 +293,7 @@ const ControlsContainer = styled.div`
   justify-content: space-between;
   align-items: stretch;
   padding: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.0);
   border-radius: 5px;
   margin-bottom: 10px;
 
@@ -313,8 +304,8 @@ const ControlsContainer = styled.div`
 `;
 
 const Select = styled.select`
-  background-color: ${props => props.theme.secondary};
-  color: ${props => props.theme.text};
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.primary};
   border: none;
   padding: 10px;
   font-family: 'GeistVF';
@@ -416,7 +407,7 @@ function TvShowDetails() {
           setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
         }
 
-        if (watchOption === 'server3') {
+        if (watchOption === 'server4') {
           const currentSeason = detailsResponse.data.seasons.find(season => season.season_number === selectedSeason);
           const totalEpisodes = detailsResponse.data.seasons.reduce((sum, season) => sum + season.episode_count, 0);
           const embedData = {
@@ -458,7 +449,7 @@ function TvShowDetails() {
 
   useEffect(() => {
     const fetchEpisodeDetails = async () => {
-      if (watchOption === 'server6') {
+      if (watchOption === 'server8') {
         try {
           const episodeResponse = await getTvShowEpisodeDetails(id, selectedSeason, selectedEpisode);
           setEpisodeId(episodeResponse.data.id);
@@ -521,8 +512,6 @@ function TvShowDetails() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <GlobalStyle />
       <TvShowContainer>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`}>
     <HeroContent>
@@ -608,8 +597,8 @@ function TvShowDetails() {
                 <ServerDropdown value={watchOption} onChange={(e) => setWatchOption(e.target.value)}>
                   <option value="server1">Server 1</option>
                   <option value="server2">Server 2</option>
-                  <option value="server3">Server 3 (4K)</option>
-                  <option value="server4">Server 4</option>
+                  <option value="server3">Server 3</option>
+                  <option value="server4">Server 4 (4K)</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
                   <option value="server7">Server 7</option>
@@ -617,7 +606,7 @@ function TvShowDetails() {
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
-                <VideoPlayer imdbId={externalIds.imdb_id} season={selectedSeason} episode={selectedEpisode} />
+                <VideoPlayer tmdbId={tvShow.id} season={selectedSeason} episode={selectedEpisode} />
               )}
               {watchOption === 'server2' && (
                 <EmbedPlayer 
@@ -625,7 +614,7 @@ function TvShowDetails() {
                   allowFullScreen
                 />
               )}
-              {watchOption === 'server3' && (
+              {watchOption === 'server4' && (
                 <>
                   <EmbedPlayer 
                     src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
@@ -637,9 +626,9 @@ function TvShowDetails() {
                   />
                 </>
               )}
-              {watchOption === 'server4' && (
+              {watchOption === 'server3' && (
                 <EmbedPlayer 
-                  src={`https://vidlink.mda2233.workers.dev/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                  src={`https://vidsrc.cc/v2/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                   allowFullScreen
                 />
               )}
@@ -673,7 +662,6 @@ function TvShowDetails() {
           </Backdrop>
         )}
       </TvShowContainer>
-    </ThemeProvider>
   );
 }
 

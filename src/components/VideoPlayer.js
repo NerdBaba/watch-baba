@@ -1,7 +1,9 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { ThemeContext } from 'styled-components';
+import { themes } from '../theme';
 
-// Container to maintain the aspect ratio (16:9) for the video player
+export { themes };
+
 const PlayerContainer = styled.div`
   position: relative;
   padding-bottom: 56.25%; /* 16:9 aspect ratio */
@@ -9,7 +11,6 @@ const PlayerContainer = styled.div`
   overflow: hidden;
 `;
 
-// Iframe for the embedded video player
 const Iframe = styled.iframe`
   position: absolute;
   top: 0;
@@ -19,33 +20,30 @@ const Iframe = styled.iframe`
   border: none;
 `;
 
-// // Blocker overlay to capture clicks and prevent interaction with unwanted elements in the iframe
-// const Blocker = styled.div`
-//   position: absolute;
-//   top: 0;
-//   left: 0;
-//   width: 100%;
-//   height: 100%;
-//   z-index: 10; /* Ensure it's above the iframe */
-//   pointer-events: none; /* Allow clicks to pass through to the iframe */
-// `;
+function VideoPlayer({ tmdbId, season, episode }) {
+  const theme = React.useContext(ThemeContext);
 
-function VideoPlayer({ imdbId, season, episode }) {
-  // Construct the embed URL based on whether it's a movie or a TV show
   let embedUrl = '';
 
   if (season && episode) {
-    embedUrl = `https://vidsrc.cc/v2/embed/tv/${imdbId}/${season}/${episode}`;
+    embedUrl = `https://vidlink.mda2233.workers.dev/tv/${tmdbId}/${season}/${episode}`;
   } else {
-    embedUrl = `https://vidsrc.cc/v2/embed/movie/${imdbId}`;
+    embedUrl = `https://vidlink.mda2233.workers.dev/movie/${tmdbId}`;
   }
- 
+
+  if (theme && theme.primary && theme.background) {
+    // Remove the '#' from the hex codes and construct the URL parameters
+    const primaryColor = theme.primary.replace('#', '');
+    const secondaryColor = theme.background.replace('#', '');
+    const iconColor = theme.primary.replace('#', '');
+
+    // Append the color parameters to the embedUrl
+    embedUrl += `?primaryColor=${primaryColor}&secondaryColor=${secondaryColor}&iconColor=${iconColor}`;
+  }
 
   return (
     <PlayerContainer>
-      {/* Embed the video using an iframe */}
       <Iframe src={embedUrl} allowFullScreen />
-      {/* Invisible blocker overlay to prevent interaction with popups or ads */}
     </PlayerContainer>
   );
 }

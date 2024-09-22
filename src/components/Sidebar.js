@@ -1,8 +1,8 @@
-import React, { useContext, forwardRef } from 'react';
+import React, {forwardRef } from 'react';
 import { Link } from 'react-router-dom';
-import styled, { ThemeContext } from 'styled-components';
-import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars} from 'react-icons/fa';
-import { themes } from '../theme';
+import styled from 'styled-components';
+import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars, FaPalette} from 'react-icons/fa';
+// import { themes } from '../theme';
 
 const SidebarContainer = styled.nav`
   width: ${(props) => (props.isOpen ? '200px' : '60px')};
@@ -57,28 +57,28 @@ const ToggleButton = styled.button`
   justify-content: ${(props) => (props.isOpen ? 'flex-end' : 'center')};
 `;
 
-const ThemeSelector = styled.select`
-  width: 100%;
-  padding: 5px;
-  margin-top: 10px;
-  background-color: ${(props) => props.theme.background};
-  color: ${(props) => props.theme.text};
-  border: 1px solid ${(props) => props.theme.primary};
-  border-radius: 5px;
-`;
+// const ThemeSelector = styled.select`
+//   width: 100%;
+//   padding: 5px;
+//   margin-top: 10px;
+//   background-color: ${(props) => props.theme.background};
+//   color: ${(props) => props.theme.text};
+//   border: 1px solid ${(props) => props.theme.primary};
+//   border-radius: 5px;
+// `;
 
 const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
-  const theme = useContext(ThemeContext);
+  // const theme = useContext(ThemeContext);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleThemeChange = (e) => {
-    const themeName = e.target.value;
-    console.log('Selected theme:', themeName);
-    setTheme(themeName);
-  };
+  // const handleThemeChange = (e) => {
+  //   const themeName = e.target.value;
+  //   console.log('Selected theme:', themeName);
+  //   setTheme(themeName);
+  // };
 
   return (
     <SidebarContainer ref={ref} isOpen={isOpen}>
@@ -105,15 +105,10 @@ const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
         <IconWrapper isOpen={isOpen}><FaUser /></IconWrapper>
         {isOpen && 'Actors'}
       </NavItem>
-      {isOpen && (
-        <ThemeSelector onChange={handleThemeChange} value={(Object.keys(themes).find(key => themes[key] === theme) || 'default')}>
-          {Object.keys(themes).map((key) => (
-            <option key={key} value={key}>
-              {themes[key].name}
-            </option>
-          ))}
-        </ThemeSelector>
-      )}
+      <NavItem to="/themes">
+        <IconWrapper isOpen={isOpen}><FaPalette /></IconWrapper>
+        {isOpen && 'Themes'}
+      </NavItem>
     </SidebarContainer>
   );
 });
