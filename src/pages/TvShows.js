@@ -17,6 +17,7 @@ const Grid = styled.div`
 
 const FilterWrapper = styled.div`
   margin-bottom: 20px;
+  
 `;
 
 function TvShows() {

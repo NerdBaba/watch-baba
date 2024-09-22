@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
+import styled from 'styled-components';
 import axios from 'axios';
 import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
@@ -8,25 +8,8 @@ import MovieCard from '../components/MovieCard';
 import DownloadOption from '../components/DownloadOption';
 import { FaPlay, FaInfoCircle, FaTimes } from 'react-icons/fa';
 
-const theme = {
-  background: '#141414',
-  text: 'white',
-  secondary: '#6D6D6E',
-};
 
-const GlobalStyle = createGlobalStyle`
-  body {
-    color: ${props => props.theme.text};
-    font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-  }
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
-`;
+
 
 const MovieContainer = styled.div`
   width: 100%;
@@ -91,7 +74,7 @@ const Overview = styled.p`
   font-size: 1.2rem;
   margin-bottom: 20px;
   font-family: 'GeistVF';
-
+  color: white;
   @media (max-width: 768px) {
     font-size: 0.8rem;
   }
@@ -159,6 +142,7 @@ const InfoItem = styled.p`
   margin: 5px 0;
   font-size: 1rem;
   font-family: 'GeistVF';
+  color:white;
 
   @media (max-width: 768px) {
     font-size: 0.8rem;
@@ -166,19 +150,23 @@ const InfoItem = styled.p`
 `;
 
 const PlayButton = styled(Button)`
-  background-color: ${props => props.theme.text};
-  color: ${props => props.theme.background};
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.primary};
   border-radius: 9px;
   @font-face {
     font-family: 'GeistVF';
     src: url('fonts/GeistVF.ttf') format('truetype');
   }
   font-family: 'GeistVF';
+
+  &:hover {
+      background-color: ${props => props.theme.background};
+    }
 `;
 
 const InfoButton = styled(Button)`
-  background-color: rgba(109, 109, 110, 0.7);
-  color: ${props => props.theme.text};
+  background-color: ${props => props.theme.primary};
+  color: ${props => props.theme.background};
   border-radius: 9px;
   font-family: 'GeistVF';
 `;
@@ -295,13 +283,18 @@ const VideoContainer = styled.div`
 
 const CloseButton = styled.button`
   position: absolute;
-  top: -40px;
+  top: 0px;
   right: 0;
+  padding-bottom: 5px;
   background: transparent;
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.primary};
   border: none;
   font-size: 2rem;
   cursor: pointer;
+  
+  &:hover {
+      background-color: ${props => props.theme.background};
+    }
 `;
 
 const EmbedPlayer = styled.iframe`
@@ -324,14 +317,14 @@ const ControlsContainer = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.0);
   border-radius: 5px;
   margin-bottom: 10px;
 `;
 
 const ServerDropdown = styled.select`
-  background-color: ${props => props.theme.secondary};
-  color: ${props => props.theme.text};
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.primary};
   border: none;
   padding: 10px;
   font-family: 'GeistVF';
@@ -381,8 +374,8 @@ const TamilYogiResultsContainer = styled.div`
 `;
 const TamilYogiResultButton = styled.button`
   padding: 10px;
-  background-color: ${props => props.theme.primary};
-  color: white;
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.primary};
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -503,7 +496,7 @@ function MovieDetails() {
         setCast(creditsResponse.data.cast.slice(0, 10));
         setExternalIds(externalIdsResponse.data);
 
-        if (watchOption === 'server3') {
+        if (watchOption === 'server4') {
           const embedData = {
             type: "Movie",
             title: detailsResponse.data.title,
@@ -599,8 +592,6 @@ function MovieDetails() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <GlobalStyle />
       <MovieContainer>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}>
           <HeroContent>
@@ -684,7 +675,7 @@ function MovieDetails() {
               >
                   <option value="server1">Server 1</option>
                   <option value="server2">Server 2</option>
-                  <option value="server3">Server 3 (4K)</option>
+                  <option value="server3">Server 3</option>
                   <option value="server4">Server 4</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
@@ -694,7 +685,7 @@ function MovieDetails() {
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
-                <VideoPlayer imdbId={externalIds.imdb_id} />
+                <VideoPlayer tmdbId={movie.id} />
               )}
               {watchOption === 'server2' && (
                 <EmbedPlayer 
@@ -702,7 +693,7 @@ function MovieDetails() {
                   allowFullScreen
                 />
               )}
-              {watchOption === 'server3' && (
+              {watchOption === 'server4' && (
                 <>
                   <EmbedPlayer 
                     src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
@@ -714,9 +705,9 @@ function MovieDetails() {
                   />
                 </>
               )}
-              {watchOption === 'server4' && (
+              {watchOption === 'server3' && (
                 <EmbedPlayer 
-                  src={`https://vidlink.mda2233.workers.dev/movie/${movie.id}`}
+                  src={`https://vidsrc.cc/v2/embed/movie/${movie.id}`}
                   allowFullScreen
                 />
               )}
@@ -771,7 +762,6 @@ function MovieDetails() {
           </Backdrop>
         )}
       </MovieContainer>
-    </ThemeProvider>
   );
 }
 

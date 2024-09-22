@@ -89,7 +89,7 @@ const Icon = styled.span`
 const PlaceholderSVG = styled.svg`
   width: 50%;
   height: 50%;
-  fill: #666;
+  fill: ${props => props.theme.text};
 `;
 
 const Title = styled.h3`
@@ -105,7 +105,7 @@ const Title = styled.h3`
 
 const Genre = styled.p`
   font-size: 13px;
-  color: #aaa;
+  color:${props => props.theme.text};
   margin: 0 0 12px;
   padding: 0 12px;
 

@@ -15,7 +15,7 @@ import SearchResults from './pages/SearchResults';
 import ActorDetails from './pages/ActorDetails';
 import { themes } from './theme';
 import { saveTheme, loadTheme } from './utils/themeStorage';
-
+import Themes from './pages/Themes';
 
 
 const AppContainer = styled.div`
@@ -58,15 +58,15 @@ const GlobalStyle = createGlobalStyle`
   }
 
   button {
-    background-color: ${props => props.theme.primary};
-    color: ${props => props.theme.secondary};
+    background-color: ${props => props.theme.background};
+    color: ${props => props.theme.primary};
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
     &:hover {
-      background-color: ${props => props.theme.accent1};
+      background-color: ${props => props.theme.primary};
     }
   }
 
@@ -160,6 +160,7 @@ useEffect(() => {
                 <Route path="/tv/:id" element={<TvShowDetails />} />
                 <Route path="/search" element={<SearchResults />} />
                 <Route path="/actor/:id" element={<ActorDetails />} />
+                <Route path="/themes" element={<Themes setTheme={changeTheme} />} />
               </Routes>
             </ContentWrapper>
             <Footer />

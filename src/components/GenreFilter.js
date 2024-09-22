@@ -9,8 +9,8 @@ const FilterContainer = styled.div`
 `;
 
 const GenreButton = styled.button`
-  background-color: ${props => props.active ? props.theme.primary : props.theme.secondary};
-  color: ${props => props.active ? props.theme.text : props.theme.secondary};
+  background-color: ${props => props.active ? props.theme.text : props.theme.primary};
+  color: ${props => props.active ? props.theme.primary : props.theme.text};
   border: none;
   padding: 6px 10px;
   border-radius: 20px;
@@ -24,8 +24,8 @@ const GenreButton = styled.button`
   }
 
   &:hover {
-    background-color: ${props => props.theme.primary};
-    color: ${props => props.theme.secondary};
+    background-color: ${props => props.theme.text};
+    color: ${props => props.theme.primary};
   }
 `;
 
