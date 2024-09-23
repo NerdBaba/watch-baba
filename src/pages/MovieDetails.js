@@ -707,7 +707,7 @@ function MovieDetails() {
               )}
               {watchOption === 'server3' && (
                 <EmbedPlayer 
-                  src={`https://vidsrc.cc/v2/embed/movie/${movie.id}`}
+                  src={`https://vidsrc.rip/embed/movie/${movie.id}`}
                   allowFullScreen
                 />
               )}
