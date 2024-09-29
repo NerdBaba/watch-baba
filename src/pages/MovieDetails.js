@@ -729,8 +729,10 @@ function MovieDetails() {
               />
               )}
               {watchOption === 'server3' && (
+
                 <AdBlockedIframe 
                   src={`https://vidsrc.cc/v2/embed/movie/${movie.id}`}
+
                   allowFullScreen
                 />
               )}

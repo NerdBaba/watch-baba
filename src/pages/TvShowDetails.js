@@ -652,7 +652,9 @@ function TvShowDetails() {
               )}
               {watchOption === 'server7' && (
                 <EmbedPlayer 
+
                   src={`https://moviee.tv/embed/tv/${tvShow.id}?season=${selectedSeason}&episode=${selectedEpisode}`}
+
                   allowFullScreen
                 />
               )}
