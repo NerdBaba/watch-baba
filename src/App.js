@@ -13,9 +13,13 @@ import MovieDetails from './pages/MovieDetails';
 import TvShowDetails from './pages/TvShowDetails';
 import SearchResults from './pages/SearchResults';
 import ActorDetails from './pages/ActorDetails';
+import AnimeDetails from './pages/AnimeDetails';
 import { themes } from './theme';
 import { saveTheme, loadTheme } from './utils/themeStorage';
 import Themes from './pages/Themes';
+import Anime from './pages/Anime';
+
+
 
 
 const AppContainer = styled.div`
@@ -125,6 +129,9 @@ function App() {
     }
   };
 
+
+
+
 useEffect(() => {
     const handleClickOutside = (event) => {
       if (window.innerWidth <= 768 && 
@@ -160,6 +167,8 @@ useEffect(() => {
                 <Route path="/tv/:id" element={<TvShowDetails />} />
                 <Route path="/search" element={<SearchResults />} />
                 <Route path="/actor/:id" element={<ActorDetails />} />
+                <Route path="/anime" element={<Anime />} />
+                <Route path="/anime/:id" element={<AnimeDetails />} />
                 <Route path="/themes" element={<Themes setTheme={changeTheme} />} />
               </Routes>
             </ContentWrapper>

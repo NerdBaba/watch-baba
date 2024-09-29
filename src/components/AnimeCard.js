@@ -23,7 +23,7 @@ const Card = styled(Link)`
   }
 
   @media (max-width: 480px) {
-    max-width: 430px;
+    max-width: 4300px;
   }
 `;
 const PosterContainer = styled.div`
@@ -114,19 +114,10 @@ const Genre = styled.p`
   }
 `;
 
-function MovieCard({ movie, genres = [] }) {
-  const navigate = useNavigate();
-  const isTV = movie.media_type === 'tv' || movie.first_air_date;
-  const link = isTV ? `/tv/${movie.id}` : `/movie/${movie.id}`;
-  const title = isTV ? movie.name : movie.title;
 
-  const movieGenres = movie.genre_ids
-    ? movie.genre_ids
-        .map(id => genres.find(genre => genre.id === id)?.name)
-        .filter(Boolean)
-        .slice(0, 2)
-        .join(', ')
-    : '';
+function AnimeCard({ anime }) {
+  const navigate = useNavigate();
+  const link = `/anime/${anime.mal_id}`;
 
   const handleClick = useCallback((e) => {
     e.preventDefault();
@@ -147,24 +138,30 @@ function MovieCard({ movie, genres = [] }) {
   return (
     <Card to={link} onClick={handleClick}>
       <PosterContainer>
-        {movie.poster_path ? (
-          <Poster src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={title} />
+        {anime.images.jpg.image_url ? (
+          <Poster src={anime.images.jpg.image_url} alt={anime.title} />
         ) : (
           <PlaceholderSVG viewBox="0 0 24 24">
             <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
           </PlaceholderSVG>
         )}
         <HoverOverlay>
-          <Rating>⭐ {movie.vote_average.toFixed(1)}</Rating>
-          <DetailItem><Icon>📅</Icon> {(isTV ? movie.first_air_date : movie.release_date)?.slice(0, 4)}</DetailItem>
-          <DetailItem><Icon>{isTV ? '📺' : '🎬'}</Icon> {isTV ? 'TV Show' : 'Movie'}</DetailItem>
-          <DetailItem><Icon>🌐</Icon> {movie.original_language?.toUpperCase()}</DetailItem>
+          <Rating>⭐ {anime.score}</Rating>
+          {anime.aired?.prop?.from?.year && (
+            <DetailItem><Icon>📅</Icon> {anime.aired.prop.from.year}</DetailItem>
+          )}
+          {anime.type && (
+            <DetailItem><Icon>📺</Icon> {anime.type}</DetailItem>
+          )}
+          {anime.status && (
+            <DetailItem><Icon>🌐</Icon> {anime.status}</DetailItem>
+          )}
         </HoverOverlay>
       </PosterContainer>
-      <Title>{title}</Title>
-      {movieGenres && <Genre>{movieGenres}</Genre>}
+      <Title>{anime.title}</Title>
+      {anime.genres && <Genre>{anime.genres.slice(0, 2).map(g => g.name).join(', ')}</Genre>}
     </Card>
   );
 }
 
-export default MovieCard;
+export default AnimeCard;

@@ -1,6 +1,7 @@
+
 export const themes = {
   // Dark Themes
-  default: { name: 'Netflix', primary: '#E50914', background: '#000000', text: '#FFFFFF', description: 'Classic streaming theme', category: 'dark' },
+  default: { name: 'Netflix', primary: '#E50914', background: '#141414', text: '#FFFFFF', description: 'Modern streaming theme', category: 'dark' },
   nightcity: { name: 'Night City', primary: '#00FFFF', background: '#120458', text: '#FF00FF', description: 'Cyberpunk-inspired neon nights', category: 'dark' },
   dracula: { name: 'Dracula', primary: '#BD93F9', background: '#282A36', text: '#F8F8F2', description: 'A dark theme for the night owls', category: 'dark' },
   deepSpace: { name: 'Deep Space', primary: '#7B4DFF', background: '#0A0E21', text: '#E0E0E0', description: 'Explore the cosmos', category: 'dark' },
@@ -28,7 +29,16 @@ export const themes = {
   mintChocolate: { name: 'Mint Chocolate', primary: '#4ECCA3', background: '#2D2D2D', text: '#EEEEEE', description: 'Cool and refreshing', category: 'pastel' },
   lavenderFields: { name: 'Lavender Fields', primary: '#9F77CF', background: '#F0E6FF', text: '#4A0E4E', description: 'Calming purple hues', category: 'pastel' },
 
-  // Other themes (you can categorize these as needed)
+  // Material Themes
+  materialIndigo: { name: 'Material Indigo', primary: '#3F51B5', background: '#E8EAF6', text: '#212121', description: 'Classic Material Design', category: 'material' },
+  materialTeal: { name: 'Material Teal', primary: '#009688', background: '#E0F2F1', text: '#212121', description: 'Refreshing teal palette', category: 'material' },
+  materialRed: { name: 'Material Red', primary: '#F44336', background: '#FFEBEE', text: '#212121', description: 'Bold and energetic', category: 'material' },
+  materialPurple: { name: 'Material Purple', primary: '#9C27B0', background: '#F3E5F5', text: '#212121', description: 'Rich and regal', category: 'material' },
+  materialGreen: { name: 'Material Green', primary: '#4CAF50', background: '#E8F5E9', text: '#212121', description: 'Natural and balanced', category: 'material' },
+  materialOrange: { name: 'Material Orange', primary: '#FF9800', background: '#FFF3E0', text: '#212121', description: 'Warm and inviting', category: 'material' },
+  materialBlueGrey: { name: 'Material Blue Grey', primary: '#607D8B', background: '#ECEFF1', text: '#212121', description: 'Subtle and sophisticated', category: 'material' },
+
+  // Additional Themes
   Yellowjacket: { name: 'Yellowjacket', primary: '#ffd700', background: '#1a1a1a', text: '#ffffff', description: 'Bold and energetic', category: 'dark' },
   chemical: { name: 'Chemical', primary: '#1CE783', background: '#0B0C0F', text: '#FFFFFF', description: 'Toxic and glowing', category: 'dark' },
   royalBlue: { name: 'Royal Blue', primary: '#0063E5', background: '#040714', text: '#F9F9F9', description: 'Regal and sophisticated', category: 'dark' },

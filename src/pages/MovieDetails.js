@@ -26,13 +26,14 @@ const MovieContainer = styled.div`
 
 
 const Hero = styled.div`
-  position: relative;
+   position: relative;
   height: 80vh;
   background-image: url(${props => props.backdrop});
   background-size: cover;
   background-position: center;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
   padding: 40px;
 
   @media (max-width: 768px) {
@@ -408,6 +409,56 @@ const TamilYogiNoResults = styled.p`
   margin-top: 20px;
 `;
 
+
+const AdBlockedIframe = ({ src, allowFullScreen }) => {
+  const [isBlocked, setIsBlocked] = useState(false);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    const checkDomain = () => {
+      const blockedDomains = [
+        'example-ad-domain.com',
+        'another-ad-domain.com',
+        // Add more blocked domains here
+      ];
+      const url = new URL(src);
+      if (blockedDomains.some(domain => url.hostname.includes(domain))) {
+        setIsBlocked(true);
+      } else {
+        setIsBlocked(false);
+      }
+    };
+
+    checkDomain();
+
+    const observer = new MutationObserver(() => {
+      if (iframeRef.current) {
+        checkDomain();
+      }
+    });
+
+    if (iframeRef.current) {
+      observer.observe(iframeRef.current, { attributes: true, attributeFilter: ['src'] });
+    }
+
+    return () => observer.disconnect();
+  }, [src]);
+
+  if (isBlocked) {
+    return null; // Return nothing if the domain is blocked
+  }
+
+  return (
+    <iframe
+      ref={iframeRef}
+      src={src}
+      allowFullScreen={allowFullScreen}
+      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"
+      style={{ width: '100%', height: '100%', border: 'none' }}
+    />
+  );
+};
+
 // 
 
 function MovieDetails() {
@@ -496,20 +547,6 @@ function MovieDetails() {
         setCast(creditsResponse.data.cast.slice(0, 10));
         setExternalIds(externalIdsResponse.data);
 
-        if (watchOption === 'server4') {
-          const embedData = {
-            type: "Movie",
-            title: detailsResponse.data.title,
-            year: detailsResponse.data.release_date.split('-')[0],
-            poster: `https://image.tmdb.org/t/p/original${detailsResponse.data.poster_path}`,
-            tmdbId: detailsResponse.data.id.toString(),
-            imdbId: externalIdsResponse.data.imdb_id || "",
-            runtime: detailsResponse.data.runtime,
-          };
-          const embedUrl = `https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`;
-          fetchVideoSources(embedUrl);
-        }
-
         if (watchOption === 'tamilyogi') {
           fetchTamilYogiResults(detailsResponse.data.title);
         }
@@ -581,16 +618,7 @@ function MovieDetails() {
 
   if (!movie || !externalIds) return <div>Loading...</div>;
 
-  const embedData = {
-    type: "Movie",
-    title: movie.title,
-    year: movie.release_date.split('-')[0],
-    poster: `https://image.tmdb.org/t/p/original${movie.poster_path}`,
-    tmdbId: movie.id.toString(),
-    imdbId: externalIds.imdb_id || "",
-    runtime: movie.runtime,
-  };
-
+  
   return (
       <MovieContainer>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}>
@@ -679,9 +707,10 @@ function MovieDetails() {
                   <option value="server4">Server 4</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
-                  <option value="server7">Server 7</option>
-                  <option value="tamilyogi">TamilYogi</option>
+                  <option value="server7">Server 7 (Ads)</option>
                   <option value="server8">Server 8</option>
+                  <option value="tamilyogi">TamilYogi</option>
+                  <option value="server9">Server 9</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -694,42 +723,42 @@ function MovieDetails() {
                 />
               )}
               {watchOption === 'server4' && (
-                <>
-                  <EmbedPlayer 
-                    src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
-                    allowFullScreen
-                  />
-                  <DownloadOption 
-                    sources={videoSources}
-                    title={movie.title}
-                  />
-                </>
+                <AdBlockedIframe
+                src={`https://vidbinge.dev/embed/movie/${movie.id}`}
+              allowFullScreen
+              />
               )}
               {watchOption === 'server3' && (
-                <EmbedPlayer 
+                <AdBlockedIframe 
                   src={`https://vidsrc.cc/v2/embed/movie/${movie.id}`}
                   allowFullScreen
                 />
               )}
               {watchOption === 'server5' && (
-                <EmbedPlayer 
-                  src={`https://embed-testing-v04.vercel.app/tests/rollerdice/${movie.id}`}
+                <AdBlockedIframe 
+                  src={`https://www.2embed.cc/embed/${movie.id}`}
                   allowFullScreen
                 />
               )}
               {watchOption === 'server6' && (
-                <EmbedPlayer
-                src={`https://embed-testing-v7.vercel.app/tests/whatstream/${movie.id}`}
+                <AdBlockedIframe
+                src={`https://vidsrc.pro/embed/movie/${movie.id}?player=new`}
               allowFullScreen
               />
               )}
-              {watchOption === 'server7' && (
+                {watchOption === 'server7' && (
+                <EmbedPlayer 
+                  src={`https://moviee.tv/embed/movie/${movie.id}`}
+                  allowFullScreen
+                />
+              )}
+              {watchOption === 'server8' && (
                 <EmbedPlayer
                 src={`https://api.fmoviez.online/embed/movie/${movie.id}`}
                 allowFullScreen
                 />
               )}
-              {watchOption === 'server8' && (
+              {watchOption === 'server9' && (
               <EmbedPlayer
                   src={`https://filmex.to/#/media/tmdb-movie-${movie.id}`}
                   allowFullScreen

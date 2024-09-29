@@ -349,6 +349,57 @@ const LogoImage = styled.img`
   }
 `;
 
+
+const AdBlockedIframe = ({ src, allowFullScreen }) => {
+  const [isBlocked, setIsBlocked] = useState(false);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    const checkDomain = () => {
+      const blockedDomains = [
+        'example-ad-domain.com',
+        'another-ad-domain.com',
+        // Add more blocked domains here
+      ];
+      const url = new URL(src);
+      if (blockedDomains.some(domain => url.hostname.includes(domain))) {
+        setIsBlocked(true);
+      } else {
+        setIsBlocked(false);
+      }
+    };
+
+    checkDomain();
+
+    const observer = new MutationObserver(() => {
+      if (iframeRef.current) {
+        checkDomain();
+      }
+    });
+
+    if (iframeRef.current) {
+      observer.observe(iframeRef.current, { attributes: true, attributeFilter: ['src'] });
+    }
+
+    return () => observer.disconnect();
+  }, [src]);
+
+  if (isBlocked) {
+    return null; // Return nothing if the domain is blocked
+  }
+
+  return (
+    <iframe
+      ref={iframeRef}
+      src={src}
+      allowFullScreen={allowFullScreen}
+      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"
+      style={{ width: '100%', height: '100%', border: 'none' }}
+    />
+  );
+};
+
+
 function TvShowDetails() {
   const { id } = useParams();
   const [tvShow, setTvShow] = useState(null);
@@ -364,6 +415,7 @@ function TvShowDetails() {
     const [logoUrl, setLogoUrl] = useState('');
   // const playerRef = useRef(null);
   const [showMoreInfo, setShowMoreInfo] = useState(false);
+  
 
   // ... (keep all the existing useEffect and useCallback functions)
 
@@ -388,7 +440,7 @@ function TvShowDetails() {
     }
   }, []);
 
-  useEffect(() => {
+   useEffect(() => {
     const fetchTvShowData = async () => {
       try {
         const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse] = await Promise.all([
@@ -403,45 +455,19 @@ function TvShowDetails() {
         setCast(creditsResponse.data.cast.slice(0, 10));
         setExternalIds(externalIdsResponse.data);
 
-         if (externalIdsResponse.data.imdb_id) {
+        if (externalIdsResponse.data.imdb_id) {
           setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
         }
 
-        if (watchOption === 'server4') {
-          const currentSeason = detailsResponse.data.seasons.find(season => season.season_number === selectedSeason);
-          const totalEpisodes = detailsResponse.data.seasons.reduce((sum, season) => sum + season.episode_count, 0);
-          const embedData = {
-            type: "Series",
-            title: detailsResponse.data.name,
-            year: detailsResponse.data.first_air_date.split('-')[0],
-            poster: `https://image.tmdb.org/t/p/original${detailsResponse.data.poster_path}`,
-            season: selectedSeason.toString(),
-            totalSeasons: detailsResponse.data.number_of_seasons.toString(),
-            episode: selectedEpisode.toString(),
-            totalEpisodes: totalEpisodes.toString(),
-            seasonNumber: selectedSeason,
-            totalSeasonsNumber: detailsResponse.data.number_of_seasons,
-            episodeNumber: selectedEpisode,
-            totalEpisodesNumber: currentSeason ? currentSeason.episode_count : 0,
-            seasonId: currentSeason ? currentSeason.id.toString() : "",
-            episodeId: "",
-            tmdbId: detailsResponse.data.id.toString(),
-            imdbId: externalIdsResponse.data.imdb_id || "",
-            runtime: detailsResponse.data.episode_run_time[0] || 0,
-          };
-          const embedUrl = `https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`;
-          fetchVideoSources(embedUrl);
-        }
+        // The specified snippet has been removed from here
+
       } catch (error) {
         console.error('Error fetching TV show data:', error);
       }
     };
-    
-
 
     fetchTvShowData();
   }, [id, watchOption, selectedSeason, selectedEpisode, fetchVideoSources]);
-
  
 
 
@@ -491,25 +517,25 @@ function TvShowDetails() {
 
   if (!tvShow || !externalIds) return <div>Loading...</div>;
 
-  const embedData = {
-    type: "Series",
-    title: tvShow.name,
-    year: tvShow.first_air_date.split('-')[0],
-    poster: `https://image.tmdb.org/t/p/original${tvShow.poster_path}`,
-    season: selectedSeason.toString(),
-    totalSeasons: tvShow.number_of_seasons.toString(),
-    episode: selectedEpisode.toString(),
-    totalEpisodes: tvShow.seasons.reduce((sum, season) => sum + season.episode_count, 0).toString(),
-    seasonNumber: selectedSeason,
-    totalSeasonsNumber: tvShow.number_of_seasons,
-    episodeNumber: selectedEpisode,
-    totalEpisodesNumber: tvShow.seasons.find(season => season.season_number === selectedSeason)?.episode_count || 0,
-    seasonId: tvShow.seasons.find(season => season.season_number === selectedSeason)?.id.toString() || "",
-    episodeId: "",
-    tmdbId: tvShow.id.toString(),
-    imdbId: externalIds.imdb_id || "",
-    runtime: tvShow.episode_run_time[0] || 0,
-  };
+  // const embedData = {
+  //   type: "Series",
+  //   title: tvShow.name,
+  //   year: tvShow.first_air_date.split('-')[0],
+  //   poster: `https://image.tmdb.org/t/p/original${tvShow.poster_path}`,
+  //   season: selectedSeason.toString(),
+  //   totalSeasons: tvShow.number_of_seasons.toString(),
+  //   episode: selectedEpisode.toString(),
+  //   totalEpisodes: tvShow.seasons.reduce((sum, season) => sum + season.episode_count, 0).toString(),
+  //   seasonNumber: selectedSeason,
+  //   totalSeasonsNumber: tvShow.number_of_seasons,
+  //   episodeNumber: selectedEpisode,
+  //   totalEpisodesNumber: tvShow.seasons.find(season => season.season_number === selectedSeason)?.episode_count || 0,
+  //   seasonId: tvShow.seasons.find(season => season.season_number === selectedSeason)?.id.toString() || "",
+  //   episodeId: "",
+  //   tmdbId: tvShow.id.toString(),
+  //   imdbId: externalIds.imdb_id || "",
+  //   runtime: tvShow.episode_run_time[0] || 0,
+  // };
 
   return (
       <TvShowContainer>
@@ -598,11 +624,12 @@ function TvShowDetails() {
                   <option value="server1">Server 1</option>
                   <option value="server2">Server 2</option>
                   <option value="server3">Server 3</option>
-                  <option value="server4">Server 4 (4K)</option>
+                  <option value="server4">Server 4</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
-                  <option value="server7">Server 7</option>
+                  <option value="server7">Server 7 (Ads)</option>
                   <option value="server8">Server 8</option>
+                  <option value="server9">Server 9</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -614,43 +641,46 @@ function TvShowDetails() {
                   allowFullScreen
                 />
               )}
-              {watchOption === 'server4' && (
+              {watchOption === 'server5' && (
                 <>
-                  <EmbedPlayer 
-                    src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
+                  <AdBlockedIframe 
+                    src={`https://www.2embed.cc/embedtv/${tvShow.id}&s=${selectedSeason}&e=${selectedEpisode}`}
                     allowFullScreen
                   />
-                  <DownloadOption 
-                    sources={videoSources}
-                    title={`${tvShow.name} S${selectedSeason}E${selectedEpisode}`}
-                  />
+  
                 </>
               )}
-              {watchOption === 'server3' && (
+              {watchOption === 'server7' && (
                 <EmbedPlayer 
-                  src={`https://vidsrc.cc/v2/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                  src={`https://moviee.tv/embed/tv/${tvShow.id}?season=${selectedSeason}&episode=${selectedEpisode}`}
                   allowFullScreen
                 />
               )}
-             {watchOption === 'server5' && (
-                <EmbedPlayer 
-                  src={`https://embed-testing-v04.vercel.app/tests/rollerdice/${tvShow.id}-${selectedSeason}-${selectedEpisode}`}
+             {watchOption === 'server6' && (
+                <AdBlockedIframe 
+                  src={`https://vidsrc.pro/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}?player=new`}
                   allowFullScreen
                 />
               )} 
-              {watchOption === 'server6' && (
-                <EmbedPlayer
-                src={`https://embed-testing-v7.vercel.app/tests/whatstream/${tvShow.id}-${selectedSeason}-${selectedEpisode}`}
+              {watchOption === 'server4' && (
+                <AdBlockedIframe
+                src={`https://vidbinge.dev/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
               allowFullScreen
               />
               )}
-              {watchOption === 'server7' && (
+              {watchOption === 'server3' && (
+                <AdBlockedIframe
+                src={`https://vidsrc.cc/v2/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server8' && (
                 <EmbedPlayer
                 src={`https://api.fmoviez.online/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                 allowFullScreen
                 />
               )}
-              {watchOption === 'server8' && ( // New server embed
+              {watchOption === 'server9' && ( // New server embed
                 <EmbedPlayer
                   src={`https://filmex.to/#/media/tmdb-tv-${tvShow.id}/${tvShow.seasons.find(season => season.season_number === selectedSeason)?.id}/${episodeId}`}
                   allowFullScreen
