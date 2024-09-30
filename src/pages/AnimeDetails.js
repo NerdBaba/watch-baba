@@ -1,552 +1,319 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { fetchAnimeDetails, fetchAnimeRecommendations, fetchAnimeCharacters, fetchAnimeEpisodes } from '../services/jikanApi';
-import { fetchAnilistData } from '../services/anilistApi';
-import VideoPlayer from '../components/VideoPlayer';
-import AnimeCard from '../components/AnimeCard';
-import { FaPlay, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import { fetchAnimeDetails, fetchAnimeEpisodes, fetchEpisodeSources } from '../services/aniWatchApi';
+import { FaPlay, FaInfoCircle, FaStar, FaCalendar, FaClock } from 'react-icons/fa';
+import AnimePlayer from '../components/AnimePlayer';
 
 const AnimeContainer = styled.div`
   width: 100%;
-  max-width: 1400px; // Adjust this value as needed
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
-
-  @media (max-width: 768px) {
-    padding: 10px;
-  }
 `;
-
 
 const Hero = styled.div`
-  position: relative;
-  height: 80vh;
-  background-image: url(${props => props.backdrop});
-  background-size: cover;
-  background-position: center;
   display: flex;
-  align-items: flex-end;
-  padding: 40px;
-
-  @media (max-width: 768px) {
-    height: 60vh;
-    padding: 20px;
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to top, rgba(20,20,20,0.8) 0%, rgba(20,20,20,0) 60%, rgba(20,20,20,0.8) 100%);
-  }
+  gap: 30px;
+  margin-bottom: 40px;
+  background: ${props => props.theme.backgroundSecondary};
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 `;
 
-const HeroContent = styled.div`
-  position: relative;
-  z-index: 2;
-  max-width: 50%;
+const PosterContainer = styled.div`
+  flex-shrink: 0;
+  width: 250px;
+`;
 
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
+const Poster = styled.img`
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+`;
+
+const AnimeInfo = styled.div`
+  flex-grow: 1;
 `;
 
 const Title = styled.h1`
-  font-size: 3rem;
-  margin-bottom: 2px;
-font-family: 'GeistVF';
-  @media (max-width: 768px) {
-    font-size: 2rem;
-  }
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: ${props => props.theme.primary};
 `;
 
 const Overview = styled.p`
-  font-size: 1.2rem;
+  font-size: 1rem;
   margin-bottom: 20px;
-  color: white;
-  @media (max-width: 768px) {
-    font-size: 0.8rem;
-  }
+  color: ${props => props.theme.text};
+  line-height: 1.6;
+`;
+
+const MetaInfo = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 25px;
+`;
+
+const MetaItem = styled.span`
+  font-size: 0.9rem;
+  color: ${props => props.theme.textSecondary};
+  display: flex;
+  align-items: center;
+  gap: 5px;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 15px;
 `;
 
 const Button = styled.button`
-  padding: 10px 20px;
-  font-size: 1.1rem;
+  padding: 12px 25px;
+  font-size: 1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 10px;
   transition: all 0.3s ease;
+  font-weight: bold;
 
   &:hover {
-    opacity: 0.8;
-  }
-
-  @media (max-width: 768px) {
-    font-size: 1rem;
-    padding: 8px 16px;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 `;
-const Tagline = styled.p`
-  font-style: italic;
-  color: white;
-  margin-bottom: 10px;
-`;
 
-const Ratings = styled.div`
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-  color: white;
-`;
-
-const RatingItem = styled.span`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  
-  svg {
-    color: ${props => props.theme.accent};
-  }
-`;
 const PlayButton = styled(Button)`
-  background-color: ${props => props.theme.background};
-  color: ${props => props.theme.primary};
-  border-radius: 9px;
-  @font-face {
-    font-family: 'GeistVF';
-    src: url('fonts/GeistVF.ttf') format('truetype');
-  }
-  font-family: 'GeistVF';
-
-  &:hover {
-      background-color: ${props => props.theme.background};
-    }
+  background-color: ${props => props.theme.primary};
+  color: ${props => props.theme.background};
 `;
 
 const InfoButton = styled(Button)`
-  background-color: ${props => props.theme.primary};
-  color: ${props => props.theme.background};
-  border-radius: 9px;
-  font-family: 'GeistVF';
-`;
-
-const Section = styled.section`
-  margin: 40px 0;
-  width: 100%;
-
-  @media (max-width: 768px) {
-    margin: 20px 0;
-  }
+  background-color: ${props => props.theme.backgroundSecondary};
+  color: ${props => props.theme.text};
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
-  }
-`;
-
-const CastContainer = styled.div`
-  display: flex;
-  overflow-x: auto;
-  gap: 20px;
-  padding: 20px 0;
-
-  &::-webkit-scrollbar {
-    height: 0px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: ${props => props.theme.background};
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: ${props => props.theme.secondary};
-    border-radius: 20px;
-    border: 3px solid ${props => props.theme.background};
-  }
-`;
-
-const CastMember = styled(Link)`
-  text-align: center;
-  width: 120px;
-  flex-shrink: 0;
-  text-decoration: none;
-  color: inherit;
-
-  @media (max-width: 768px) {
-    width: 100px;
-  }
-`;
-
-const CastImage = styled.img`
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 50%;
-  margin-bottom: 10px;
-
-  @media (max-width: 768px) {
-    width: 100px;
-    height: 100px;
-  }
-`;
-
-const CastName = styled.p`
-  font-size: 0.9rem;
-  margin: 0;
+  font-size: 1.8rem;
+  margin: 40px 0 20px;
   color: ${props => props.theme.primary};
-
-  @media (max-width: 768px) {
-    font-size: 0.8rem;
-  }
+  border-bottom: 2px solid ${props => props.theme.primary};
+  padding-bottom: 10px;
 `;
 
-const RecommendationsContainer = styled.div`
+const EpisodeGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-  }
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 15px;
 `;
 
-const Backdrop = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(5px);
-  cursor: pointer;
-`;
-
-const VideoContainer = styled.div`
-  position: relative;
-  width: 90%;
-  max-width: 1200px;
-  aspect-ratio: 16 / 9;
-
-
-  @media (min-width: 768px) and (max-width: 1024px) {
-    width: 95%;
-  }
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: -50px;
-  padding-bottom: 4px;
-  right: 0;
-  background: transparent;
-  color: ${props => props.theme.primary};
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-
-   &:hover {
-      background-color: ${props => props.theme.background};
-    }
-`;
-const EmbedPlayer = styled.iframe`
-  width: 100%;
-  height: 100%;
-  border: none;
-  aspect-ratio: 16 / 9;
-
-  @media (max-width: 768px) {
-    height: 56.25vw;
-  }
-
-   @media (max-width: 1024px) {
-    height: 56.25vw;
-  }
-`;
-const ControlsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: stretch;
+const EpisodeButton = styled.button`
   padding: 10px;
-  background-color: rgba(0, 0, 0, 0.0);
+  border: none;
   border-radius: 5px;
-  margin-bottom: 10px;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-  }
-`;
-
-const Select = styled.select`
-  background-color: ${props => props.theme.background};
-  color: ${props => props.theme.primary};
-  border: none;
-  padding: 10px;
-  font-family: 'GeistVF';
-  font-weight: bold;
-  border-radius: 4px;
-  font-size: 1rem;
+  background-color: ${props => props.isSelected ? props.theme.primary : props.theme.backgroundSecondary};
+  color: ${props => props.isSelected ? props.theme.background : props.theme.text};
   cursor: pointer;
-  margin-bottom: 10px;
-  width: 100%;
+  transition: all 0.3s ease;
+  font-weight: ${props => props.isSelected ? 'bold' : 'normal'};
 
-  &:focus {
-    outline: none;
-  }
-
-  @media (min-width: 768px) {
-    width: auto;
-    margin-bottom: 0;
-    margin-right: 10px;
+  &:hover {
+    background-color: ${props => props.theme.primary};
+    color: ${props => props.theme.background};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 `;
 
-
-
-const ServerDropdown = styled(Select)`
-  // margin-left: 10px;
-  font-family: 'GeistVF';
-
-  @media (min-width: 768px) {
-    margin-right: 0;
-  }
-`;
-
-const CharactersContainer = styled(CastContainer)``;
-
-const CharacterCard = styled(CastMember)``;
-
-const EpisodesContainer = styled.div`
+const CharactersGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 20px;
 `;
 
-const EpisodeCard = styled.div`
-  background-color: ${props => props.theme.background};
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
+const CharacterCard = styled.div`
+  text-align: center;
   transition: transform 0.3s ease;
 
   &:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
+  }
+
+  img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  p {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: ${props => props.theme.text};
   }
 `;
 
-const EpisodeImage = styled.img`
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
+const RecommendationsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
 `;
 
-const EpisodeInfo = styled.div`
-  padding: 10px;
-`;
+const RecommendationCard = styled.div`
+  text-align: center;
+  transition: transform 0.3s ease;
 
-const EpisodeTitle = styled.h3`
-  font-size: 1rem;
-  margin: 0 0 5px 0;
-`;
+  &:hover {
+    transform: translateY(-5px);
+  }
 
-const EpisodeDescription = styled.p`
-  font-size: 0.8rem;
-  color: ${props => props.theme.secondary};
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  p {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: ${props => props.theme.text};
+  }
 `;
 
 function AnimeDetails() {
   const { id } = useParams();
   const [anime, setAnime] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
-  const [characters, setCharacters] = useState([]);
   const [episodes, setEpisodes] = useState([]);
-  const [selectedEpisode, setSelectedEpisode] = useState(1);
+  const [selectedEpisode, setSelectedEpisode] = useState(null);
   const [selectedAudio, setSelectedAudio] = useState('sub');
   const [isWatching, setIsWatching] = useState(false);
-  const [showMoreInfo, setShowMoreInfo] = useState(false);
-  const [watchOption, setWatchOption] = useState('server1');
-  const [backdrop, setBackdrop] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [streamingData, setStreamingData] = useState(null);
 
-
-  useEffect(() => {
-    const fetchAnimeData = async () => {
+  const fetchAnimeData = useCallback(async (retryCount = 0) => {
+    try {
       setIsLoading(true);
-      setError(null);
-      try {
-        const [detailsResponse, recommendationsResponse, charactersResponse, episodesResponse] = await Promise.all([
-          fetchAnimeDetails(id),
-          fetchAnimeRecommendations(id),
-          fetchAnimeCharacters(id),
-          fetchAnimeEpisodes(id)
-        ]);
-
-        setAnime(detailsResponse.data);
-        setRecommendations(recommendationsResponse.data?.recommendations?.slice(0, 10) || []);
-        setCharacters(charactersResponse.data?.characters?.slice(0, 10) || []);
-        setEpisodes(episodesResponse.data?.episodes || []);
-
-        // Fetch AniList backdrop
-        const anilistData = await fetchAnilistData(detailsResponse.data.title);
-        if (anilistData && anilistData.bannerImage) {
-          setBackdrop(anilistData.bannerImage);
-        } else {
-          setBackdrop(detailsResponse.data.images?.webp?.large_image_url || detailsResponse.data.images?.jpg?.large_image_url);
-        }
-      } catch (error) {
-        console.error('Error fetching anime data:', error);
-        setError('Failed to load anime data. Please try again later.');
-      } finally {
-        setIsLoading(false);
+      const [detailsResponse, episodesResponse] = await Promise.all([
+        fetchAnimeDetails(id),
+        fetchAnimeEpisodes(id)
+      ]);
+      setAnime(detailsResponse.anime);
+      setEpisodes(episodesResponse.episodes || []);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching anime data:', error);
+      setError('Failed to load anime data. Please try again later.');
+      setIsLoading(false);
+      if (retryCount < 3) {
+        console.log(`Retrying... (Attempt ${retryCount + 1})`);
+        setTimeout(() => fetchAnimeData(retryCount + 1), 1000 * (retryCount + 1));
       }
-    };
-
-    fetchAnimeData();
+    }
   }, [id]);
 
-if (isLoading) return <div>Loading...</div>;
-if (error) return <div>{error}</div>;
-if (!anime) return <div>No anime data available.</div>;
+  useEffect(() => {
+    fetchAnimeData();
+  }, [fetchAnimeData]);
+
+  const handleEpisodeSelect = async (episodeNumber) => {
+    setSelectedEpisode(episodeNumber);
+    setIsWatching(true);
+    try {
+      const sources = await fetchEpisodeSources(episodes[episodeNumber - 1].episodeId, 'hd-1', selectedAudio);
+      setStreamingData(sources);
+    } catch (error) {
+      console.error('Error fetching episode data:', error);
+    }
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+  if (!anime) return <div>No anime data available.</div>;
 
   return (
     <AnimeContainer>
-      <Hero banner={anime.images?.webp?.large_image_url || anime.images?.jpg?.large_image_url}>
-        <HeroContent>
-          <Title>{anime.title}</Title>
-          {showMoreInfo && (
-            <>
-              <Overview>{anime.synopsis}</Overview>
-              <Ratings>
-                <RatingItem>Score: {anime.score}</RatingItem>
-                <RatingItem>Rank: {anime.rank}</RatingItem>
-                <RatingItem>Popularity: {anime.popularity}</RatingItem>
-              </Ratings>
-            </>
-          )}
+      <Hero>
+        <PosterContainer>
+          <Poster src={anime.info.poster} alt={anime.info.name} />
+        </PosterContainer>
+        <AnimeInfo>
+          <Title>{anime.info.name}</Title>
+          <Overview>{anime.info.description}</Overview>
+          <MetaInfo>
+            <MetaItem><FaStar /> {anime.info.stats.rating}</MetaItem>
+            <MetaItem><FaCalendar /> {anime.moreInfo.aired}</MetaItem>
+            <MetaItem><FaClock /> {anime.info.stats.duration}</MetaItem>
+          </MetaInfo>
           <ButtonGroup>
-            <PlayButton onClick={() => setIsWatching(true)}>
-              <FaPlay /> Play
+            <PlayButton onClick={() => handleEpisodeSelect(1)}>
+              <FaPlay /> Watch Now
             </PlayButton>
-            <InfoButton onClick={() => setShowMoreInfo(!showMoreInfo)}>
-              <FaInfoCircle /> {showMoreInfo ? 'Less Info' : 'More Info'}
+            <InfoButton>
+              <FaInfoCircle /> More Info
             </InfoButton>
           </ButtonGroup>
-        </HeroContent>
+        </AnimeInfo>
       </Hero>
 
-      <Section>
-        <SectionTitle>Characters</SectionTitle>
-        <CharactersContainer>
-          {characters.map((character) => (
-            <CharacterCard key={character.character.mal_id}>
-              <CastImage 
-                src={character.character.images.jpg.image_url} 
-                alt={character.character.name} 
-              />
-              <CastName>{character.character.name}</CastName>
-            </CharacterCard>
-          ))}
-        </CharactersContainer>
-      </Section>
+      <SectionTitle>Episodes</SectionTitle>
+      <EpisodeGrid>
+        {episodes.map((episode) => (
+          <EpisodeButton
+            key={episode.episodeId}
+            onClick={() => handleEpisodeSelect(episode.number)}
+            isSelected={selectedEpisode === episode.number}
+          >
+            Ep {episode.number}
+          </EpisodeButton>
+        ))}
+      </EpisodeGrid>
 
-      <Section>
-        <SectionTitle>Episodes</SectionTitle>
-        <EpisodesContainer>
-          {episodes.map((episode) => (
-            <EpisodeCard key={episode.mal_id} onClick={() => {
-              setSelectedEpisode(episode.mal_id);
-              setIsWatching(true);
-            }}>
-              <EpisodeImage src={episode.images.jpg.image_url} alt={episode.title} />
-              <EpisodeInfo>
-                <EpisodeTitle>Episode {episode.episode}</EpisodeTitle>
-                <EpisodeDescription>{episode.synopsis}</EpisodeDescription>
-              </EpisodeInfo>
-            </EpisodeCard>
-          ))}
-        </EpisodesContainer>
-      </Section>
+      {anime.info.charactersVoiceActors && anime.info.charactersVoiceActors.length > 0 && (
+        <>
+          <SectionTitle>Characters</SectionTitle>
+          <CharactersGrid>
+            {anime.info.charactersVoiceActors.map((char) => (
+              <CharacterCard key={char.character.id}>
+                <img src={char.character.poster} alt={char.character.name} />
+                <p>{char.character.name}</p>
+              </CharacterCard>
+            ))}
+          </CharactersGrid>
+        </>
+      )}
 
-      <Section>
-        <SectionTitle>Recommendations</SectionTitle>
-        <RecommendationsContainer>
-          {recommendations.map((recommendation) => (
-            <AnimeCard key={recommendation.entry.mal_id} anime={recommendation.entry} />
-          ))}
-        </RecommendationsContainer>
-      </Section>
+      {anime.recommendedAnimes && anime.recommendedAnimes.length > 0 && (
+        <>
+          <SectionTitle>Recommended Anime</SectionTitle>
+          <RecommendationsGrid>
+            {anime.recommendedAnimes.map((recommendedAnime) => (
+              <RecommendationCard key={recommendedAnime.id}>
+                <img src={recommendedAnime.poster} alt={recommendedAnime.name} />
+                <p>{recommendedAnime.name}</p>
+              </RecommendationCard>
+            ))}
+          </RecommendationsGrid>
+        </>
+      )}
 
-      {isWatching && (
-        <Backdrop onClick={() => setIsWatching(false)}>
-          <VideoContainer onClick={(e) => e.stopPropagation()}>
-            <CloseButton onClick={() => setIsWatching(false)}>
-              <FaTimes />
-            </CloseButton>
-            <ControlsContainer>
-              <Select value={selectedAudio} onChange={(e) => setSelectedAudio(e.target.value)}>
-                <option value="sub">Sub</option>
-                <option value="dub">Dub</option>
-              </Select>
-              <ServerDropdown value={watchOption} onChange={(e) => setWatchOption(e.target.value)}>
-                <option value="server1">Server 1</option>
-                <option value="server2">Server 2 (Gogoanime)</option>
-                <option value="server3">Server 3 (Zoro)</option>
-                <option value="server4">Server 4 (9anime)</option>
-              </ServerDropdown>
-            </ControlsContainer>
-            {watchOption === 'server1' && (
-              <VideoPlayer malId={anime.mal_id} episode={selectedEpisode} audio={selectedAudio} />
-            )}
-            {watchOption === 'server2' && (
-              <EmbedPlayer 
-                src={`https://api-consumet-ten-delta.vercel.app/anime/gogoanime/watch/${anime.title}-episode-${selectedEpisode}?server=gogocdn`}
-                allowFullScreen
-              />
-            )}
-            {watchOption === 'server3' && (
-              <EmbedPlayer 
-                src={`https://api-consumet-ten-delta.vercel.app/anime/zoro/watch?episodeId=${selectedEpisode}&id=${anime.mal_id}`}
-                allowFullScreen
-              />
-            )}
-            {watchOption === 'server4' && (
-              <EmbedPlayer 
-                src={`https://api-consumet-ten-delta.vercel.app/anime/9anime/watch/${anime.mal_id}?episodeNumber=${selectedEpisode}`}
-                allowFullScreen
-              />
-            )}
-          </VideoContainer>
-        </Backdrop>
+      {isWatching && streamingData && (
+        <AnimePlayer
+          sources={streamingData.sources}
+          subtitles={streamingData.subtitles}
+          onClose={() => setIsWatching(false)}
+          selectedAudio={selectedAudio}
+          onAudioChange={setSelectedAudio}
+        />
       )}
     </AnimeContainer>
   );

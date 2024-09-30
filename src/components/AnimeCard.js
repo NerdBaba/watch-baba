@@ -117,7 +117,7 @@ const Genre = styled.p`
 
 function AnimeCard({ anime }) {
   const navigate = useNavigate();
-  const link = `/anime/${anime.mal_id}`;
+  const link = `/anime/${anime.id}`;
 
   const handleClick = useCallback((e) => {
     e.preventDefault();
@@ -138,28 +138,27 @@ function AnimeCard({ anime }) {
   return (
     <Card to={link} onClick={handleClick}>
       <PosterContainer>
-        {anime.images.jpg.image_url ? (
-          <Poster src={anime.images.jpg.image_url} alt={anime.title} />
+        {anime.poster ? (
+          <Poster src={anime.poster} alt={anime.name} />
         ) : (
           <PlaceholderSVG viewBox="0 0 24 24">
             <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
           </PlaceholderSVG>
         )}
         <HoverOverlay>
-          <Rating>⭐ {anime.score}</Rating>
-          {anime.aired?.prop?.from?.year && (
-            <DetailItem><Icon>📅</Icon> {anime.aired.prop.from.year}</DetailItem>
+          <Rating>⭐ {anime.rating}</Rating>
+          {anime.duration && (
+            <DetailItem><Icon>⌛</Icon> {anime.duration}</DetailItem>
           )}
           {anime.type && (
             <DetailItem><Icon>📺</Icon> {anime.type}</DetailItem>
           )}
-          {anime.status && (
-            <DetailItem><Icon>🌐</Icon> {anime.status}</DetailItem>
+          {anime.episodes && (
+            <DetailItem><Icon>🌐</Icon> {anime.episodes.sub} episodes</DetailItem>
           )}
         </HoverOverlay>
       </PosterContainer>
-      <Title>{anime.title}</Title>
-      {anime.genres && <Genre>{anime.genres.slice(0, 2).map(g => g.name).join(', ')}</Genre>}
+      <Title>{anime.name}</Title>
     </Card>
   );
 }

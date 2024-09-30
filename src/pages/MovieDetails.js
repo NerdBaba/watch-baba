@@ -5,7 +5,7 @@ import axios from 'axios';
 import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
-import DownloadOption from '../components/DownloadOption';
+// import DownloadOption from '../components/DownloadOption';
 import { FaPlay, FaInfoCircle, FaTimes } from 'react-icons/fa';
 
 
@@ -13,7 +13,7 @@ import { FaPlay, FaInfoCircle, FaTimes } from 'react-icons/fa';
 
 const MovieContainer = styled.div`
   width: 100%;
-  max-width: 1400px;
+  max-width: 2000px;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
@@ -494,7 +494,7 @@ function MovieDetails() {
         getMovieCredits(id)
       ]);
 
-      setRecommendations(recommendationsResponse.data.results.slice(0, 16));
+      setRecommendations(recommendationsResponse.data.results.slice(0, 20));
       setCast(creditsResponse.data.cast.slice(0, 10));
 
     } catch (error) {

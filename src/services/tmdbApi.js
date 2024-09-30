@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_KEY = '374ed57246cdd0d51e7f9c7eb9e682f0';
-// const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
+// const API_KEY = '374ed57246cdd0d51e7f9c7eb9e682f0';
+const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const BASE_URL = 'https://proxy-api-server-woz1.onrender.com/v1/tmdb/3';
 
 const tmdbApi = axios.create({
@@ -118,20 +118,20 @@ export const getTvShowEpisodeDetails = (tvShowId, seasonNumber, episodeNumber) =
 };
 
 
-// export const searchTMDBShow = async (title) => {
-//   try {
-//     const response = await axios.get(`${BASE_URL}/search/tv`, {
-//       params: {
-//         api_key: API_KEY,
-//         query: title,
-//         language: 'en-US'
-//       }
-//     });
-//     return response.data.results[0]; // Return the first result
-//   } catch (error) {
-//     console.error('Error searching TMDB show:', error);
-//     return null;
-//   }
-// };
+export const searchTMDBShow = async (title) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/search/tv`, {
+      params: {
+        api_key: API_KEY,
+        query: title,
+        language: 'en-US'
+      }
+    });
+    return response.data.results[0]; // Return the first result
+  } catch (error) {
+    console.error('Error searching TMDB show:', error);
+    return null;
+  }
+};
 
 export default tmdbApi;

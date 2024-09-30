@@ -1,7 +1,7 @@
 // src/pages/Anime.js
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { fetchAnime } from '../services/jikanApi';
+import { fetchAnimeByCategory } from '../services/aniWatchApi';
 import AnimeCard from '../components/AnimeCard';
 import Pagination from '../components/Pagination';
 
@@ -39,6 +39,10 @@ const FilterContainer = styled.div`
     flex-direction: row;
     flex-wrap: wrap;
   }
+  @media (max-width: 768px) {
+   flex-direction: row; 
+   padding: 10px;
+  }
 `;
 
 const FilterGroup = styled.div`
@@ -72,29 +76,33 @@ const Select = styled.select`
     border-color: ${props => props.theme.secondary};
     box-shadow: 0 0 0 2px ${props => props.theme.primary}40;
   }
+
+  @media (max-width: 768px) {
+    scale: 0.8;
+    padding: 5px 10px;
+    margin-left: -15px;
+  }
 `;
 
 function Anime() {
   const [animeList, setAnimeList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [status, setStatus] = useState('');
-  const [orderBy, setOrderBy] = useState('');
-  const [type, setType] = useState('');
+  const [category, setCategory] = useState('most-favorite');
 
   useEffect(() => {
     const getAnime = async () => {
       try {
-        const data = await fetchAnime(currentPage, status, orderBy, type);
-        setAnimeList(data.data.filter(anime => anime.rating !== 'Rx - Hentai'));
-        setTotalPages(data.pagination.last_visible_page);
+        const data = await fetchAnimeByCategory(category, currentPage);
+        setAnimeList(data.animes);
+        setTotalPages(data.totalPages);
       } catch (error) {
         console.error('Error fetching anime:', error);
       }
     };
 
     getAnime();
-  }, [currentPage, status, orderBy, type]);
+  }, [currentPage, category]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -105,38 +113,18 @@ function Anime() {
       <AnimeTitle>Anime</AnimeTitle>
       <FilterContainer>
         <FilterGroup>
-          <FilterLabel htmlFor="status">Status</FilterLabel>
-          <Select id="status" value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="">All Status</option>
-            <option value="complete">Completed</option>
-            <option value="airing">Airing</option>
-            <option value="upcoming">Upcoming</option>
-          </Select>
-        </FilterGroup>
-        <FilterGroup>
-          <FilterLabel htmlFor="orderBy">Sort By</FilterLabel>
-          <Select id="orderBy" value={orderBy} onChange={(e) => setOrderBy(e.target.value)}>
-            <option value="">Default</option>
-            <option value="title">Title</option>
-            <option value="popularity">Popularity</option>
-            <option value="rank">Rank</option>
-          </Select>
-        </FilterGroup>
-        <FilterGroup>
-          <FilterLabel htmlFor="type">Type</FilterLabel>
-          <Select id="type" value={type} onChange={(e) => setType(e.target.value)}>
-            <option value="">All Types</option>
-            <option value="tv">TV</option>
-            <option value="movie">Movie</option>
-            <option value="ova">OVA</option>
-            <option value="special">Special</option>
-            <option value="ona">ONA</option>
+          <FilterLabel htmlFor="category">Category</FilterLabel>
+          <Select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="most-favorite">Most Favorite</option>
+            <option value="recently-updated">Recently Updated</option>
+            <option value="most-popular">Most Popular</option>
+            <option value="top-airing">Top Airing</option>
           </Select>
         </FilterGroup>
       </FilterContainer>
       <AnimeGrid>
         {animeList.map((anime) => (
-          <AnimeCard key={anime.mal_id} anime={anime} />
+          <AnimeCard key={anime.id} anime={anime} />
         ))}
       </AnimeGrid>
       <Pagination

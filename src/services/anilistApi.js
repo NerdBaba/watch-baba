@@ -1,16 +1,51 @@
-// src/services/anilistApi.js
-
-export const fetchAnilistData = async (title) => {
+export const fetchAnilistData = async (id) => {
   const query = `
-    query ($search: String) {
-      Media (search: $search, type: ANIME) {
+    query ($id: Int) {
+      Media (id: $id, type: ANIME) {
+        id
+        title {
+          english
+          native
+        }
         bannerImage
+        coverImage {
+          large
+        }
+        description
+        episodes
+        characters {
+          edges {
+            node {
+              id
+              name {
+                full
+              }
+              image {
+                large
+              }
+            }
+          }
+        }
+        recommendations {
+          edges {
+            node {
+              id
+              title {
+                english
+                native
+              }
+              coverImage {
+                large
+              }
+            }
+          }
+        }
       }
     }
   `;
 
   const variables = {
-    search: title
+    id: parseInt(id)
   };
 
   const response = await fetch('https://graphql.anilist.co', {
