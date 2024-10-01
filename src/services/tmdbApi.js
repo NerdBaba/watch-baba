@@ -117,4 +117,21 @@ export const getTvShowEpisodeDetails = (tvShowId, seasonNumber, episodeNumber) =
   return tmdbApi.get(`/tv/${tvShowId}/season/${seasonNumber}/episode/${episodeNumber}`);
 };
 
+
+export const searchTMDBShow = async (title) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/search/tv`, {
+      params: {
+        api_key: API_KEY,
+        query: title,
+        language: 'en-US'
+      }
+    });
+    return response.data.results[0]; // Return the first result
+  } catch (error) {
+    console.error('Error searching TMDB show:', error);
+    return null;
+  }
+};
+
 export default tmdbApi;

@@ -10,7 +10,7 @@ const HeaderContainer = styled.header`
   align-items: center;
   padding: 20px;
   padding-bottom: 0;
-  background-color: ${props => props.theme.background};
+  background-color: ${props => props.theme.bac};
 
   @media (min-width: 768px) {
     flex-direction: row;

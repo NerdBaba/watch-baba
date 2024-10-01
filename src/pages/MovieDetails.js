@@ -5,7 +5,7 @@ import axios from 'axios';
 import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
-import DownloadOption from '../components/DownloadOption';
+// import DownloadOption from '../components/DownloadOption';
 import { FaPlay, FaInfoCircle, FaTimes } from 'react-icons/fa';
 
 
@@ -13,7 +13,7 @@ import { FaPlay, FaInfoCircle, FaTimes } from 'react-icons/fa';
 
 const MovieContainer = styled.div`
   width: 100%;
-  max-width: 1400px;
+  max-width: 2000px;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
@@ -26,13 +26,14 @@ const MovieContainer = styled.div`
 
 
 const Hero = styled.div`
-  position: relative;
+   position: relative;
   height: 80vh;
   background-image: url(${props => props.backdrop});
   background-size: cover;
   background-position: center;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
   padding: 40px;
 
   @media (max-width: 768px) {
@@ -408,6 +409,56 @@ const TamilYogiNoResults = styled.p`
   margin-top: 20px;
 `;
 
+
+const AdBlockedIframe = ({ src, allowFullScreen }) => {
+  const [isBlocked, setIsBlocked] = useState(false);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    const checkDomain = () => {
+      const blockedDomains = [
+        'example-ad-domain.com',
+        'another-ad-domain.com',
+        // Add more blocked domains here
+      ];
+      const url = new URL(src);
+      if (blockedDomains.some(domain => url.hostname.includes(domain))) {
+        setIsBlocked(true);
+      } else {
+        setIsBlocked(false);
+      }
+    };
+
+    checkDomain();
+
+    const observer = new MutationObserver(() => {
+      if (iframeRef.current) {
+        checkDomain();
+      }
+    });
+
+    if (iframeRef.current) {
+      observer.observe(iframeRef.current, { attributes: true, attributeFilter: ['src'] });
+    }
+
+    return () => observer.disconnect();
+  }, [src]);
+
+  if (isBlocked) {
+    return null; // Return nothing if the domain is blocked
+  }
+
+  return (
+    <iframe
+      ref={iframeRef}
+      src={src}
+      allowFullScreen={allowFullScreen}
+      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"
+      style={{ width: '100%', height: '100%', border: 'none' }}
+    />
+  );
+};
+
 // 
 
 function MovieDetails() {
@@ -426,6 +477,7 @@ function MovieDetails() {
   const videoContainerRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [logoUrl, setLogoUrl] = useState('');
+  const [megacloudHash, setMegacloudHash] = useState(null);
 
   const fetchMovieData = useCallback(async () => {
     try {
@@ -443,7 +495,7 @@ function MovieDetails() {
         getMovieCredits(id)
       ]);
 
-      setRecommendations(recommendationsResponse.data.results.slice(0, 16));
+      setRecommendations(recommendationsResponse.data.results.slice(0, 20));
       setCast(creditsResponse.data.cast.slice(0, 10));
 
     } catch (error) {
@@ -496,20 +548,6 @@ function MovieDetails() {
         setCast(creditsResponse.data.cast.slice(0, 10));
         setExternalIds(externalIdsResponse.data);
 
-        if (watchOption === 'server4') {
-          const embedData = {
-            type: "Movie",
-            title: detailsResponse.data.title,
-            year: detailsResponse.data.release_date.split('-')[0],
-            poster: `https://image.tmdb.org/t/p/original${detailsResponse.data.poster_path}`,
-            tmdbId: detailsResponse.data.id.toString(),
-            imdbId: externalIdsResponse.data.imdb_id || "",
-            runtime: detailsResponse.data.runtime,
-          };
-          const embedUrl = `https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`;
-          fetchVideoSources(embedUrl);
-        }
-
         if (watchOption === 'tamilyogi') {
           fetchTamilYogiResults(detailsResponse.data.title);
         }
@@ -547,6 +585,34 @@ function MovieDetails() {
   }
 };
 
+
+const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
+  try {
+    const encodedTitle = encodeURIComponent(title);
+    const url = `https://api.braflix.gd/megacloud/sources-with-title?title=${encodedTitle}&year=${year}&mediaType=${mediaType}&episodeId=${episodeId}&seasonId=${seasonId}&tmdbId=${tmdbId}`;
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching Megacloud hash:', error);
+    return null;
+  }
+};
+
+
+
+
+useEffect(() => {
+  const fetchHash = async () => {
+    if (watchOption === 'server11' && movie) {
+      const year = new Date(movie.release_date).getFullYear();
+      const hash = await fetchMegacloudHash(movie.title, year, movie.id, 'movie');
+      setMegacloudHash(hash);
+    }
+  };
+  
+  fetchHash();
+}, [watchOption, movie]);
+
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -581,16 +647,7 @@ function MovieDetails() {
 
   if (!movie || !externalIds) return <div>Loading...</div>;
 
-  const embedData = {
-    type: "Movie",
-    title: movie.title,
-    year: movie.release_date.split('-')[0],
-    poster: `https://image.tmdb.org/t/p/original${movie.poster_path}`,
-    tmdbId: movie.id.toString(),
-    imdbId: externalIds.imdb_id || "",
-    runtime: movie.runtime,
-  };
-
+  
   return (
       <MovieContainer>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}>
@@ -675,13 +732,18 @@ function MovieDetails() {
               >
                   <option value="server1">Server 1</option>
                   <option value="server2">Server 2</option>
-                  <option value="server3">Server 3</option>
+                  <option value="server3">Server 3.1</option>
+                  <option value="server32">Server 3.2</option>
                   <option value="server4">Server 4</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
-                  <option value="server7">Server 7</option>
-                  <option value="tamilyogi">TamilYogi</option>
+                  <option value="server7">Server 7 (Ads)</option>
                   <option value="server8">Server 8</option>
+                  <option value="tamilyogi">TamilYogi</option>
+                  <option value="server9">Server 9</option>
+                  <option value="server10">Server 10</option>
+                  <option value="server11">Server 11</option>
+                  <option value="server12">Server 12 (Ads)</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -694,44 +756,72 @@ function MovieDetails() {
                 />
               )}
               {watchOption === 'server4' && (
-                <>
-                  <EmbedPlayer 
-                    src={`https://embed-testing-v7.vercel.app/tests/sutorimu/${encodeURIComponent(JSON.stringify(embedData))}`}
-                    allowFullScreen
-                  />
-                  <DownloadOption 
-                    sources={videoSources}
-                    title={movie.title}
-                  />
-                </>
+                <AdBlockedIframe
+                src={`https://vidbinge.dev/embed/movie/${movie.id}`}
+              allowFullScreen
+              />
               )}
               {watchOption === 'server3' && (
-                <EmbedPlayer 
-                  src={`https://vidsrc.rip/embed/movie/${movie.id}`}
+
+                <AdBlockedIframe 
+                  src={`https://vidsrc.cc/v2/embed/movie/${movie.id}`}
+
                   allowFullScreen
                 />
               )}
               {watchOption === 'server5' && (
-                <EmbedPlayer 
-                  src={`https://embed-testing-v04.vercel.app/tests/rollerdice/${movie.id}`}
+                <AdBlockedIframe 
+                  src={`https://www.2embed.cc/embed/${movie.id}`}
                   allowFullScreen
                 />
               )}
               {watchOption === 'server6' && (
-                <EmbedPlayer
-                src={`https://embed-testing-v7.vercel.app/tests/whatstream/${movie.id}`}
+                <AdBlockedIframe
+                src={`https://vidsrc.pro/embed/movie/${movie.id}?player=new`}
               allowFullScreen
               />
               )}
-              {watchOption === 'server7' && (
-                <EmbedPlayer
-                src={`https://api.fmoviez.online/embed/movie/${movie.id}`}
-                allowFullScreen
+                {watchOption === 'server7' && (
+                <EmbedPlayer 
+                  src={`https://moviee.tv/embed/movie/${movie.id}`}
+                  allowFullScreen
                 />
               )}
               {watchOption === 'server8' && (
+                <EmbedPlayer
+                src={`https://player.vidsrc.nl/embed/movie/${movie.id}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server9' && (
               <EmbedPlayer
                   src={`https://filmex.to/#/media/tmdb-movie-${movie.id}`}
+                  allowFullScreen
+                  scrolling="no"
+                />
+            )}
+             {watchOption === 'server32' && (
+              <EmbedPlayer
+                  src={`https://vidsrc.cc/v3/embed/movie/${movie.id}?autoPlay=true`}
+                  allowFullScreen
+                  scrolling="no"
+                />
+            )}
+            {watchOption === 'server10' && (
+                <AdBlockedIframe
+                src={`https://embed.su/embed/movie/${movie.id}`}
+                allowFullScreen
+                />
+              )}
+            {watchOption === 'server11' && megacloudHash && (
+  <AdBlockedIframe
+    src={`https://megacloud.tv/embed-1/e-1/${megacloudHash}?_debug=true`}
+    allowFullScreen
+  />
+)}
+{watchOption === 'server12' && (
+              <EmbedPlayer
+                  src={`https://multiembed.mov/?video_id=${movie.id}&tmdb=1`}
                   allowFullScreen
                   scrolling="no"
                 />

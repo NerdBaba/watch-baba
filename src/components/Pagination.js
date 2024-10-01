@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 
 const PaginationContainer = styled.div`
@@ -38,16 +38,33 @@ const PageButton = styled.button`
 
 function Pagination({ currentPage, totalPages, onPageChange }) {
   const pageNumbers = [];
-  const maxVisiblePages = window.innerWidth < 768 ? 5 : 10;
+  const maxVisiblePages = 5;
 
-  for (let i = 1; i <= Math.min(totalPages, maxVisiblePages); i++) {
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+  if (endPage - startPage + 1 < maxVisiblePages) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
     pageNumbers.push(i);
   }
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   return (
     <PaginationContainer>
       {currentPage > 1 && (
         <PageButton onClick={() => onPageChange(currentPage - 1)}>Prev</PageButton>
+      )}
+      {startPage > 1 && (
+        <>
+          <PageButton onClick={() => onPageChange(1)}>1</PageButton>
+          {startPage > 2 && <span>...</span>}
+        </>
       )}
       {pageNumbers.map(number => (
         <PageButton
@@ -58,6 +75,12 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
           {number}
         </PageButton>
       ))}
+      {endPage < totalPages && (
+        <>
+          {endPage < totalPages - 1 && <span>...</span>}
+          <PageButton onClick={() => onPageChange(totalPages)}>{totalPages}</PageButton>
+        </>
+      )}
       {currentPage < totalPages && (
         <PageButton onClick={() => onPageChange(currentPage + 1)}>Next</PageButton>
       )}
