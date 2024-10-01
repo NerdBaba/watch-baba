@@ -4,189 +4,159 @@ import styled from 'styled-components';
 import { fetchAnimeDetails, fetchAnimeEpisodes, fetchEpisodeSources } from '../services/aniWatchApi';
 import { FaPlay, FaInfoCircle, FaStar, FaCalendar, FaClock } from 'react-icons/fa';
 import AnimePlayer from '../components/AnimePlayer';
+import AnimeCard from '../components/AnimeCard';
 
-const AnimeContainer = styled.div`
-  width: 100%;
+const AnimeDetailsContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  box-sizing: border-box;
+  padding: 2rem;
+  background-color: ${props => props.theme.backgroundSecondary};
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 `;
 
-const Hero = styled.div`
+const AnimeHeader = styled.div`
   display: flex;
-  gap: 30px;
-  margin-bottom: 40px;
-  background: ${props => props.theme.backgroundSecondary};
-  border-radius: 10px;
-  padding: 30px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  gap: 2rem;
+  margin-bottom: 2rem;
 `;
 
-const PosterContainer = styled.div`
-  flex-shrink: 0;
-  width: 250px;
-`;
-
-const Poster = styled.img`
-  width: 100%;
+const AnimePoster = styled.img`
+  width: 300px;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 `;
 
 const AnimeInfo = styled.div`
-  flex-grow: 1;
+  flex: 1;
 `;
 
-const Title = styled.h1`
+const AnimeTitle = styled.h1`
   font-size: 2.5rem;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
   color: ${props => props.theme.primary};
 `;
 
-const Overview = styled.p`
-  font-size: 1rem;
-  margin-bottom: 20px;
-  color: ${props => props.theme.text};
+const AnimeDescription = styled.p`
+  font-size: 1.1rem;
   line-height: 1.6;
+  margin-bottom: 1rem;
 `;
 
-const MetaInfo = styled.div`
+const AnimeMetaInfo = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 25px;
+  gap: 1rem;
+  margin-bottom: 1rem;
 `;
 
 const MetaItem = styled.span`
+  background-color: ${props => props.theme.backgroundTertiary};
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
   font-size: 0.9rem;
-  color: ${props => props.theme.textSecondary};
+`;
+
+const AudioToggle = styled.div`
   display: flex;
   align-items: center;
-  gap: 5px;
+  margin-bottom: 1rem;
 `;
 
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 15px;
-`;
-
-const Button = styled.button`
-  padding: 12px 25px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 5px;
+const AudioButton = styled.button`
+  padding: 0.5rem 1rem;
+  background-color: ${props => props.active ? props.theme.primary : 'transparent'};
+  color: ${props => props.active ? props.theme.background : props.theme.text};
+  border: 1px solid ${props => props.theme.primary};
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.3s ease;
-  font-weight: bold;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  &:first-child {
+    border-radius: 4px 0 0 4px;
+  }
+
+  &:last-child {
+    border-radius: 0 4px 4px 0;
   }
 `;
 
-const PlayButton = styled(Button)`
-  background-color: ${props => props.theme.primary};
+const PlayButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
   color: ${props => props.theme.background};
-`;
+  background-color: ${props => props.theme.primary};
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 
-const InfoButton = styled(Button)`
-  background-color: ${props => props.theme.backgroundSecondary};
-  color: ${props => props.theme.text};
+  &:hover {
+    background-color: ${props => props.theme.primaryDark};
+  }
 `;
 
 const SectionTitle = styled.h2`
   font-size: 1.8rem;
-  margin: 40px 0 20px;
+  margin: 2rem 0 1rem;
   color: ${props => props.theme.primary};
-  border-bottom: 2px solid ${props => props.theme.primary};
-  padding-bottom: 10px;
 `;
 
 const EpisodeGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
 `;
 
-const EpisodeButton = styled.button`
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  background-color: ${props => props.isSelected ? props.theme.primary : props.theme.backgroundSecondary};
-  color: ${props => props.isSelected ? props.theme.background : props.theme.text};
+const EpisodeCard = styled.div`
+  background-color: ${props => props.theme.backgroundTertiary};
+  border-radius: 8px;
+  overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: ${props => props.isSelected ? 'bold' : 'normal'};
-
-  &:hover {
-    background-color: ${props => props.theme.primary};
-    color: ${props => props.theme.background};
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-`;
-
-const CharactersGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 20px;
-`;
-
-const CharacterCard = styled.div`
-  text-align: center;
   transition: transform 0.3s ease;
 
   &:hover {
     transform: translateY(-5px);
   }
-
-  img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  p {
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: ${props => props.theme.text};
-  }
 `;
 
-const RecommendationsGrid = styled.div`
+const EpisodeImage = styled.img`
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+`;
+
+const EpisodeTitle = styled.p`
+  padding: 0.5rem;
+  text-align: center;
+`;
+
+const AnimeGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
+  gap: 1rem;
 `;
 
-const RecommendationCard = styled.div`
+
+
+const AnimeImage = styled.img`
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+`;
+
+const AnimeCardTitle = styled.p`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem;
+  font-size: 0.9rem;
   text-align: center;
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-  }
-
-  img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  p {
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: ${props => props.theme.text};
-  }
 `;
 
 function AnimeDetails() {
@@ -194,30 +164,30 @@ function AnimeDetails() {
   const [anime, setAnime] = useState(null);
   const [episodes, setEpisodes] = useState([]);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
-  const [selectedAudio, setSelectedAudio] = useState('sub');
   const [isWatching, setIsWatching] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [streamingData, setStreamingData] = useState(null);
+  const [error, setError] = useState(null);
 
-  const fetchAnimeData = useCallback(async (retryCount = 0) => {
+  const fetchAnimeData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [detailsResponse, episodesResponse] = await Promise.all([
-        fetchAnimeDetails(id),
-        fetchAnimeEpisodes(id)
-      ]);
-      setAnime(detailsResponse.anime);
-      setEpisodes(episodesResponse.episodes || []);
+      const animeData = await fetchAnimeDetails(id);
+      setAnime(animeData);
+
+      // Fetch episodes
+      if (animeData.title?.romaji) {
+        const gogoData = await fetchAnimeEpisodes(animeData.title.romaji);
+        if (gogoData && gogoData.episodes) {
+          setEpisodes(gogoData.episodes);
+        }
+      }
+      
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching anime data:', error);
       setError('Failed to load anime data. Please try again later.');
       setIsLoading(false);
-      if (retryCount < 3) {
-        console.log(`Retrying... (Attempt ${retryCount + 1})`);
-        setTimeout(() => fetchAnimeData(retryCount + 1), 1000 * (retryCount + 1));
-      }
     }
   }, [id]);
 
@@ -225,14 +195,16 @@ function AnimeDetails() {
     fetchAnimeData();
   }, [fetchAnimeData]);
 
-  const handleEpisodeSelect = async (episodeNumber) => {
-    setSelectedEpisode(episodeNumber);
-    setIsWatching(true);
+  const handleEpisodeSelect = async (episode) => {
     try {
-      const sources = await fetchEpisodeSources(episodes[episodeNumber - 1].episodeId, 'hd-1', selectedAudio);
+      setSelectedEpisode(episode);
+      setIsWatching(true);
+      
+      const sources = await fetchEpisodeSources(episode.id);
       setStreamingData(sources);
     } catch (error) {
-      console.error('Error fetching episode data:', error);
+      console.error('Error fetching episode sources:', error);
+      setError('Failed to load episode. Please try again later.');
     }
   };
 
@@ -241,81 +213,74 @@ function AnimeDetails() {
   if (!anime) return <div>No anime data available.</div>;
 
   return (
-    <AnimeContainer>
-      <Hero>
-        <PosterContainer>
-          <Poster src={anime.info.poster} alt={anime.info.name} />
-        </PosterContainer>
+    <AnimeDetailsContainer>
+      <AnimeHeader>
+        <AnimePoster src={anime.image} alt={anime.title.romaji} />
         <AnimeInfo>
-          <Title>{anime.info.name}</Title>
-          <Overview>{anime.info.description}</Overview>
-          <MetaInfo>
-            <MetaItem><FaStar /> {anime.info.stats.rating}</MetaItem>
-            <MetaItem><FaCalendar /> {anime.moreInfo.aired}</MetaItem>
-            <MetaItem><FaClock /> {anime.info.stats.duration}</MetaItem>
-          </MetaInfo>
-          <ButtonGroup>
-            <PlayButton onClick={() => handleEpisodeSelect(1)}>
+          <AnimeTitle>{anime.title.romaji}</AnimeTitle>
+          <AnimeDescription>{anime.description}</AnimeDescription>
+          <AnimeMetaInfo>
+            <MetaItem><FaStar /> {(anime.rating / 10).toFixed(1)}</MetaItem>
+            <MetaItem><FaCalendar /> {anime.releaseDate}</MetaItem>
+            {anime.duration && <MetaItem><FaClock /> {anime.duration} min</MetaItem>}
+            <MetaItem>{anime.status}</MetaItem>
+          </AnimeMetaInfo>
+          {episodes.length > 0 && (
+            <PlayButton onClick={() => handleEpisodeSelect(episodes[0])}>
               <FaPlay /> Watch Now
             </PlayButton>
-            <InfoButton>
-              <FaInfoCircle /> More Info
-            </InfoButton>
-          </ButtonGroup>
+          )}
         </AnimeInfo>
-      </Hero>
+      </AnimeHeader>
 
-      <SectionTitle>Episodes</SectionTitle>
-      <EpisodeGrid>
-        {episodes.map((episode) => (
-          <EpisodeButton
-            key={episode.episodeId}
-            onClick={() => handleEpisodeSelect(episode.number)}
-            isSelected={selectedEpisode === episode.number}
-          >
-            Ep {episode.number}
-          </EpisodeButton>
-        ))}
-      </EpisodeGrid>
-
-      {anime.info.charactersVoiceActors && anime.info.charactersVoiceActors.length > 0 && (
+      {episodes.length > 0 && (
         <>
-          <SectionTitle>Characters</SectionTitle>
-          <CharactersGrid>
-            {anime.info.charactersVoiceActors.map((char) => (
-              <CharacterCard key={char.character.id}>
-                <img src={char.character.poster} alt={char.character.name} />
-                <p>{char.character.name}</p>
-              </CharacterCard>
+          <SectionTitle>Episodes</SectionTitle>
+          <EpisodeGrid>
+            {episodes.map((episode) => (
+              <EpisodeCard key={episode.id} onClick={() => handleEpisodeSelect(episode)}>
+                <EpisodeImage src={episode.image || anime.image} alt={`Episode ${episode.number}`} />
+                <EpisodeTitle>Episode {episode.number}</EpisodeTitle>
+              </EpisodeCard>
             ))}
-          </CharactersGrid>
+          </EpisodeGrid>
         </>
       )}
 
-      {anime.recommendedAnimes && anime.recommendedAnimes.length > 0 && (
+      {anime.recommendations?.length > 0 && (
         <>
-          <SectionTitle>Recommended Anime</SectionTitle>
-          <RecommendationsGrid>
-            {anime.recommendedAnimes.map((recommendedAnime) => (
-              <RecommendationCard key={recommendedAnime.id}>
-                <img src={recommendedAnime.poster} alt={recommendedAnime.name} />
-                <p>{recommendedAnime.name}</p>
-              </RecommendationCard>
+          <SectionTitle>Recommendations</SectionTitle>
+          <AnimeGrid>
+            {anime.recommendations.map((rec) => (
+              <AnimeCard key={rec.id} anime={rec} />
             ))}
-          </RecommendationsGrid>
+          </AnimeGrid>
+        </>
+      )}
+
+      {anime.relations?.length > 0 && (
+        <>
+          <SectionTitle>Related Anime</SectionTitle>
+          <AnimeGrid>
+            {anime.relations.map((relation) => (
+              <AnimeCard key={relation.id} anime={relation} />
+            ))}
+          </AnimeGrid>
         </>
       )}
 
       {isWatching && streamingData && (
         <AnimePlayer
-          sources={streamingData.sources}
-          subtitles={streamingData.subtitles}
-          onClose={() => setIsWatching(false)}
-          selectedAudio={selectedAudio}
-          onAudioChange={setSelectedAudio}
+          title={`${anime.title.romaji} - Episode ${selectedEpisode.number}`}
+          posterSrc={anime.image}
+          streamingData={streamingData}
+          onClose={() => {
+            setIsWatching(false);
+            setStreamingData(null);
+          }}
         />
       )}
-    </AnimeContainer>
+    </AnimeDetailsContainer>
   );
 }
 

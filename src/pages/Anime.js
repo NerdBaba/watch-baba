@@ -88,17 +88,20 @@ function Anime() {
   const [animeList, setAnimeList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [category, setCategory] = useState('most-favorite');
+  const [category, setCategory] = useState('POPULARITY_DESC');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getAnime = async () => {
+      setIsLoading(true);
       try {
         const data = await fetchAnimeByCategory(category, currentPage);
-        setAnimeList(data.animes);
-        setTotalPages(data.totalPages);
+        setAnimeList(data.results || []);
+        setTotalPages(Math.ceil(data.totalResults / 25));
       } catch (error) {
         console.error('Error fetching anime:', error);
       }
+      setIsLoading(false);
     };
 
     getAnime();
@@ -115,18 +118,30 @@ function Anime() {
         <FilterGroup>
           <FilterLabel htmlFor="category">Category</FilterLabel>
           <Select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="most-favorite">Most Favorite</option>
-            <option value="recently-updated">Recently Updated</option>
-            <option value="most-popular">Most Popular</option>
-            <option value="top-airing">Top Airing</option>
+            <option value="POPULARITY_DESC">Most Popular</option>
+            <option value="SCORE_DESC">Top Rated</option>
+            <option value="UPDATED_AT_DESC">Recently Updated</option>
+            <option value="START_DATE_DESC">Newest</option>
           </Select>
         </FilterGroup>
       </FilterContainer>
-      <AnimeGrid>
-        {animeList.map((anime) => (
-          <AnimeCard key={anime.id} anime={anime} />
-        ))}
-      </AnimeGrid>
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <AnimeGrid>
+          {animeList.map((anime) => (
+            <AnimeCard 
+              key={anime.id} 
+              anime={{
+                id: anime.id,
+                title: anime.title.romaji,
+                poster: anime.image,
+                rating: anime.rating / 10
+              }} 
+            />
+          ))}
+        </AnimeGrid>
+      )}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}

@@ -1,6 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Hls from 'hls.js';
+// AnimePlayer.js
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import { MediaPlayer, MediaProvider } from '@vidstack/react';
+import {
+  defaultLayoutIcons,
+  DefaultVideoLayout,
+} from '@vidstack/react/player/layouts/default';
+import '@vidstack/react/player/styles/default/theme.css';
+import '@vidstack/react/player/styles/default/layouts/video.css';
 
 const PlayerContainer = styled.div`
   position: fixed;
@@ -10,102 +17,99 @@ const PlayerContainer = styled.div`
   bottom: 0;
   background: rgba(0, 0, 0, 0.9);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 `;
 
-const VideoWrapper = styled.div`
-  width: 80%;
-  max-width: 1000px;
-`;
-
-const Video = styled.video`
+const StyledMediaPlayer = styled(MediaPlayer)`
   width: 100%;
+  max-width: 1000px;
+  aspect-ratio: 16 / 9;
 `;
 
 const CloseButton = styled.button`
   position: absolute;
   top: 20px;
   right: 20px;
-  background: transparent;
-  border: none;
+  background: rgba(0, 0, 0, 0.5);
   color: white;
-  font-size: 24px;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
 `;
 
-const AudioSelector = styled.select`
-  margin-top: 20px;
-  padding: 10px;
-  font-size: 16px;
+const QualityToggle = styled.div`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 10px;
 `;
 
-function AnimePlayer({ sources, subtitles, onClose, selectedAudio, onAudioChange }) {
-  const videoRef = useRef(null);
-  const hlsRef = useRef(null);
-  const [currentSource, setCurrentSource] = useState(null);
+const QualityButton = styled.button`
+  background: ${props => props.active ? props.theme.primary : 'rgba(0, 0, 0, 0.5)'};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 
-  useEffect(() => {
-    if (sources && sources.length > 0) {
-      setCurrentSource(sources[0].url);
-    }
-  }, [sources]);
+  &:hover {
+    background-color: ${props => props.active ? props.theme.primaryDark : 'rgba(0, 0, 0, 0.8)'};
+  }
+`;
 
-  useEffect(() => {
-    if (!currentSource) return;
+function AnimePlayer({ title, posterSrc, streamingData, onClose }) {
+  const [quality, setQuality] = useState('default');
 
-    if (Hls.isSupported()) {
-      const hls = new Hls();
-      hlsRef.current = hls;
-      hls.loadSource(currentSource);
-      hls.attachMedia(videoRef.current);
-      hls.on(Hls.Events.MANIFEST_PARSED, function() {
-        videoRef.current.play();
-      });
-    } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-      videoRef.current.src = currentSource;
-      videoRef.current.addEventListener('loadedmetadata', function() {
-        videoRef.current.play();
-      });
-    }
-
-    return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-      }
-    };
-  }, [currentSource]);
-
-  useEffect(() => {
-    if (subtitles && subtitles.length > 0 && videoRef.current) {
-      // Remove existing tracks
-      while (videoRef.current.firstChild) {
-        videoRef.current.removeChild(videoRef.current.firstChild);
-      }
-
-      subtitles.forEach((subtitle) => {
-        const track = document.createElement('track');
-        track.kind = 'captions';
-        track.label = subtitle.lang;
-        track.srclang = subtitle.lang;
-        track.src = subtitle.url;
-        videoRef.current.appendChild(track);
-      });
-    }
-  }, [subtitles]);
+  const currentSource = streamingData.sources.find(s => s.quality === quality) || streamingData.sources[0];
 
   return (
     <PlayerContainer>
       <CloseButton onClick={onClose}>&times;</CloseButton>
-      <VideoWrapper>
-        <Video ref={videoRef} controls />
-      </VideoWrapper>
-      <AudioSelector value={selectedAudio} onChange={(e) => onAudioChange(e.target.value)}>
-        <option value="sub">Subbed</option>
-        <option value="dub">Dubbed</option>
-      </AudioSelector>
+      <QualityToggle>
+        {streamingData.sources.map(source => (
+          <QualityButton
+            key={source.quality}
+            active={quality === source.quality}
+            onClick={() => setQuality(source.quality)}
+          >
+            {source.quality}
+          </QualityButton>
+        ))}
+      </QualityToggle>
+      <StyledMediaPlayer
+        title={title}
+        src={currentSource.url}
+        poster={posterSrc}
+        crossorigin
+      >
+        <MediaProvider>
+          {streamingData.subtitles?.map((subtitle) => (
+            <track
+              key={subtitle.lang}
+              kind="subtitles"
+              src={subtitle.url}
+              label={subtitle.lang}
+              srcLang={subtitle.lang}
+            />
+          ))}
+        </MediaProvider>
+        <DefaultVideoLayout icons={defaultLayoutIcons} />
+      </StyledMediaPlayer>
     </PlayerContainer>
   );
 }

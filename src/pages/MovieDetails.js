@@ -477,6 +477,7 @@ function MovieDetails() {
   const videoContainerRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [logoUrl, setLogoUrl] = useState('');
+  const [megacloudHash, setMegacloudHash] = useState(null);
 
   const fetchMovieData = useCallback(async () => {
     try {
@@ -583,6 +584,34 @@ function MovieDetails() {
     setIsTamilYogiLoading(false);
   }
 };
+
+
+const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
+  try {
+    const encodedTitle = encodeURIComponent(title);
+    const url = `https://api.braflix.gd/megacloud/sources-with-title?title=${encodedTitle}&year=${year}&mediaType=${mediaType}&episodeId=${episodeId}&seasonId=${seasonId}&tmdbId=${tmdbId}`;
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching Megacloud hash:', error);
+    return null;
+  }
+};
+
+
+
+
+useEffect(() => {
+  const fetchHash = async () => {
+    if (watchOption === 'server11' && movie) {
+      const year = new Date(movie.release_date).getFullYear();
+      const hash = await fetchMegacloudHash(movie.title, year, movie.id, 'movie');
+      setMegacloudHash(hash);
+    }
+  };
+  
+  fetchHash();
+}, [watchOption, movie]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -703,7 +732,8 @@ function MovieDetails() {
               >
                   <option value="server1">Server 1</option>
                   <option value="server2">Server 2</option>
-                  <option value="server3">Server 3</option>
+                  <option value="server3">Server 3.1</option>
+                  <option value="server32">Server 3.2</option>
                   <option value="server4">Server 4</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
@@ -711,6 +741,9 @@ function MovieDetails() {
                   <option value="server8">Server 8</option>
                   <option value="tamilyogi">TamilYogi</option>
                   <option value="server9">Server 9</option>
+                  <option value="server10">Server 10</option>
+                  <option value="server11">Server 11</option>
+                  <option value="server12">Server 12 (Ads)</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -756,13 +789,39 @@ function MovieDetails() {
               )}
               {watchOption === 'server8' && (
                 <EmbedPlayer
-                src={`https://api.fmoviez.online/embed/movie/${movie.id}`}
+                src={`https://player.vidsrc.nl/embed/movie/${movie.id}`}
                 allowFullScreen
                 />
               )}
               {watchOption === 'server9' && (
               <EmbedPlayer
                   src={`https://filmex.to/#/media/tmdb-movie-${movie.id}`}
+                  allowFullScreen
+                  scrolling="no"
+                />
+            )}
+             {watchOption === 'server32' && (
+              <EmbedPlayer
+                  src={`https://vidsrc.cc/v3/embed/movie/${movie.id}?autoPlay=true`}
+                  allowFullScreen
+                  scrolling="no"
+                />
+            )}
+            {watchOption === 'server10' && (
+                <AdBlockedIframe
+                src={`https://embed.su/embed/movie/${movie.id}`}
+                allowFullScreen
+                />
+              )}
+            {watchOption === 'server11' && megacloudHash && (
+  <AdBlockedIframe
+    src={`https://megacloud.tv/embed-1/e-1/${megacloudHash}?_debug=true`}
+    allowFullScreen
+  />
+)}
+{watchOption === 'server12' && (
+              <EmbedPlayer
+                  src={`https://multiembed.mov/?video_id=${movie.id}&tmdb=1`}
                   allowFullScreen
                   scrolling="no"
                 />

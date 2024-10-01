@@ -118,47 +118,48 @@ const Genre = styled.p`
 function AnimeCard({ anime }) {
   const navigate = useNavigate();
   const link = `/anime/${anime.id}`;
+  
+  // Normalize the data structure
+  const normalizedAnime = {
+    id: anime.id,
+    name: anime.title?.romaji || anime.title?.english || 'Unknown Title',
+    poster: anime.image || anime.coverImage?.large,
+    rating: (anime.rating / 10).toFixed(1) || anime.averageScore / 10,
+    duration: anime.duration ? `${anime.duration} min` : null,
+    type: anime.type || anime.format,
+    episodes: anime.episodes ? { sub: anime.episodes } : null
+  };
 
   const handleClick = useCallback((e) => {
     e.preventDefault();
-    const scrollToTop = () => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    };
-
-    scrollToTop();
-
-    setTimeout(() => {
-      navigate(link);
-    }, 500);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => navigate(link), 500);
   }, [navigate, link]);
 
   return (
     <Card to={link} onClick={handleClick}>
       <PosterContainer>
-        {anime.poster ? (
-          <Poster src={anime.poster} alt={anime.name} />
+        {normalizedAnime.poster ? (
+          <Poster src={normalizedAnime.poster} alt={normalizedAnime.name} />
         ) : (
           <PlaceholderSVG viewBox="0 0 24 24">
             <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
           </PlaceholderSVG>
         )}
         <HoverOverlay>
-          <Rating>⭐ {anime.rating}</Rating>
-          {anime.duration && (
-            <DetailItem><Icon>⌛</Icon> {anime.duration}</DetailItem>
+          <Rating>⭐ {normalizedAnime.rating}</Rating>
+          {normalizedAnime.duration && (
+            <DetailItem><Icon>⌛</Icon> {normalizedAnime.duration}</DetailItem>
           )}
-          {anime.type && (
-            <DetailItem><Icon>📺</Icon> {anime.type}</DetailItem>
+          {normalizedAnime.type && (
+            <DetailItem><Icon>📺</Icon> {normalizedAnime.type}</DetailItem>
           )}
-          {anime.episodes && (
-            <DetailItem><Icon>🌐</Icon> {anime.episodes.sub} episodes</DetailItem>
+          {normalizedAnime.episodes && (
+            <DetailItem><Icon>🌐</Icon> {normalizedAnime.episodes.sub} episodes</DetailItem>
           )}
         </HoverOverlay>
       </PosterContainer>
-      <Title>{anime.name}</Title>
+      <Title>{normalizedAnime.name}</Title>
     </Card>
   );
 }

@@ -1,65 +1,17 @@
-export const fetchAnilistData = async (id) => {
-  const query = `
-    query ($id: Int) {
-      Media (id: $id, type: ANIME) {
-        id
-        title {
-          english
-          native
-        }
-        bannerImage
-        coverImage {
-          large
-        }
-        description
-        episodes
-        characters {
-          edges {
-            node {
-              id
-              name {
-                full
-              }
-              image {
-                large
-              }
-            }
-          }
-        }
-        recommendations {
-          edges {
-            node {
-              id
-              title {
-                english
-                native
-              }
-              coverImage {
-                large
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
+// services/animeApi.js
+const BASE_URL = 'https://api-consumet-ten-delta.vercel.app';
 
-  const variables = {
-    id: parseInt(id)
-  };
+export async function fetchAnimeDetails(id) {
+  const response = await fetch(`${BASE_URL}/meta/anilist/info/${id}`);
+  return response.json();
+}
 
-  const response = await fetch('https://graphql.anilist.co', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({
-      query: query,
-      variables: variables
-    })
-  });
+export async function fetchAnimeEpisodes(id) {
+  const response = await fetch(`${BASE_URL}/anime/gogoanime/watch/${id}`);
+  return response.json();
+}
 
-  const data = await response.json();
-  return data.data.Media;
-};
+export async function fetchEpisodeSources(episodeId) {
+  const response = await fetch(`${BASE_URL}/anime/gogoanime/watch/${episodeId}`);
+  return response.json();
+}

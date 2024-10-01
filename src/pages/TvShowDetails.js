@@ -490,6 +490,8 @@ function TvShowDetails() {
 
 
 
+
+
 // Fullscreen Fix For Mobiles
   const videoContainerRef = useRef(null);
 
@@ -515,6 +517,63 @@ function TvShowDetails() {
     };
   }, []);
 
+
+  const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
+  try {
+    const encodedTitle = encodeURIComponent(title);
+    const url = `https://api.braflix.gd/megacloud/sources-with-title?title=${encodedTitle}&year=${year}&mediaType=${mediaType}&episodeId=${episodeId}&seasonId=${seasonId}&tmdbId=${tmdbId}`;
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching Megacloud hash:', error);
+    return null;
+  }
+};
+
+
+const [megacloudHash, setMegacloudHash] = useState(null);
+
+useEffect(() => {
+  const fetchHash = async () => {
+    if (watchOption === 'server11' && tvShow) {
+      const year = new Date(tvShow.first_air_date).getFullYear();
+      const hash = await fetchMegacloudHash(
+        tvShow.name, 
+        year, 
+        tvShow.id, 
+        'tv', 
+        selectedSeason,
+        selectedEpisode
+      );
+      setMegacloudHash(hash);
+    }
+  };
+  
+  fetchHash();
+}, [watchOption, tvShow, selectedSeason, selectedEpisode]);
+
+
+  useEffect(() => {
+  if (watchOption === 'server11') {
+    setMegacloudHash(null);
+    const fetchHash = async () => {
+      if (tvShow) {
+        const year = new Date(tvShow.first_air_date).getFullYear();
+        const hash = await fetchMegacloudHash(
+          tvShow.name, 
+          year, 
+          tvShow.id, 
+          'tv', 
+          selectedSeason,
+          selectedEpisode
+        );
+        setMegacloudHash(hash);
+      }
+    };
+    fetchHash();
+  }
+}, [selectedSeason, selectedEpisode, watchOption, tvShow]);
+
   if (!tvShow || !externalIds) return <div>Loading...</div>;
 
   // const embedData = {
@@ -536,6 +595,8 @@ function TvShowDetails() {
   //   imdbId: externalIds.imdb_id || "",
   //   runtime: tvShow.episode_run_time[0] || 0,
   // };
+
+
 
   return (
       <TvShowContainer>
@@ -623,13 +684,17 @@ function TvShowDetails() {
                 <ServerDropdown value={watchOption} onChange={(e) => setWatchOption(e.target.value)}>
                   <option value="server1">Server 1</option>
                   <option value="server2">Server 2</option>
-                  <option value="server3">Server 3</option>
+                  <option value="server3">Server 3.1</option>
+                  <option value="server32">Server 3.2</option>
                   <option value="server4">Server 4</option>
                   <option value="server5">Server 5</option>
                   <option value="server6">Server 6</option>
                   <option value="server7">Server 7 (Ads)</option>
                   <option value="server8">Server 8</option>
                   <option value="server9">Server 9</option>
+                  <option value="server10">Server 10</option>
+                  <option value="server11">Server 11</option>
+                  <option value="server12">Server 12 (Ads) </option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -676,9 +741,16 @@ function TvShowDetails() {
                 allowFullScreen
                 />
               )}
+              {watchOption === 'server32' && (
+              <EmbedPlayer
+                  src={`https://vidsrc.cc/v3/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                  allowFullScreen
+                  scrolling="no"
+                />
+            )}
               {watchOption === 'server8' && (
                 <EmbedPlayer
-                src={`https://api.fmoviez.online/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                src={`https://player.vidsrc.nl/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                 allowFullScreen
                 />
               )}
@@ -689,7 +761,24 @@ function TvShowDetails() {
                   scrolling="no"
                 />
               )}
-
+              {watchOption === 'server10' && (
+                <AdBlockedIframe
+                src={`https://embed.su/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server11' && megacloudHash && (
+  <EmbedPlayer
+    src={`https://megacloud.tv/embed-1/e-1/${megacloudHash}?_debug=true`}
+    allowFullScreen
+  />
+)}
+            {watchOption === 'server12' && (
+                <EmbedPlayer
+                src={`https://multiembed.mov/?video_id=${tvShow.id}&tmdb=1&s=${selectedSeason}&e=${selectedEpisode}`}
+                allowFullScreen
+                />
+              )}
             </VideoContainer>
           </Backdrop>
         )}
