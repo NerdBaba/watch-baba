@@ -751,7 +751,6 @@ useEffect(() => {
                   <option value="server14">Server 14</option>
                   <option value="server15">Server 15 (Ads)</option>
                   <option value="server16">Server 16 (Site)</option>
-                  <option value="server17">Server 17 (Site)</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -861,12 +860,7 @@ useEffect(() => {
   />
 )}
 
-{watchOption === 'server17' && (
-  <AdBlockedIframe
-    src={`https://uniquestream.net/movies/${movie.title.toLowerCase().replace(/ /g, '-')}-${new Date(movie.release_date).getFullYear()}/`}
-    allowFullScreen
-  />
-)}
+
             {watchOption === 'tamilyogi' && (
   selectedTamilYogiLink ? (
     <EmbedPlayer src={selectedTamilYogiLink} allowFullScreen />

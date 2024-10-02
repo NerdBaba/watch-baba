@@ -28,7 +28,7 @@ export const fetchAnimeByCategory = async (category = 'POPULARITY_DESC', page = 
     return {
       animes: data.results,
       currentPage: page,
-      totalPages: Math.ceil(data.totalResults / 24)
+      totalPages: Math.ceil(data.totalResults / 20)
     };
   } catch (error) {
     console.error('Error fetching anime by category:', error);
@@ -57,6 +57,11 @@ export const fetchAnimeEpisodes = async (id) => {
 };
 
 export const fetchEpisodeSources = async (episodeId) => {
-  const response = await fetch(`${BASE_URL}/anime/gogoanime/watch/${episodeId}`);
-  return response.json();
+  try {
+    const response = await fetch(`${BASE_URL}/anime/gogoanime/watch/${episodeId}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching episode sources:', error);
+    throw error;
+  }
 };

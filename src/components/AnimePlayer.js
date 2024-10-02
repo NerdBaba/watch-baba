@@ -1,4 +1,3 @@
-// AnimePlayer.js
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { MediaPlayer, MediaProvider } from '@vidstack/react';
@@ -59,7 +58,7 @@ const QualityToggle = styled.div`
 `;
 
 const QualityButton = styled.button`
-  background: ${props => props.active ? props.theme.primary : 'rgba(0, 0, 0, 0.5)'};
+  background: ${(props) => (props.active ? props.theme.primary : 'rgba(0, 0, 0, 0.5)')};
   color: white;
   border: none;
   border-radius: 4px;
@@ -68,20 +67,22 @@ const QualityButton = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: ${props => props.active ? props.theme.primaryDark : 'rgba(0, 0, 0, 0.8)'};
+    background-color: ${(props) =>
+      props.active ? props.theme.primaryDark : 'rgba(0, 0, 0, 0.8)'};
   }
 `;
 
 function AnimePlayer({ title, posterSrc, streamingData, onClose }) {
   const [quality, setQuality] = useState('default');
 
-  const currentSource = streamingData.sources.find(s => s.quality === quality) || streamingData.sources[0];
+  const currentSource =
+    streamingData.sources.find((s) => s.quality === quality) || streamingData.sources[0];
 
   return (
     <PlayerContainer>
       <CloseButton onClick={onClose}>&times;</CloseButton>
       <QualityToggle>
-        {streamingData.sources.map(source => (
+        {streamingData.sources.map((source) => (
           <QualityButton
             key={source.quality}
             active={quality === source.quality}

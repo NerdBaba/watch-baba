@@ -92,25 +92,30 @@ function Anime() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const getAnime = async () => {
-      setIsLoading(true);
-      try {
-        const data = await fetchAnimeByCategory(category, currentPage);
-        setAnimeList(data.results || []);
-        setTotalPages(Math.ceil(data.totalResults / 25));
-      } catch (error) {
-        console.error('Error fetching anime:', error);
-      }
-      setIsLoading(false);
-    };
-
-    getAnime();
-  }, [currentPage, category]);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const getAnime = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchAnimeByCategory(category, currentPage);
+      setAnimeList(data.animes || []); // Change this from data.results to data.animes
+      setTotalPages(data.totalPages); // This should work as is
+    } catch (error) {
+      console.error('Error fetching anime:', error);
+    }
+    setIsLoading(false);
   };
+  
+  getAnime();
+}, [currentPage, category]);
 
+ 
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+   window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+  };
   return (
     <div>
       <AnimeTitle>Anime</AnimeTitle>
@@ -130,16 +135,19 @@ function Anime() {
       ) : (
         <AnimeGrid>
           {animeList.map((anime) => (
-            <AnimeCard 
-              key={anime.id} 
-              anime={{
-                id: anime.id,
-                title: anime.title.romaji,
-                poster: anime.image,
-                rating: anime.rating / 10
-              }} 
-            />
-          ))}
+  <AnimeCard
+    key={anime.id}
+    anime={{
+      id: anime.id,
+      title: anime.title,
+      image: anime.image,
+      rating: anime.rating,
+      duration: anime.duration,
+      type: anime.type,
+      episodes: anime.totalEpisodes
+    }}
+  />
+))}
         </AnimeGrid>
       )}
       <Pagination
