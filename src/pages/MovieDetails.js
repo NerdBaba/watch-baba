@@ -419,6 +419,9 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
       const blockedDomains = [
         'example-ad-domain.com',
         'another-ad-domain.com',
+          'cooperateboneco.com',
+          'amung.us',
+          'prd.jwpltx.com',
         // Add more blocked domains here
       ];
       const url = new URL(src);
@@ -453,7 +456,7 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
       ref={iframeRef}
       src={src}
       allowFullScreen={allowFullScreen}
-      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation allow-orientation-lock"
       style={{ width: '100%', height: '100%', border: 'none' }}
     />
   );
@@ -744,13 +747,18 @@ useEffect(() => {
                   <option value="server10">Server 10</option>
                   <option value="server11">Server 11</option>
                   <option value="server12">Server 12 (Ads)</option>
+                  <option value="server13">Server 13 (Single Ad)</option>
+                  <option value="server14">Server 14</option>
+                  <option value="server15">Server 15 (Ads)</option>
+                  <option value="server16">Server 16 (Site)</option>
+                  <option value="server17">Server 17 (Site)</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
                 <VideoPlayer tmdbId={movie.id} />
               )}
               {watchOption === 'server2' && (
-                <EmbedPlayer 
+                <AdBlockedIframe 
                   src={`https://player.smashy.stream/movie/${movie.id}`}
                   allowFullScreen
                 />
@@ -826,6 +834,39 @@ useEffect(() => {
                   scrolling="no"
                 />
             )}
+            {watchOption === 'server13' && (
+                <AdBlockedIframe
+                src={`https://play2.123embed.net/movie/${movie.id}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server14' && (
+              <EmbedPlayer
+                  src={`https://embed-arh.pages.dev/media/tmdb-movie-${movie.id}`}
+                  allowFullScreen
+                  scrolling="no"
+                />
+            )}
+            {watchOption === 'server15' && (
+                <AdBlockedIframe
+                src={`https://www.rgshows.me/player/movies/api3/index.html?id=${movie.id}`}
+                allowFullScreen
+                />
+              )}
+
+              {watchOption === 'server16' && (
+  <AdBlockedIframe
+    src={`https://fsharetv.co/w/${movie.title.toLowerCase().replace(/ /g, '-')}-episode-1-tt${externalIds.imdb_id.replace('tt', '')}`}
+    allowFullScreen
+  />
+)}
+
+{watchOption === 'server17' && (
+  <AdBlockedIframe
+    src={`https://uniquestream.net/movies/${movie.title.toLowerCase().replace(/ /g, '-')}-${new Date(movie.release_date).getFullYear()}/`}
+    allowFullScreen
+  />
+)}
             {watchOption === 'tamilyogi' && (
   selectedTamilYogiLink ? (
     <EmbedPlayer src={selectedTamilYogiLink} allowFullScreen />
