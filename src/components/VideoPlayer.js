@@ -111,7 +111,7 @@ function VideoPlayer({ tmdbId, season, episode, malId, audio }) {
         ref={iframeRef}
         src={embedUrl} 
         allowFullScreen 
-        sandbox="allow-scripts allow-same-origin allow-forms"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-orientation-lock allow-presentation"
       />
     </PlayerContainer>
   );

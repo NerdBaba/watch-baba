@@ -393,7 +393,7 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
       ref={iframeRef}
       src={src}
       allowFullScreen={allowFullScreen}
-      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-presentation allow-orientation-lock"
       style={{ width: '100%', height: '100%', border: 'none' }}
     />
   );
@@ -695,13 +695,17 @@ useEffect(() => {
                   <option value="server10">Server 10</option>
                   <option value="server11">Server 11</option>
                   <option value="server12">Server 12 (Ads) </option>
+                  <option value="server13">Server 13 (Single Ad)</option>
+                  <option value="server14">Server 14</option>
+                  <option value="server15">Server 15 (Ads) </option>
+                  <option value="server16">Server 16 (Site)</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
                 <VideoPlayer tmdbId={tvShow.id} season={selectedSeason} episode={selectedEpisode} />
               )}
               {watchOption === 'server2' && (
-                <EmbedPlayer 
+                <AdBlockedIframe 
                   src={`https://player.smashy.stream/tv/${tvShow.id}?s=${selectedSeason}&e=${selectedEpisode}`}
                   allowFullScreen
                 />
@@ -779,6 +783,31 @@ useEffect(() => {
                 allowFullScreen
                 />
               )}
+              {watchOption === 'server13' && (
+                <AdBlockedIframe
+                src={`https://play2.123embed.net/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server14' && ( // New server embed
+                <EmbedPlayer
+                  src={`https://embed-arh.pages.dev/media/tmdb-tv-${tvShow.id}/${tvShow.seasons.find(season => season.season_number === selectedSeason)?.id}/${episodeId}`}
+                  allowFullScreen
+                  scrolling="no"
+                />
+              )}
+              {watchOption === 'server15' && (
+                <AdBlockedIframe
+                src={`https://www.rgshows.me/player/series/api3/index.html?id=${tvShow.id}&s=${selectedSeason}&e=${selectedEpisode}`}
+                allowFullScreen
+                />
+              )}
+              {watchOption === 'server16' && (
+  <AdBlockedIframe
+    src={`https://uniquestream.net/tvshows/${tvShow.name.toLowerCase().replace(/ /g, '-')}-${new Date(tvShow.first_air_date).getFullYear()}/`}
+    allowFullScreen
+  />
+)}
             </VideoContainer>
           </Backdrop>
         )}
