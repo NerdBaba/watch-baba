@@ -647,6 +647,7 @@ function MovieDetails() {
 
 const invokeMoviesdrive = async (title, year) => {
   try {
+    const PROXY_URL = "https://proxy.wafflehacker.io/?destination=";
     const MovieDrive_API = "https://moviesdrive.world";
     const fixTitle = title?.replace(/-/g, ' ').replace(/:/g, ' ').replace(/&/g, ' ');
     const searchTitle = title?.replace(/-/g, ' ').toLowerCase()
@@ -654,20 +655,21 @@ const invokeMoviesdrive = async (title, year) => {
       .replace(/\s+/g, '-');
 
    const cleanTitle = (dirtyTitle) => {
-  return dirtyTitle
-    .replace(/$$.*?$$/g, '') // Remove anything inside parentheses
-    .replace(/\{.*?\}/g, '') // Remove anything inside curly braces
-    .replace(/\$+/g, '') // Remove dollar signs
-    .replace(/moviesdrives\.com/gi, '') // Remove moviesdrives.com
-    .replace(/\.mkv$|\.mp4$|\.avi$/i, '') // Remove common video file extensions
-    .replace(/\s*-\s*$/, '') // Remove trailing dash
-    .replace(/^\s*-\s*/, '') // Remove leading dash
-    .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
-    .trim(); // Trim leading and trailing whitespace
-};
+    return dirtyTitle
+      .replace(/$$.*?$$/g, '')
+      .replace(/\{.*?\}/g, '')
+      .replace(/\$+/g, '')
+      .replace(/moviesdrives\.com/gi, '')
+      .replace(/\.mkv$|\.mp4$|\.avi$/i, '')
+      .replace(/\s*-\s*$/, '')
+      .replace(/^\s*-\s*/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
     const url = year 
-      ? `${MovieDrive_API}/search/${fixTitle} ${year}`
-      : `${MovieDrive_API}/search/${fixTitle}`;
+      ? `${PROXY_URL}${MovieDrive_API}/search/${fixTitle} ${year}`
+      : `${PROXY_URL}${MovieDrive_API}/search/${fixTitle}`;
 
     const response = await axios.get(url);
     const hrefPattern = new RegExp(`<a\\s+href="([^"]*\\b${searchTitle}\\b[^"]*)"`, 'i');
@@ -676,11 +678,10 @@ const invokeMoviesdrive = async (title, year) => {
 
     if (!moviePageUrl) return null;
 
-    const moviePageResponse = await axios.get(moviePageUrl);
+    const moviePageResponse = await axios.get(`${PROXY_URL}${moviePageUrl}`);
     const parser = new DOMParser();
     const movieDoc = parser.parseFromString(moviePageResponse.data, 'text/html');
     
-    // Get archive links
     const links = Array.from(movieDoc.querySelectorAll('h5 > a'));
     const archiveLinks = links
       .filter(a => a.href && a.href.includes('mdrive.site/archives'))
@@ -689,20 +690,18 @@ const invokeMoviesdrive = async (title, year) => {
     const directGpdlLinks = links
       .filter(a => a.href && a.href.includes('gpdl.technorozen.workers.dev'))
       .map(a => ({
-        href: a.href,
+        href: `${PROXY_URL}${a.href}`,
         text: cleanTitle(a.textContent.trim()),
         title: cleanTitle(a.textContent.trim()),
         quality: 'Unknown',
         size: 'Unknown'
       }));
 
-    // Extract HubCloud links from archive pages
     const hubcloudLinks = await Promise.all(archiveLinks.map(async archiveUrl => {
       try {
-        const archiveResponse = await axios.get(archiveUrl);
+        const archiveResponse = await axios.get(`${PROXY_URL}${archiveUrl}`);
         const archiveDoc = parser.parseFromString(archiveResponse.data, 'text/html');
         
-        // Find HubCloud links in the archive page
         return Array.from(archiveDoc.querySelectorAll('h5 a'))
           .map(a => a.getAttribute('href'))
           .filter(href => href && href.includes('hubcloud.art'));
@@ -712,19 +711,15 @@ const invokeMoviesdrive = async (title, year) => {
       }
     }));
 
-    // Flatten the array of arrays and remove duplicates
     const allHubcloudLinks = [...new Set(hubcloudLinks.flat())];
 
-    // Extract direct links from HubCloud
     const directLinks = await Promise.all(allHubcloudLinks.map(async hubcloudUrl => {
       try {
-        // First request to HubCloud
-        const hubDoc = await axios.get(hubcloudUrl);
+        const hubDoc = await axios.get(`${hubcloudUrl}`);
         const newLink = hubDoc.data.match(/url=([^"]*)/)?.[1];
         if (!newLink) return null;
 
-        // Second request to get gamerLink
-        const newDoc = await axios.get(newLink);
+        const newDoc = await axios.get(`${newLink}`);
         let gamerLink;
         
         if (newLink.includes('drive')) {
@@ -737,8 +732,7 @@ const invokeMoviesdrive = async (title, year) => {
         
         if (!gamerLink) return null;
 
-        // Final request to get direct links
-        const finalDoc = await axios.get(gamerLink);
+        const finalDoc = await axios.get(`${gamerLink}`);
         const finalHtml = parser.parseFromString(finalDoc.data, 'text/html');
         
         const titleElement = finalHtml.querySelector('title');
@@ -759,14 +753,13 @@ const invokeMoviesdrive = async (title, year) => {
           }
 
           if (microsoftLink) {
-            links.microsoftLink = microsoftLink.href;
+            links.microsoftLink = `${microsoftLink.href}`;
           }
 
           if (technorozenLink) {
-            links.technorozenLink = technorozenLink.href;
+            links.technorozenLink = `${technorozenLink.href}`;
           }
 
-          // Only return the object if at least one link is available
           if (Object.keys(links).length > 0) {
             return {
               title: cleanedTitle,
