@@ -23,7 +23,7 @@ const Card = styled(Link)`
   }
 
   @media (max-width: 480px) {
-    max-width: 4300px;
+    max-width: 430px;
   }
 `;
 const PosterContainer = styled.div`

@@ -45,10 +45,14 @@ export const searchAnime = async (query, page = 1) => {
     throw error;
   }
 };
-
-export const fetchAnimeDetails = async (id) => {
-  const response = await fetch(`${BASE_URL}/meta/anilist/info/${id}`);
-  return response.json();
+export const fetchAnimeDetails = async (malId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/meta/anilist/info/${malId}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching anime details:', error);
+    throw error;
+  }
 };
 
 export const fetchAnimeEpisodes = async (id) => {
@@ -58,7 +62,7 @@ export const fetchAnimeEpisodes = async (id) => {
 
 export const fetchEpisodeSources = async (episodeId) => {
   try {
-    const response = await fetch(`${BASE_URL}/anime/gogoanime/watch/${episodeId}`);
+    const response = await fetch(`https://api-consumet-ten-delta.vercel.app/meta/anilist/watch/${episodeId}`);
     return await response.json();
   } catch (error) {
     console.error('Error fetching episode sources:', error);

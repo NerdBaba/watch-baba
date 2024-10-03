@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchAnimeDetails, fetchEpisodeSources } from '../services/aniWatchApi';
-import { FaPlay, FaInfoCircle, FaStar, FaCalendar, FaClock } from 'react-icons/fa';
-import AnimePlayer from '../components/AnimePlayer';
+import { FaPlay, FaInfoCircle, FaStar, FaCalendar, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';import AnimePlayer from '../components/AnimePlayer';
 import AnimeCard from '../components/AnimeCard';
+import LoadingScreen from '../components/LoadingScreen';
 
 const AnimeDetailsContainer = styled.div`
   max-width: 2000px;
@@ -13,6 +13,9 @@ const AnimeDetailsContainer = styled.div`
   background-color: ${props => props.theme.backgroundSecondary};
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 `;
 
 const AnimeHeader = styled.div`
@@ -175,9 +178,14 @@ const EpisodeTitle = styled.p`
 `;
 
 const AnimeGrid = styled.div`
-  display: grid;
+ display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
 `;
 
 const LoadingContainer = styled.div`
@@ -195,6 +203,61 @@ const ErrorContainer = styled.div`
   padding: 1rem;
 `;
 
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+`;
+
+const PaginationButton = styled.button`
+  background-color: ${props => props.theme.primary};
+  color: ${props => props.theme.background};
+  border: none;
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: ${props => props.theme.primaryDark};
+  }
+
+  &:disabled {
+    background-color: ${props => props.theme.backgroundTertiary};
+    cursor: not-allowed;
+  }
+`;
+
+const TrailerContainer = styled.div`
+  margin-top: 2rem;
+`;
+
+const TrailerVideo = styled.iframe`
+  width: 100%;
+  height: 400px;
+  border: none;
+  border-radius: 8px;
+`;
+
+const EpisodeInput = styled.input`
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  border: 1px solid ${props => props.theme.primary};
+  border-radius: 4px;
+`;
+
+const EpisodeGoButton = styled.button`
+  padding: 0.5rem 1rem;
+  background-color: ${props => props.theme.primary};
+  color: ${props => props.theme.background};
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+`;
+
+
 function AnimeDetails() {
   const { id } = useParams();
   const [anime, setAnime] = useState(null);
@@ -205,68 +268,104 @@ function AnimeDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [streamingData, setStreamingData] = useState(null);
   const [error, setError] = useState(null);
-  const [audioType, setAudioType] = useState('sub');
+
+ const [currentPage, setCurrentPage] = useState(1);
+  const [episodeInput, setEpisodeInput] = useState('');
 
   const fetchAnimeData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  try {
+    setIsLoading(true);
+    setError(null);
+    
+    // Fetch AniList data
+    const anilistData = await fetchAnimeDetails(id);
+    setAnime(anilistData);
+    
+    // Special handling for One Piece (ID: 21)
+    if (id === "21") {
+      const onePieceResponse = await fetch('https://api-consumet-ten-delta.vercel.app/anime/gogoanime/info/one-piece');
+      const onePieceData = await onePieceResponse.json();
       
-      // Fetch AniList data
-      const anilistData = await fetchAnimeDetails(id);
-      setAnime(anilistData);
-      
-      // Fetch MAL data using the MAL ID
-      if (anilistData.malId) {
-        const malResponse = await fetch(`https://api-consumet-ten-delta.vercel.app/meta/mal/info/${anilistData.malId}`);
-        const malInfo = await malResponse.json();
-        setMalData(malInfo);
-        
-        // Prepare episode data
-        if (malInfo.episodes && malInfo.episodes.length > 0) {
-          const formattedEpisodes = malInfo.episodes.map(ep => ({
-            id: `${anilistData.title.romaji.toLowerCase().replace(/\s+/g, '-')}${audioType === 'dub' ? '-dub' : ''}-episode-${ep.number}`,
-            title: ep.title || `Episode ${ep.number}`,
-            image: ep.image || anilistData.image,
-            number: ep.number,
-            description: ep.description
-          }));
-          setEpisodes(formattedEpisodes);
-        }
+      if (onePieceData.episodes && onePieceData.episodes.length > 0) {
+        const formattedEpisodes = onePieceData.episodes.map(ep => ({
+          id: ep.id,
+          number: parseInt(ep.number),
+          image: anilistData.image // Use anime cover as episode image
+        }));
+        setEpisodes(formattedEpisodes);
       }
-    } catch (error) {
-      console.error('Error fetching anime data:', error);
-      setError('Failed to load anime data. Please try again later.');
-    } finally {
-      setIsLoading(false);
+    } else if (anilistData.episodes && anilistData.episodes.length > 0) {
+      const formattedEpisodes = anilistData.episodes.map(ep => ({
+        id: ep.id,
+        title: ep.title || `Episode ${ep.number}`,
+        image: ep.image || anilistData.image,
+        number: ep.number,
+        description: ep.description
+      }));
+      setEpisodes(formattedEpisodes);
     }
-  }, [id, audioType]);
+    // Fetch MAL data if malId is available
+    if (anilistData.malId) {
+      const malResponse = await fetch(`https://api-consumet-ten-delta.vercel.app/meta/mal/info/${anilistData.malId}`);
+      const malInfo = await malResponse.json();
+      
+      // Remove episodes from malInfo to avoid overwriting AniList episodes
+      const { episodes: _, ...malDataWithoutEpisodes } = malInfo;
+      
+      // Set MAL data without episodes
+      setMalData(malDataWithoutEpisodes);
+    }
+  } catch (error) {
+    console.error('Error fetching anime data:', error);
+    setError('Failed to load anime data. Please try again later.');
+  } finally {
+    setIsLoading(false);
+  }
+}, [id]);
+
 
   useEffect(() => {
     fetchAnimeData();
   }, [fetchAnimeData]);
 
   const handleEpisodeSelect = async (episode) => {
-    try {
-      setSelectedEpisode(episode);
-      setIsWatching(true);
-      
-      const sources = await fetchEpisodeSources(episode.id);
-      setStreamingData(sources);
-    } catch (error) {
-      console.error('Error fetching episode sources:', error);
-      setError('Failed to load episode. Please try again later.');
+  try {
+    setSelectedEpisode(episode);
+    setIsWatching(true);
+    
+    const sources = await fetchEpisodeSources(episode.id);
+    setStreamingData(sources);
+  } catch (error) {
+    console.error('Error fetching episode sources:', error);
+    setError('Failed to load episode. Please try again later.');
+  }
+};
+ 
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, Math.ceil(episodes.length / 20)));
+  };
+
+  const handleEpisodeInputChange = (e) => {
+    setEpisodeInput(e.target.value);
+  };
+
+  const handleEpisodeGoClick = () => {
+    const episodeNumber = parseInt(episodeInput);
+    if (episodeNumber && episodeNumber > 0 && episodeNumber <= episodes.length) {
+      const targetEpisode = episodes.find(ep => ep.number === episodeNumber);
+      if (targetEpisode) {
+        handleEpisodeSelect(targetEpisode);
+      }
     }
   };
 
-  const handleAudioToggle = (type) => {
-    setAudioType(type);
-    setEpisodes([]); // Clear episodes to reload with new audio type
-  };
-
-  if (isLoading) {
-    return <LoadingContainer>Loading...</LoadingContainer>;
-  }
+ if (isLoading) {
+  return <LoadingScreen />;
+}
 
   if (error) {
     return <ErrorContainer>{error}</ErrorContainer>;
@@ -276,6 +375,7 @@ function AnimeDetails() {
     return <ErrorContainer>No anime data available.</ErrorContainer>;
   }
 
+  const currentEpisodes = episodes.slice((currentPage - 1) * 20, currentPage * 20);
   return (
     <AnimeDetailsContainer>
       <AnimeHeader>
@@ -318,11 +418,7 @@ function AnimeDetails() {
             </MetaInfo>
           )}
           
-          {/* Audio Toggle */}
-          <AudioToggle>
-            <AudioButton active={audioType === 'sub'} onClick={() => handleAudioToggle('sub')}>SUB</AudioButton>
-            <AudioButton active={audioType === 'dub'} onClick={() => handleAudioToggle('dub')}>DUB</AudioButton>
-          </AudioToggle>
+          
           
           {episodes.length > 0 && (
             <PlayButton onClick={() => handleEpisodeSelect(episodes[0])}>
@@ -336,16 +432,56 @@ function AnimeDetails() {
       {episodes.length > 0 && (
         <>
           <SectionTitle>Episodes</SectionTitle>
+          <EpisodeInput
+            type="number"
+            placeholder="Go to episode..."
+            value={episodeInput}
+            onChange={handleEpisodeInputChange}
+          />
+          <EpisodeGoButton onClick={handleEpisodeGoClick}>Go</EpisodeGoButton>
           <EpisodeGrid>
-            {episodes.map((episode) => (
+            {currentEpisodes.map((episode) => (
               <EpisodeCard key={episode.id} onClick={() => handleEpisodeSelect(episode)}>
                 <EpisodeImage src={episode.image} alt={`Episode ${episode.number}`} />
                 <EpisodeTitle>Episode {episode.number}: {episode.title}</EpisodeTitle>
               </EpisodeCard>
             ))}
           </EpisodeGrid>
+          <PaginationContainer>
+            <PaginationButton onClick={handlePreviousPage} disabled={currentPage === 1}>
+              <FaChevronLeft />
+            </PaginationButton>
+            <span>Page {currentPage} of {Math.ceil(episodes.length / 20)}</span>
+            <PaginationButton onClick={handleNextPage} disabled={currentPage === Math.ceil(episodes.length / 20)}>
+              <FaChevronRight />
+            </PaginationButton>
+          </PaginationContainer>
         </>
       )}
+
+       {/* Trailer Section */}
+      {malData?.trailer && malData.trailer.id && (
+        <TrailerContainer>
+          <SectionTitle>Trailer</SectionTitle>
+          <TrailerVideo
+            src={`https://www.youtube.com/embed/${malData.trailer.id}`}
+            allowFullScreen
+          />
+        </TrailerContainer>
+      )}
+
+ {/* Related Anime Section */}
+      {anime.relations?.length > 0 && (
+        <>
+          <SectionTitle>Related Anime</SectionTitle>
+          <AnimeGrid>
+            {anime.relations.map((relation) => (
+              <AnimeCard key={relation.id} anime={relation} />
+            ))}
+          </AnimeGrid>
+        </>
+      )}
+
 
       {/* Recommendations Section */}
       {anime.recommendations?.length > 0 && (
@@ -359,30 +495,34 @@ function AnimeDetails() {
         </>
       )}
 
-      {/* Related Anime Section */}
-      {anime.relations?.length > 0 && (
-        <>
-          <SectionTitle>Related Anime</SectionTitle>
-          <AnimeGrid>
-            {anime.relations.map((relation) => (
-              <AnimeCard key={relation.id} anime={relation} />
-            ))}
-          </AnimeGrid>
-        </>
-      )}
-
+     
       {/* Video Player */}
       {isWatching && streamingData && (
-        <AnimePlayer
-          title={`${anime.title.romaji} - Episode ${selectedEpisode.number}`}
-          posterSrc={anime.image}
-          streamingData={streamingData}
-          onClose={() => {
-            setIsWatching(false);
-            setStreamingData(null);
-          }}
-        />
-      )}
+  <AnimePlayer
+    title={`${anime.title.romaji} - Episode ${selectedEpisode.number}`}
+    posterSrc={anime.image}
+    streamingData={streamingData}
+    episodeNumber={selectedEpisode.number}
+    onClose={() => {
+      setIsWatching(false);
+      setStreamingData(null);
+    }}
+    onNextEpisode={() => {
+      const nextEpisode = episodes.find(ep => ep.number === selectedEpisode.number + 1);
+      if (nextEpisode) {
+        handleEpisodeSelect(nextEpisode);
+      }
+    }}
+    onPreviousEpisode={() => {
+      const prevEpisode = episodes.find(ep => ep.number === selectedEpisode.number - 1);
+      if (prevEpisode) {
+        handleEpisodeSelect(prevEpisode);
+      }
+    }}
+    hasNextEpisode={episodes.some(ep => ep.number === selectedEpisode.number + 1)}
+    hasPreviousEpisode={episodes.some(ep => ep.number === selectedEpisode.number - 1)}
+  />
+)}
     </AnimeDetailsContainer>
   );
 }
