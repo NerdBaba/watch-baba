@@ -735,7 +735,7 @@ const directLinks = await Promise.all(allHubcloudLinks.map(async hubcloudUrl => 
         if (!newLink) return null;
 
         // Fetch the hubcloud.cloud page
-        const cloudResponse = await axios.get(newLink, directConfig);
+        const cloudResponse = await axios.get(`${HUBCLOUD_PROXY_URL}${newLink}`, directConfig);
         const cloudHtml = cloudResponse.data;
 
         // Extract the title
