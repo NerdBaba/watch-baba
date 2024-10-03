@@ -537,6 +537,7 @@ function MovieDetails() {
   const [moviesDriveOptions, setMoviesDriveOptions] = useState([]);
    const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [selectedDownloadOption, setSelectedDownloadOption] = useState(null);
+    const [isDownloadFetching, setIsDownloadFetching] = useState(false);
 
   const fetchMovieData = useCallback(async () => {
     try {
@@ -646,131 +647,120 @@ function MovieDetails() {
 
 
 const invokeMoviesdrive = async (title, year) => {
-  try {
-    const PROXY_URL = "https://proxy.wafflehacker.io/?destination=";
-    const MovieDrive_API = "https://moviesdrive.world";
-    const fixTitle = title?.replace(/-/g, ' ').replace(/:/g, ' ').replace(/&/g, ' ');
-    const searchTitle = title?.replace(/-/g, ' ').toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-');
+    try {
+      const MDRIVE_PROXY_URL = "https://proxy.wafflehacker.io/?destination=";
+      const HUBCLOUD_PROXY_URL = "https://simple-proxy.mda2233.workers.dev/?destination=";
+      const MovieDrive_API = "https://moviesdrive.world";
+      const CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+      
+      const axiosConfig = {
+        headers: {
+          'User-Agent': CHROME_USER_AGENT,
+          'Origin': 'https://moviesdrive.world',
+          'Referer': 'https://moviesdrive.world/',
+        }
+      };
 
-   const cleanTitle = (dirtyTitle) => {
-    return dirtyTitle
-      .replace(/$$.*?$$/g, '')
-      .replace(/\{.*?\}/g, '')
-      .replace(/\$+/g, '')
-      .replace(/moviesdrives\.com/gi, '')
-      .replace(/\.mkv$|\.mp4$|\.avi$/i, '')
-      .replace(/\s*-\s*$/, '')
-      .replace(/^\s*-\s*/, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
+      const fixTitle = title?.replace(/-/g, ' ').replace(/:/g, ' ').replace(/&/g, ' ');
+      const searchTitle = title?.replace(/-/g, ' ').toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-');
 
-    const url = year 
-      ? `${PROXY_URL}${MovieDrive_API}/search/${fixTitle} ${year}`
-      : `${PROXY_URL}${MovieDrive_API}/search/${fixTitle}`;
+      const cleanTitle = (dirtyTitle) => {
+        return dirtyTitle
+          .replace(/$$Moviesdrives\.com$$-/g, '')
+          .replace(/$$moviesdrives\.com$$/g, '')
+          .replace(/\.mkv$|\.mp4$|\.avi$/i, '')
+          .replace(/\s*-\s*$/, '')
+          .replace(/^\s*-\s*/, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
 
-    const response = await axios.get(url);
-    const hrefPattern = new RegExp(`<a\\s+href="([^"]*\\b${searchTitle}\\b[^"]*)"`, 'i');
-    const hrefMatch = response.data.match(hrefPattern);
-    const moviePageUrl = hrefMatch?.[1];
+      const url = year 
+        ? `${MDRIVE_PROXY_URL}${MovieDrive_API}/search/${fixTitle} ${year}`
+        : `${MDRIVE_PROXY_URL}${MovieDrive_API}/search/${fixTitle}`;
 
-    if (!moviePageUrl) return null;
+      const response = await axios.get(url, axiosConfig);
+      const hrefPattern = new RegExp(`<a\\s+href="([^"]*\\b${searchTitle}\\b[^"]*)"`, 'i');
+      const hrefMatch = response.data.match(hrefPattern);
+      const moviePageUrl = hrefMatch?.[1];
 
-    const moviePageResponse = await axios.get(`${PROXY_URL}${moviePageUrl}`);
-    const parser = new DOMParser();
-    const movieDoc = parser.parseFromString(moviePageResponse.data, 'text/html');
-    
-    const links = Array.from(movieDoc.querySelectorAll('h5 > a'));
-    const archiveLinks = links
-      .filter(a => a.href && a.href.includes('mdrive.site/archives'))
-      .map(a => a.href);
-    
-    const directGpdlLinks = links
-      .filter(a => a.href && a.href.includes('gpdl.technorozen.workers.dev'))
-      .map(a => ({
-        href: `${PROXY_URL}${a.href}`,
-        text: cleanTitle(a.textContent.trim()),
-        title: cleanTitle(a.textContent.trim()),
-        quality: 'Unknown',
-        size: 'Unknown'
+      if (!moviePageUrl) return null;
+
+      const moviePageResponse = await axios.get(`${MDRIVE_PROXY_URL}${moviePageUrl}`, axiosConfig);
+      const parser = new DOMParser();
+      const movieDoc = parser.parseFromString(moviePageResponse.data, 'text/html');
+      
+      const links = Array.from(movieDoc.querySelectorAll('h5 > a'));
+      const archiveLinks = links
+        .filter(a => a.href && a.href.includes('mdrive.site/archives'))
+        .map(a => a.href);
+      
+      const directGpdlLinks = links
+        .filter(a => a.href && a.href.includes('gpdl.technorozen.workers.dev'))
+        .map(a => ({
+          href: a.href,
+          text: cleanTitle(a.textContent.trim()),
+          title: cleanTitle(a.textContent.trim()),
+          quality: 'Unknown',
+          size: 'Unknown'
+        }));
+
+      const hubcloudLinks = await Promise.all(archiveLinks.map(async archiveUrl => {
+        try {
+          const archiveResponse = await axios.get(`${MDRIVE_PROXY_URL}${archiveUrl}`, axiosConfig);
+          const archiveDoc = parser.parseFromString(archiveResponse.data, 'text/html');
+          
+          return Array.from(archiveDoc.querySelectorAll('h5 a'))
+            .map(a => a.getAttribute('href'))
+            .filter(href => href && href.includes('hubcloud.art'));
+        } catch (error) {
+          console.error('Error processing archive link:', error);
+          return [];
+        }
       }));
 
-    const hubcloudLinks = await Promise.all(archiveLinks.map(async archiveUrl => {
+      const allHubcloudLinks = [...new Set(hubcloudLinks.flat())];
+const directLinks = await Promise.all(allHubcloudLinks.map(async hubcloudUrl => {
       try {
-        const archiveResponse = await axios.get(`${PROXY_URL}${archiveUrl}`);
-        const archiveDoc = parser.parseFromString(archiveResponse.data, 'text/html');
-        
-        return Array.from(archiveDoc.querySelectorAll('h5 a'))
-          .map(a => a.getAttribute('href'))
-          .filter(href => href && href.includes('hubcloud.art'));
-      } catch (error) {
-        console.error('Error processing archive link:', error);
-        return [];
-      }
-    }));
+        const directConfig = {
+          headers: {
+            'User-Agent': CHROME_USER_AGENT,
+          }
+        };
 
-    const allHubcloudLinks = [...new Set(hubcloudLinks.flat())];
-
-    const directLinks = await Promise.all(allHubcloudLinks.map(async hubcloudUrl => {
-      try {
-        const hubDoc = await axios.get(`${hubcloudUrl}`);
+        const hubDoc = await axios.get(`${HUBCLOUD_PROXY_URL}${hubcloudUrl}`, directConfig);
         const newLink = hubDoc.data.match(/url=([^"]*)/)?.[1];
         if (!newLink) return null;
 
-        const newDoc = await axios.get(`${newLink}`);
-        let gamerLink;
-        
-        if (newLink.includes('drive')) {
-          const scriptMatch = newDoc.data.match(/var url = '([^']*)'/);
-          gamerLink = scriptMatch?.[1];
-        } else {
-          const tempDoc = parser.parseFromString(newDoc.data, 'text/html');
-          gamerLink = tempDoc.querySelector('div.vd > center > a')?.getAttribute('href');
-        }
-        
-        if (!gamerLink) return null;
+        // Fetch the hubcloud.cloud page
+        const cloudResponse = await axios.get(newLink, directConfig);
+        const cloudHtml = cloudResponse.data;
 
-        const finalDoc = await axios.get(`${gamerLink}`);
-        const finalHtml = parser.parseFromString(finalDoc.data, 'text/html');
-        
-        const titleElement = finalHtml.querySelector('title');
-        const quality = finalHtml.querySelector('div.card-header')?.textContent;
-        const size = finalHtml.querySelector('i#size')?.textContent;
-        const pixeldrainLink = finalHtml.querySelector('a[href^="https://pixeldra.in/api/file/"]');
-        const microsoftLink = finalHtml.querySelector('a[href^="https://drive.microsoft-cdn.workers.dev/"]');
-        const technorozenLink = finalHtml.querySelector('a[href^="https://gpdl.technorozen.workers.dev/"]');
+        // Extract the title
+        const titleMatch = cloudHtml.match(/<div class="card-header text-white bg-primary mb-3">\s*(.*?)\s*<\/div>/);
+        let extractedTitle = titleMatch ? titleMatch[1] : '';
+        extractedTitle = extractedTitle.replace(/$$$$\s*moviesdrives\.com\s*$$$$\s*/i, '');
 
-        if (titleElement) {
-          const cleanedTitle = cleanTitle(titleElement.textContent);
+        // Extract the gamerxyt link from the entire source
+        const gamerLinkMatch = cloudHtml.match(/https:\/\/gamerxyt\.com\/hubcloud\.php\?[^'"]+/);
+        const gamerLink = gamerLinkMatch ? gamerLinkMatch[0] : null;
 
-          const links = {};
+        // Extract file size
+        const sizeMatch = cloudHtml.match(/<i id="size">(.*?)<\/i>/);
+        const size = sizeMatch ? sizeMatch[1] : 'Unknown';
 
-          if (pixeldrainLink) {
-            const pixeldrainId = pixeldrainLink.href.match(/\/([^/?]+)\?/)[1];
-            links.pixeldrainLink = `https://pd.cybar.xyz/${pixeldrainId}`;
-          }
+        // Extract quality from the title
+        const qualityMatch = extractedTitle.match(/\d+p/);
+        const quality = qualityMatch ? qualityMatch[0] : 'Unknown';
 
-          if (microsoftLink) {
-            links.microsoftLink = `${microsoftLink.href}`;
-          }
-
-          if (technorozenLink) {
-            links.technorozenLink = `${technorozenLink.href}`;
-          }
-
-          if (Object.keys(links).length > 0) {
-            return {
-              title: cleanedTitle,
-              quality: quality,
-              size: size,
-              ...links
-            };
-          }
-        }
-
-        return null;
+        return {
+          title: cleanTitle(extractedTitle),
+          quality: quality,
+          size: size,
+          gamerLink: gamerLink
+        };
       } catch (error) {
         console.error('Error processing HubCloud link:', error);
         return null;
@@ -781,12 +771,16 @@ const invokeMoviesdrive = async (title, year) => {
   } catch (error) {
     console.error('Error in MoviesDrive extractor:', error);
     return null;
+  } finally {
+    setIsDownloadFetching(false);
   }
 };
 
   useEffect(() => {
     const fetchMoviesDriveLinks = async () => {
       if (movie) {
+        setMoviesDriveLinks([]); // Reset links when a new movie is selected
+        setSelectedDownloadOption(null); // Reset selected option
         const year = new Date(movie.release_date).getFullYear();
         const links = await invokeMoviesdrive(movie.title, year);
         setMoviesDriveLinks(links || []);
@@ -895,12 +889,12 @@ useEffect(() => {
   <InfoButton onClick={() => setShowMoreInfo(!showMoreInfo)}>
     <FaInfoCircle /> {showMoreInfo ? 'Less Info' : 'More Info'}
   </InfoButton>
-  <DownloadButton 
-    disabled={moviesDriveLinks.length === 0}
-    onClick={() => moviesDriveLinks.length > 0 && setShowDownloadOptions(true)}
-  >
-    <FaDownload /> Download
-  </DownloadButton>
+   <DownloadButton 
+          disabled={isDownloadFetching || moviesDriveLinks.length === 0}
+          onClick={() => moviesDriveLinks.length > 0 && setShowDownloadOptions(true)}
+        >
+          <FaDownload /> {isDownloadFetching ? 'Fetching...' : 'Download'}
+        </DownloadButton>
 </ButtonGroup>
           </HeroContent>
         </Hero>
@@ -1110,31 +1104,21 @@ useEffect(() => {
 {showDownloadOptions && (
   <DownloadOptionsContainer>
     <DownloadSelect
-      value={selectedDownloadOption ? selectedDownloadOption.title || selectedDownloadOption.text : ''}
-      onChange={(e) => setSelectedDownloadOption(moviesDriveLinks.find(link => (link.title || link.text) === e.target.value))}
+      value={selectedDownloadOption ? selectedDownloadOption.title : ''}
+      onChange={(e) => setSelectedDownloadOption(moviesDriveLinks.find(link => link.title === e.target.value))}
     >
       <option value="">Select a download option</option>
       {moviesDriveLinks.map((link, index) => (
-        <option key={index} value={link.title || link.text}>
-          {link.title || link.text} {link.quality ? `- ${link.quality}` : ''} {link.size ? `(${link.size})` : ''}
+        <option key={index} value={link.title}>
+          {link.title} {link.quality !== 'Unknown' ? `- ${link.quality}` : ''} {link.size !== 'Unknown' ? `(${link.size})` : ''}
         </option>
       ))}
     </DownloadSelect>
     {selectedDownloadOption && (
       <div>
-        {selectedDownloadOption.pixeldrainLink && (
-          <DownloadLinkButton href={selectedDownloadOption.pixeldrainLink} target="_blank" rel="noopener noreferrer">
-            Pixeldrain
-          </DownloadLinkButton>
-        )}
-        {selectedDownloadOption.microsoftLink && (
-          <DownloadLinkButton href={selectedDownloadOption.microsoftLink} target="_blank" rel="noopener noreferrer">
-            Microsoft CDN
-          </DownloadLinkButton>
-        )}
-        {selectedDownloadOption.technorozenLink && (
-          <DownloadLinkButton href={selectedDownloadOption.technorozenLink} target="_blank" rel="noopener noreferrer">
-            Technorozen
+        {selectedDownloadOption.gamerLink && (
+          <DownloadLinkButton href={selectedDownloadOption.gamerLink} target="_blank" rel="noopener noreferrer">
+            Download
           </DownloadLinkButton>
         )}
         {selectedDownloadOption.href && selectedDownloadOption.href.includes('gpdl.technorozen.workers.dev') && (
