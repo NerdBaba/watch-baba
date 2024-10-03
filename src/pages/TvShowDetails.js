@@ -698,7 +698,6 @@ useEffect(() => {
                   <option value="server13">Server 13 (Single Ad)</option>
                   <option value="server14">Server 14</option>
                   <option value="server15">Server 15 (Ads) </option>
-                  <option value="server16">Server 16 (Site)</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -802,12 +801,7 @@ useEffect(() => {
                 allowFullScreen
                 />
               )}
-              {watchOption === 'server16' && (
-  <AdBlockedIframe
-    src={`https://uniquestream.net/tvshows/${tvShow.name.toLowerCase().replace(/ /g, '-')}-${new Date(tvShow.first_air_date).getFullYear()}/`}
-    allowFullScreen
-  />
-)}
+ 
             </VideoContainer>
           </Backdrop>
         )}

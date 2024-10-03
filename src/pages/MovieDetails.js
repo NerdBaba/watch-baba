@@ -6,8 +6,7 @@ import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExte
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 // import DownloadOption from '../components/DownloadOption';
-import { FaPlay, FaInfoCircle, FaTimes } from 'react-icons/fa';
-
+import { FaPlay, FaInfoCircle, FaTimes, FaDownload } from 'react-icons/fa';
 
 
 
@@ -410,6 +409,59 @@ const TamilYogiNoResults = styled.p`
 `;
 
 
+const DownloadButton = styled(Button)`
+  background-color: ${props => props.disabled ? '#666' : props.theme.background};
+  color: ${props => props.disabled ? '#999' : props.theme.primary};
+  opacity: ${props => props.disabled ? 0.7 : 1};
+  border-radius: 9px;
+  font-family: 'GeistVF';
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+   &:hover {
+      background-color: ${props => props.theme.background};
+    }
+`;
+
+const CloseDownloadButton = styled(Button)`
+  background-color: transparent;
+  border-radius: 9px;
+  font-family: 'GeistVF';
+  color: ${props => props.theme.primary};
+  &:hover {
+    color: ${props => props.theme.background};
+  }
+`;
+
+const DownloadOptionsContainer = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: ${props => props.theme.background};
+  padding: 20px;
+  border-radius: 8px;
+  z-index: 1000;
+`;
+
+const DownloadSelect = styled.select`
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 1rem;
+  background-color: ${props => props.theme.primary};
+`;
+
+const DownloadLinkButton = styled.a`
+  display: inline-block;
+  background-color: ${props => props.theme.primary};
+  color: ${props => props.theme.background};
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+`;
+
+
 const AdBlockedIframe = ({ src, allowFullScreen }) => {
   const [isBlocked, setIsBlocked] = useState(false);
   const iframeRef = useRef(null);
@@ -481,6 +533,10 @@ function MovieDetails() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [logoUrl, setLogoUrl] = useState('');
   const [megacloudHash, setMegacloudHash] = useState(null);
+  const [moviesDriveLinks, setMoviesDriveLinks] = useState([]);
+  const [moviesDriveOptions, setMoviesDriveOptions] = useState([]);
+   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
+  const [selectedDownloadOption, setSelectedDownloadOption] = useState(null);
 
   const fetchMovieData = useCallback(async () => {
     try {
@@ -589,6 +645,166 @@ function MovieDetails() {
 };
 
 
+const invokeMoviesdrive = async (title, year) => {
+  try {
+    const MovieDrive_API = "https://moviesdrive.world";
+    const fixTitle = title?.replace(/-/g, ' ').replace(/:/g, ' ').replace(/&/g, ' ');
+    const searchTitle = title?.replace(/-/g, ' ').toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-');
+
+   const cleanTitle = (dirtyTitle) => {
+  return dirtyTitle
+    .replace(/$$.*?$$/g, '') // Remove anything inside parentheses
+    .replace(/\{.*?\}/g, '') // Remove anything inside curly braces
+    .replace(/\$+/g, '') // Remove dollar signs
+    .replace(/moviesdrives\.com/gi, '') // Remove moviesdrives.com
+    .replace(/\.mkv$|\.mp4$|\.avi$/i, '') // Remove common video file extensions
+    .replace(/\s*-\s*$/, '') // Remove trailing dash
+    .replace(/^\s*-\s*/, '') // Remove leading dash
+    .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+    .trim(); // Trim leading and trailing whitespace
+};
+    const url = year 
+      ? `${MovieDrive_API}/search/${fixTitle} ${year}`
+      : `${MovieDrive_API}/search/${fixTitle}`;
+
+    const response = await axios.get(url);
+    const hrefPattern = new RegExp(`<a\\s+href="([^"]*\\b${searchTitle}\\b[^"]*)"`, 'i');
+    const hrefMatch = response.data.match(hrefPattern);
+    const moviePageUrl = hrefMatch?.[1];
+
+    if (!moviePageUrl) return null;
+
+    const moviePageResponse = await axios.get(moviePageUrl);
+    const parser = new DOMParser();
+    const movieDoc = parser.parseFromString(moviePageResponse.data, 'text/html');
+    
+    // Get archive links
+    const links = Array.from(movieDoc.querySelectorAll('h5 > a'));
+    const archiveLinks = links
+      .filter(a => a.href && a.href.includes('mdrive.site/archives'))
+      .map(a => a.href);
+    
+    const directGpdlLinks = links
+      .filter(a => a.href && a.href.includes('gpdl.technorozen.workers.dev'))
+      .map(a => ({
+        href: a.href,
+        text: cleanTitle(a.textContent.trim()),
+        title: cleanTitle(a.textContent.trim()),
+        quality: 'Unknown',
+        size: 'Unknown'
+      }));
+
+    // Extract HubCloud links from archive pages
+    const hubcloudLinks = await Promise.all(archiveLinks.map(async archiveUrl => {
+      try {
+        const archiveResponse = await axios.get(archiveUrl);
+        const archiveDoc = parser.parseFromString(archiveResponse.data, 'text/html');
+        
+        // Find HubCloud links in the archive page
+        return Array.from(archiveDoc.querySelectorAll('h5 a'))
+          .map(a => a.getAttribute('href'))
+          .filter(href => href && href.includes('hubcloud.art'));
+      } catch (error) {
+        console.error('Error processing archive link:', error);
+        return [];
+      }
+    }));
+
+    // Flatten the array of arrays and remove duplicates
+    const allHubcloudLinks = [...new Set(hubcloudLinks.flat())];
+
+    // Extract direct links from HubCloud
+    const directLinks = await Promise.all(allHubcloudLinks.map(async hubcloudUrl => {
+      try {
+        // First request to HubCloud
+        const hubDoc = await axios.get(hubcloudUrl);
+        const newLink = hubDoc.data.match(/url=([^"]*)/)?.[1];
+        if (!newLink) return null;
+
+        // Second request to get gamerLink
+        const newDoc = await axios.get(newLink);
+        let gamerLink;
+        
+        if (newLink.includes('drive')) {
+          const scriptMatch = newDoc.data.match(/var url = '([^']*)'/);
+          gamerLink = scriptMatch?.[1];
+        } else {
+          const tempDoc = parser.parseFromString(newDoc.data, 'text/html');
+          gamerLink = tempDoc.querySelector('div.vd > center > a')?.getAttribute('href');
+        }
+        
+        if (!gamerLink) return null;
+
+        // Final request to get direct links
+        const finalDoc = await axios.get(gamerLink);
+        const finalHtml = parser.parseFromString(finalDoc.data, 'text/html');
+        
+        const titleElement = finalHtml.querySelector('title');
+        const quality = finalHtml.querySelector('div.card-header')?.textContent;
+        const size = finalHtml.querySelector('i#size')?.textContent;
+        const pixeldrainLink = finalHtml.querySelector('a[href^="https://pixeldra.in/api/file/"]');
+        const microsoftLink = finalHtml.querySelector('a[href^="https://drive.microsoft-cdn.workers.dev/"]');
+        const technorozenLink = finalHtml.querySelector('a[href^="https://gpdl.technorozen.workers.dev/"]');
+
+        if (titleElement) {
+          const cleanedTitle = cleanTitle(titleElement.textContent);
+
+          const links = {};
+
+          if (pixeldrainLink) {
+            const pixeldrainId = pixeldrainLink.href.match(/\/([^/?]+)\?/)[1];
+            links.pixeldrainLink = `https://pd.cybar.xyz/${pixeldrainId}`;
+          }
+
+          if (microsoftLink) {
+            links.microsoftLink = microsoftLink.href;
+          }
+
+          if (technorozenLink) {
+            links.technorozenLink = technorozenLink.href;
+          }
+
+          // Only return the object if at least one link is available
+          if (Object.keys(links).length > 0) {
+            return {
+              title: cleanedTitle,
+              quality: quality,
+              size: size,
+              ...links
+            };
+          }
+        }
+
+        return null;
+      } catch (error) {
+        console.error('Error processing HubCloud link:', error);
+        return null;
+      }
+    }));
+
+    return [...directLinks.filter(link => link !== null), ...directGpdlLinks];
+  } catch (error) {
+    console.error('Error in MoviesDrive extractor:', error);
+    return null;
+  }
+};
+
+  useEffect(() => {
+    const fetchMoviesDriveLinks = async () => {
+      if (movie) {
+        const year = new Date(movie.release_date).getFullYear();
+        const links = await invokeMoviesdrive(movie.title, year);
+        setMoviesDriveLinks(links || []);
+      }
+    };
+
+    fetchMoviesDriveLinks();
+  }, [movie]);
+
+
+
 const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
   try {
     const encodedTitle = encodeURIComponent(title);
@@ -615,6 +831,7 @@ useEffect(() => {
   
   fetchHash();
 }, [watchOption, movie]);
+
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -676,16 +893,22 @@ useEffect(() => {
               </>
             )}
             <ButtonGroup>
-              <PlayButton onClick={() => {
-                setIsWatching(true);
-                setWatchOption('server1');
-              }}>
-                <FaPlay /> Play
-              </PlayButton>
-              <InfoButton onClick={() => setShowMoreInfo(!showMoreInfo)}>
-                <FaInfoCircle /> {showMoreInfo ? 'Less Info' : 'More Info'}
-              </InfoButton>
-            </ButtonGroup>
+  <PlayButton onClick={() => {
+    setIsWatching(true);
+    setWatchOption('server1');
+  }}>
+    <FaPlay /> Play
+  </PlayButton>
+  <InfoButton onClick={() => setShowMoreInfo(!showMoreInfo)}>
+    <FaInfoCircle /> {showMoreInfo ? 'Less Info' : 'More Info'}
+  </InfoButton>
+  <DownloadButton 
+    disabled={moviesDriveLinks.length === 0}
+    onClick={() => moviesDriveLinks.length > 0 && setShowDownloadOptions(true)}
+  >
+    <FaDownload /> Download
+  </DownloadButton>
+</ButtonGroup>
           </HeroContent>
         </Hero>
 
@@ -861,7 +1084,9 @@ useEffect(() => {
 )}
 
 
-            {watchOption === 'tamilyogi' && (
+
+
+         {watchOption === 'tamilyogi' && (
   selectedTamilYogiLink ? (
     <EmbedPlayer src={selectedTamilYogiLink} allowFullScreen />
   ) : (
@@ -886,6 +1111,51 @@ useEffect(() => {
             </VideoContainer>
           </Backdrop>
         )}
+
+
+
+{showDownloadOptions && (
+  <DownloadOptionsContainer>
+    <DownloadSelect
+      value={selectedDownloadOption ? selectedDownloadOption.title || selectedDownloadOption.text : ''}
+      onChange={(e) => setSelectedDownloadOption(moviesDriveLinks.find(link => (link.title || link.text) === e.target.value))}
+    >
+      <option value="">Select a download option</option>
+      {moviesDriveLinks.map((link, index) => (
+        <option key={index} value={link.title || link.text}>
+          {link.title || link.text} {link.quality ? `- ${link.quality}` : ''} {link.size ? `(${link.size})` : ''}
+        </option>
+      ))}
+    </DownloadSelect>
+    {selectedDownloadOption && (
+      <div>
+        {selectedDownloadOption.pixeldrainLink && (
+          <DownloadLinkButton href={selectedDownloadOption.pixeldrainLink} target="_blank" rel="noopener noreferrer">
+            Pixeldrain
+          </DownloadLinkButton>
+        )}
+        {selectedDownloadOption.microsoftLink && (
+          <DownloadLinkButton href={selectedDownloadOption.microsoftLink} target="_blank" rel="noopener noreferrer">
+            Microsoft CDN
+          </DownloadLinkButton>
+        )}
+        {selectedDownloadOption.technorozenLink && (
+          <DownloadLinkButton href={selectedDownloadOption.technorozenLink} target="_blank" rel="noopener noreferrer">
+            Technorozen
+          </DownloadLinkButton>
+        )}
+        {selectedDownloadOption.href && selectedDownloadOption.href.includes('gpdl.technorozen.workers.dev') && (
+          <DownloadLinkButton href={selectedDownloadOption.href} target="_blank" rel="noopener noreferrer">
+            Direct GPDL
+          </DownloadLinkButton>
+        )}
+      </div>
+    )}
+    <CloseDownloadButton onClick={() => setShowDownloadOptions(false)}>
+      <FaTimes /> Close
+    </CloseDownloadButton>
+  </DownloadOptionsContainer>
+)}
       </MovieContainer>
   );
 }
