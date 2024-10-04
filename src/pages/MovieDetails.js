@@ -648,7 +648,7 @@ function MovieDetails() {
 
 const invokeMoviesdrive = async (title, year) => {
     try {
-      const MDRIVE_PROXY_URL = "https://proxy.wafflehacker.io/?destination=";
+      const MDRIVE_PROXY_URL = "https:/oxy.wafflehacker.io/?destination=";
       const HUBCLOUD_PROXY_URL = "https://simple-proxy.mda2233.workers.dev/?destination=";
       const MovieDrive_API = "https://moviesdrive.world";
       const CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";

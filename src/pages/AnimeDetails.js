@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchAnimeDetails, fetchEpisodeSources } from '../services/aniWatchApi';
-import { FaPlay, FaInfoCircle, FaStar, FaCalendar, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';import AnimePlayer from '../components/AnimePlayer';
+import { FaPlay, FaBook, FaInfoCircle, FaStar, FaCalendar, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';import AnimePlayer from '../components/AnimePlayer';
 import AnimeCard from '../components/AnimeCard';
 import LoadingScreen from '../components/LoadingScreen';
 
@@ -127,26 +127,59 @@ const AudioButton = styled.button`
     background-color: ${props => props.active ? props.theme.primaryDark : props.theme.backgroundTertiary};
   }
 `;
-
-const PlayButton = styled.button`
+const ButtonContainer = styled.div`
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: ${props => props.theme.background};
-  background-color: ${props => props.theme.primary};
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: ${props => props.theme.primaryDark};
-  }
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
 `;
 
+const ActionButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: ${props => props.primary ? props.theme.primary : props.theme.secondary};
+  background-color: transparent;
+  border: 2px solid ${props => props.primary ? props.theme.primary : props.theme.secondary};
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background-color: ${props => props.primary ? props.theme.primary : props.theme.secondary};
+    transition: all 0.3s ease;
+    z-index: -1;
+  }
+
+  &:hover {
+    color: ${props => props.theme.background};
+    
+    &:before {
+      left: 0;
+    }
+  }
+
+  svg {
+    margin-right: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+`;
 const SectionTitle = styled.h2`
   font-size: 1.8rem;
   margin: 2rem 0 1rem;
@@ -257,7 +290,7 @@ const EpisodeInput = styled.input`
   border: 2px solid ${props => props.theme.primary}40;
   gap: 1000000x;
   border-radius: 8px;
-  background-color: ${props => props.theme.backgroundSecondary};
+  background-color: ${props => props.theme.background};
   color: ${props => props.theme.text};
   font-size: 1rem;
   outline: none;
@@ -355,7 +388,11 @@ function AnimeDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [streamingData, setStreamingData] = useState(null);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
+  const handleReadNow = () => {
+    navigate(`/manga?search=${encodeURIComponent(anime.title.romaji)}`);
+  };
  const [currentPage, setCurrentPage] = useState(1);
   const [episodeInput, setEpisodeInput] = useState('');
 const cleanHtmlTags = (text) => {
@@ -537,11 +574,18 @@ const cleanHtmlTags = (text) => {
           
           
           
+          <ButtonContainer>
           {episodes.length > 0 && (
-            <PlayButton onClick={() => handleEpisodeSelect(episodes[0])}>
+            <ActionButton primary onClick={() => handleEpisodeSelect(episodes[0])}>
               <FaPlay /> Watch Now
-            </PlayButton>
+            </ActionButton>
           )}
+          {(anime.type === 'NOVEL' || anime.type === 'MANGA' || anime.type === 'ONE_SHOT') && (
+            <ActionButton onClick={handleReadNow}>
+              <FaBook /> Read Now
+            </ActionButton>
+          )}
+        </ButtonContainer>
         </AnimeInfo>
       </AnimeHeader>
 
@@ -610,7 +654,7 @@ const cleanHtmlTags = (text) => {
  {/* Related Anime Section */}
       {anime.relations?.length > 0 && (
         <>
-          <SectionTitle>Related Anime</SectionTitle>
+          <SectionTitle>Related</SectionTitle>
           <AnimeGrid>
             {anime.relations.map((relation) => (
               <AnimeCard key={relation.id} anime={relation} />

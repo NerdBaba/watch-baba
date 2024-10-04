@@ -18,6 +18,9 @@ import { themes } from './theme';
 import { saveTheme, loadTheme } from './utils/themeStorage';
 import Themes from './pages/Themes';
 import Anime from './pages/Anime';
+import Manga from './pages/Manga';
+import MangaDetails from './pages/MangaDetails';
+import MangaReader from './pages/MangaReader';
 
 
 
@@ -169,6 +172,9 @@ useEffect(() => {
                 <Route path="/actor/:id" element={<ActorDetails />} />
                 <Route path="/anime" element={<Anime />} />
                 <Route path="/anime/:id" element={<AnimeDetails />} />
+                <Route path="/manga" element={<Manga />} />
+                <Route path="/manga/:id" element={<MangaDetails />} />
+                <Route path="/manga/:id/:chapterId" element={<MangaReader />} />
                 <Route path="/themes" element={<Themes setTheme={changeTheme} />} />
               </Routes>
             </ContentWrapper>

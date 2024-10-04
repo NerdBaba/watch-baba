@@ -31,7 +31,7 @@ function LoadingScreen() {
   return (
     <LoadingContainer>
       <LoadingText>
-        {isMobile ? 'Watch.Baba' : 'Watch.Baba'}
+        {isMobile ? 'Thinking' : 'Thinking...'}
       </LoadingText>
     </LoadingContainer>
   );
