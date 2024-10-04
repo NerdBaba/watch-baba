@@ -9,56 +9,77 @@ import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
 
-const PlayerContainer = styled.div`
+const PlayerBackdrop = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  padding: 20px;
 `;
 
-const PlayerControls = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+const PlayerContainer = styled.div`
+  width: 100%;
+  max-width: 1200px;
   display: flex;
+  flex-direction: column;
+`;
+
+const ControlsBar = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+  width: 100%;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
-  z-index: 1001;
-  
+
   @media (max-width: 768px) {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    
-    & > * {
-      flex: 1 1 40%;
-      text-align: center;
-    }
+    gap: 5px;
+  }
+`;
+
+const ControlGroup = styled.div`
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+`;
+
+const EpisodeTitle = styled.span`
+  color: ${props => props.theme.primary || '#fff'};
+  font-size: 1.1rem;
+  font-family: 'GeistVF', sans-serif;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
   }
 `;
 
 const ControlButton = styled.button`
   background: rgba(0, 0, 0, 0.5);
-  color: ${(props) => (props.primary)};
+  color: ${props => props.active ? '#ff0000' : (props.theme.primary || '#fff')};
   border: none;
   border-radius: 4px;
-  padding: 0.5rem 1rem;
+  padding: 8px 12px;
   font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 4px;
   transition: background-color 0.3s ease;
+  font-family: 'GeistVF', sans-serif;
 
   &:hover {
     background-color: rgba(0, 0, 0, 0.8);
@@ -70,53 +91,21 @@ const ControlButton = styled.button`
   }
 
   @media (max-width: 768px) {
+    padding: 6px 10px;
     font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
   }
 `;
 
-const QualityToggle = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  
-  @media (max-width: 768px) {
-    order: -1;
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-`;
-
-const EpisodeInfo = styled.div`
-  position: absolute;
-  top: 4.5rem;
-  left: 1rem;
-  color: ${(props) => (props.primary)};
-  font-size: 1.2rem;
-  z-index: 1001;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-
-  @media (max-width: 768px) {
-    top: auto;
-    bottom: 5rem;
-    font-size: 1rem;
-  }
+const VideoWrapper = styled.div`
+  width: 100%;
+  position: relative;
+  aspect-ratio: 16 / 9;
 `;
 
 const StyledMediaPlayer = styled(MediaPlayer)`
   width: 100%;
-  max-width: 1000px;
-  aspect-ratio: 16 / 9;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    aspect-ratio: auto;
-  }
+  height: 100%;
+  --video-brand: ${props => props.theme.accent || '#ff0000'};
 `;
 
 function AnimePlayer({
@@ -136,61 +125,59 @@ function AnimePlayer({
     streamingData.sources.find((s) => s.quality === quality) || streamingData.sources[0];
 
   return (
-    <PlayerContainer>
-      <PlayerControls>
-        <ControlButton
-          onClick={onPreviousEpisode}
-          disabled={!hasPreviousEpisode}
-        >
-          <FaChevronLeft /> Previous
-        </ControlButton>
-        
-        <ControlButton onClick={onClose}>
-          <FaTimes /> Close
-        </ControlButton>
-        
-        <ControlButton
-          onClick={onNextEpisode}
-          disabled={!hasNextEpisode}
-        >
-          Next <FaChevronRight />
-        </ControlButton>
-
-        <QualityToggle>
-          {streamingData.sources.map((source) => (
-            <ControlButton
-              key={source.quality}
-              active={quality === source.quality}
-              onClick={() => setQuality(source.quality)}
-            >
-              {source.quality}
+    <PlayerBackdrop>
+      <PlayerContainer>
+        <ControlsBar>
+          <ControlGroup>
+            <ControlButton onClick={onPreviousEpisode} disabled={!hasPreviousEpisode}>
+              <FaChevronLeft /> Previous
             </ControlButton>
-          ))}
-        </QualityToggle>
-      </PlayerControls>
+            <EpisodeTitle>Episode {episodeNumber}</EpisodeTitle>
+            <ControlButton onClick={onNextEpisode} disabled={!hasNextEpisode}>
+              Next <FaChevronRight />
+            </ControlButton>
+          </ControlGroup>
 
-      <EpisodeInfo>Episode {episodeNumber}</EpisodeInfo>
+          <ControlGroup>
+            {streamingData.sources.map((source) => (
+              <ControlButton
+                key={source.quality}
+                onClick={() => setQuality(source.quality)}
+                active={quality === source.quality}
+              >
+                {source.quality}
+              </ControlButton>
+            ))}
+          </ControlGroup>
 
-      <StyledMediaPlayer
-        title={title}
-        src={currentSource.url}
-        poster={posterSrc}
-        crossorigin
-      >
-        <MediaProvider>
-          {streamingData.subtitles?.map((subtitle) => (
-            <track
-              key={subtitle.lang}
-              kind="subtitles"
-              src={subtitle.url}
-              label={subtitle.lang}
-              srcLang={subtitle.lang}
-            />
-          ))}
-        </MediaProvider>
-        <DefaultVideoLayout icons={defaultLayoutIcons} />
-      </StyledMediaPlayer>
-    </PlayerContainer>
+          <ControlButton onClick={onClose}>
+            <FaTimes /> Close
+          </ControlButton>
+        </ControlsBar>
+
+        <VideoWrapper>
+          <StyledMediaPlayer
+            title={title}
+            src={currentSource.url}
+            poster={posterSrc}
+            crossorigin
+          >
+            <MediaProvider>
+              {streamingData.subtitles?.map((subtitle) => (
+                <track
+                  key={subtitle.lang}
+                  kind="subtitles"
+                  src={subtitle.url}
+                  label={subtitle.lang}
+                  srcLang={subtitle.lang}
+                />
+              ))}
+            </MediaProvider>
+            <DefaultVideoLayout icons={defaultLayoutIcons} />
+          </StyledMediaPlayer>
+        </VideoWrapper>
+      </PlayerContainer>
+    </PlayerBackdrop>
   );
 }
 

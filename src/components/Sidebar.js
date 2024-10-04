@@ -1,7 +1,7 @@
 import React, {forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars, FaPalette, FaRobot } from 'react-icons/fa';
+import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars, FaPalette, FaEye } from 'react-icons/fa';
 
 // import { themes } from '../theme';
 
@@ -107,7 +107,7 @@ const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
         {isOpen && 'Actors'}
       </NavItem>
       <NavItem to="/anime">
-        <IconWrapper isOpen={isOpen}><FaRobot /></IconWrapper>
+        <IconWrapper isOpen={isOpen}><FaEye /></IconWrapper>
         {isOpen && 'Anime'}
       </NavItem>
       <NavItem to="/themes">

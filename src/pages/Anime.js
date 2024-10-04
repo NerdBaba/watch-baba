@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { fetchAnimeByCategory } from '../services/aniWatchApi';
 import AnimeCard from '../components/AnimeCard';
 import Pagination from '../components/Pagination';
+import LoadingScreen from '../components/LoadingScreen';
 
 const AnimeGrid = styled.div`
   display: grid;
@@ -131,7 +132,7 @@ function Anime() {
         </FilterGroup>
       </FilterContainer>
       {isLoading ? (
-        <div>Loading...</div>
+      < LoadingScreen />
       ) : (
         <AnimeGrid>
           {animeList.map((anime) => (
