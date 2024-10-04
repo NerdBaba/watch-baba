@@ -38,11 +38,25 @@ export const getPopularMovies = (page = 1, genreId = '') => {
   });
 };
 
-export const discoverMovies = (page = 1, genreId = '') => {
+export const discoverMovies = (page = 1, genreId = '', watchProviderId = '') => {
   return tmdbApi.get('/discover/movie', {
     params: {
       page,
       with_genres: genreId,
+      watch_region: 'IN',
+      with_watch_providers: watchProviderId,
+      sort_by: 'popularity.desc'
+    }
+  });
+};
+
+export const discoverTvShows = (page = 1, genreId = '', watchProviderId = '') => {
+  return tmdbApi.get('/discover/tv', {
+    params: {
+      page,
+      with_genres: genreId,
+      watch_region: 'IN',
+      with_watch_providers: watchProviderId,
       sort_by: 'popularity.desc'
     }
   });
@@ -78,15 +92,6 @@ export const getTvShowGenres = () => {
   return tmdbApi.get('/genre/tv/list');
 };
 
-export const discoverTvShows = (page = 1, genreId = '') => {
-  return tmdbApi.get('/discover/tv', {
-    params: {
-      page,
-      with_genres: genreId,
-      sort_by: 'popularity.desc'
-    }
-  });
-};
 
 export const getTvShowExternalIds = (id) => tmdbApi.get(`/tv/${id}/external_ids`);
 export const getMovieExternalIds = (id) => tmdbApi.get(`/movie/${id}/external_ids`);

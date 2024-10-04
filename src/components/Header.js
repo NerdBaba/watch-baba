@@ -29,7 +29,8 @@ const Logo = styled.h1`
   font-size: 32px;
   color: ${props => props.theme.primary};
   font-weight: 700;
-  margin: 0 0 15px 0;
+  margin: 0 0 15px 15px;
+
   @font-face {
     font-family: 'Pacify Angry';
     src: url('fonts/Pacify%20Angry.ttf') format('truetype');

@@ -9,6 +9,8 @@ import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
 
+
+
 const PlayerBackdrop = styled.div`
   position: fixed;
   top: 0;
@@ -109,7 +111,9 @@ const StyledMediaPlayer = styled(MediaPlayer)`
   --video-controls-color: ${props => props.theme.primary || '#ff0000'};
 `;
 
-function AnimePlayer({
+// Use the same styled components as your AnimePlayer
+
+function KDramaPlayer({
   title,
   posterSrc,
   streamingData,
@@ -120,10 +124,9 @@ function AnimePlayer({
   hasPreviousEpisode,
   episodeNumber
 }) {
-  const [quality, setQuality] = useState('default');
+  const [sourceIndex, setSourceIndex] = useState(0);
 
-  const currentSource =
-    streamingData.sources.find((s) => s.quality === quality) || streamingData.sources[0];
+  const currentSource = streamingData.sources[sourceIndex];
 
   return (
     <PlayerBackdrop>
@@ -140,13 +143,13 @@ function AnimePlayer({
           </ControlGroup>
 
           <ControlGroup>
-            {streamingData.sources.map((source) => (
+            {streamingData.sources.map((source, index) => (
               <ControlButton
-                key={source.quality}
-                onClick={() => setQuality(source.quality)}
-                active={quality === source.quality}
+                key={index}
+                onClick={() => setSourceIndex(index)}
+                active={sourceIndex === index}
               >
-                {source.quality}
+                Source {index + 1}
               </ControlButton>
             ))}
           </ControlGroup>
@@ -159,20 +162,10 @@ function AnimePlayer({
         <VideoWrapper>
           <StyledMediaPlayer
             title={title}
-            src={currentSource.url}
-            poster={posterSrc}
             crossorigin
           >
             <MediaProvider>
-              {streamingData.subtitles?.map((subtitle) => (
-                <track
-                  key={subtitle.lang}
-                  kind="subtitles"
-                  src={subtitle.url}
-                  label={subtitle.lang}
-                  srcLang={subtitle.lang}
-                />
-              ))}
+              <source src={currentSource.url} type="application/x-mpegurl" />
             </MediaProvider>
             <DefaultVideoLayout icons={defaultLayoutIcons} />
           </StyledMediaPlayer>
@@ -182,4 +175,4 @@ function AnimePlayer({
   );
 }
 
-export default AnimePlayer;
+export default KDramaPlayer;

@@ -9,7 +9,7 @@ import MangaCard from '../components/MangaCard';
 
 const MangaContainer = styled.div`
   padding: 20px;
-  max-width: 1200px;
+  max-width: 2000px;
   margin: 0 auto;
 `;
 
@@ -105,10 +105,21 @@ const ResultsContainer = styled.div`
   }
 `;
 
+const PopularMangaContainer = styled.div`
+  margin-bottom: 30px;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: ${props => props.theme.text};
+`;
+
 function Manga() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [popularManga, setPopularManga] = useState([]);
   const location = useLocation();
 
   useEffect(() => {
@@ -117,8 +128,22 @@ function Manga() {
     if (initialSearch) {
       setSearchQuery(initialSearch);
       handleSearch(null, initialSearch);
+    } else {
+      fetchPopularManga();
     }
   }, [location]);
+
+  const fetchPopularManga = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get('https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/mangaList?category=Adventure&type=topview&state=all');
+      setPopularManga(response.data.mangaList || []);
+    } catch (error) {
+      console.error('Error fetching popular manga:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = async (e, query = searchQuery) => {
     if (e) e.preventDefault();
@@ -152,12 +177,21 @@ function Manga() {
       
       {isLoading ? (
         <LoadingSpinner />
-      ) : (
+      ) : searchResults.length > 0 ? (
         <ResultsContainer>
           {searchResults.map(manga => (
             <MangaCard key={manga.id} manga={manga} />
           ))}
         </ResultsContainer>
+      ) : (
+        <PopularMangaContainer>
+          <SectionTitle>Popular Adventure Manga</SectionTitle>
+          <ResultsContainer>
+            {popularManga.map(manga => (
+              <MangaCard key={manga.id} manga={manga} />
+            ))}
+          </ResultsContainer>
+        </PopularMangaContainer>
       )}
     </MangaContainer>
   );
