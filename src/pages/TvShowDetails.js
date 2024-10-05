@@ -156,11 +156,30 @@ const Section = styled.section`
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 20px;
+   font-size: 20px;
+  margin-bottom: 15px;
+  color: ${props => props.theme.text};
+  display: flex;
+  align-items: center;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 23px;
+    background-color: ${props => props.theme.primary};
+    margin-right: 10px;
+    border-radius: 32px;
 
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 26px;
+    margin-bottom: 20px;
+    
+    &:before {
+      height: 28px;
+    }
   }
 `;
 
@@ -698,7 +717,6 @@ useEffect(() => {
                   <option value="server13">Server 13 (Single Ad)</option>
                   <option value="server14">Server 14</option>
                   <option value="server15">Server 15 (Ads) </option>
-                  <option value="server16">Server 16 (Site)</option>
                 </ServerDropdown>
               </ControlsContainer>
               {watchOption === 'server1' && (
@@ -779,7 +797,7 @@ useEffect(() => {
 )}
             {watchOption === 'server12' && (
                 <EmbedPlayer
-                src={`https://multiembed.mov/?video_id=${tvShow.id}&tmdb=1&s=${selectedSeason}&e=${selectedEpisode}`}
+                src={`https://moviesapi.club/tv/${tvShow.id}-${selectedSeason}-${selectedEpisode}`}
                 allowFullScreen
                 />
               )}
@@ -802,12 +820,7 @@ useEffect(() => {
                 allowFullScreen
                 />
               )}
-              {watchOption === 'server16' && (
-  <AdBlockedIframe
-    src={`https://uniquestream.net/tvshows/${tvShow.name.toLowerCase().replace(/ /g, '-')}-${new Date(tvShow.first_air_date).getFullYear()}/`}
-    allowFullScreen
-  />
-)}
+ 
             </VideoContainer>
           </Backdrop>
         )}

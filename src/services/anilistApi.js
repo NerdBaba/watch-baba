@@ -11,7 +11,12 @@ export async function fetchAnimeEpisodes(id) {
   return response.json();
 }
 
-export async function fetchEpisodeSources(episodeId) {
-  const response = await fetch(`${BASE_URL}/anime/gogoanime/watch/${episodeId}`);
-  return response.json();
-}
+export const fetchEpisodeSources = async (episodeId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/anime/gogoanime/watch/${episodeId}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching episode sources:', error);
+    throw error;
+  }
+};

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { MediaPlayer, MediaProvider } from '@vidstack/react';
 import {
@@ -8,6 +8,8 @@ import {
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
+
+
 
 const PlayerBackdrop = styled.div`
   position: fixed;
@@ -50,6 +52,7 @@ const ControlGroup = styled.div`
   gap: 5px;
   align-items: center;
   flex-wrap: wrap;
+  
 
   @media (max-width: 768px) {
     font-size: 0.9rem;
@@ -60,7 +63,7 @@ const EpisodeTitle = styled.span`
   color: ${props => props.theme.primary || '#fff'};
   font-size: 1.1rem;
   font-family: 'GeistVF', sans-serif;
-
+  
   @media (max-width: 768px) {
     font-size: 0.9rem;
   }
@@ -110,7 +113,9 @@ const StyledMediaPlayer = styled(MediaPlayer)`
   --video-controls-color: ${props => props.theme.primary || '#ff0000'};
 `;
 
-function AnimePlayer({
+// Use the same styled components as your AnimePlayer
+
+function KDramaPlayer({
   title,
   posterSrc,
   streamingData,
@@ -121,10 +126,14 @@ function AnimePlayer({
   hasPreviousEpisode,
   episodeNumber
 }) {
-  const [quality, setQuality] = useState('default');
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const [key, setKey] = useState(0); // this line
 
-  const currentSource =
-    streamingData.sources.find((s) => s.quality === quality) || streamingData.sources[0];
+  useEffect(() => {
+    setKey(prevKey => prevKey + 1); // Force video player to remount
+  }, [streamingData, sourceIndex]);
+
+  const currentSource = streamingData.sources[sourceIndex];
 
   return (
     <PlayerBackdrop>
@@ -141,13 +150,13 @@ function AnimePlayer({
           </ControlGroup>
 
           <ControlGroup>
-            {streamingData.sources.map((source) => (
+            {streamingData.sources.map((source, index) => (
               <ControlButton
-                key={source.quality}
-                onClick={() => setQuality(source.quality)}
-                active={quality === source.quality}
+                key={index}
+                onClick={() => setSourceIndex(index)}
+                active={sourceIndex === index}
               >
-                {source.quality}
+                Source {index + 1}
               </ControlButton>
             ))}
           </ControlGroup>
@@ -159,21 +168,12 @@ function AnimePlayer({
 
         <VideoWrapper>
           <StyledMediaPlayer
+            key={key} 
             title={title}
-            src={currentSource.url}
-            poster={posterSrc}
             crossorigin
           >
             <MediaProvider>
-              {streamingData.subtitles?.map((subtitle) => (
-                <track
-                  key={subtitle.lang}
-                  kind="subtitles"
-                  src={subtitle.url}
-                  label={subtitle.lang}
-                  srcLang={subtitle.lang}
-                />
-              ))}
+              <source src={currentSource.url} type="application/x-mpegurl" />
             </MediaProvider>
             <DefaultVideoLayout icons={defaultLayoutIcons} />
           </StyledMediaPlayer>
@@ -183,4 +183,4 @@ function AnimePlayer({
   );
 }
 
-export default AnimePlayer;
+export default KDramaPlayer;

@@ -4,83 +4,71 @@ import styled from 'styled-components';
 import { fetchAnimeByCategory } from '../services/aniWatchApi';
 import AnimeCard from '../components/AnimeCard';
 import Pagination from '../components/Pagination';
+import LoadingScreen from '../components/LoadingScreen';
 
 const AnimeGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
   }
 `;
 
-const AnimeTitle = styled.h1`
-  font-family: 'Geist', sans-serif;
+const AnimeTitle = styled.h2`
+  font-size: 20px;
+  margin-bottom: 15px;
   color: ${props => props.theme.text};
-  margin-bottom: 10px;
-
-  @media (max-width: 768px) {
-    margin-top: -20px;
+  display: flex;
+  align-items: center;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 23px;
+    background-color: ${props => props.theme.primary};
+    margin-right: 10px;
+    border-radius: 32px;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 26px;
+    margin-bottom: 20px;
+    
+    &:before {
+      height: 28px;
+    }
   }
 `;
 
 const FilterContainer = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 20px;
-  padding: 20px;
-  background-color: ${props => props.theme.background};
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  @media (max-width: 768px) {
-   flex-direction: row; 
-   padding: 10px;
-  }
 `;
 
-const FilterGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-
-  @media (min-width: 768px) {
-    width: auto;
-  }
-`;
-
-const FilterLabel = styled.label`
-  font-size: 14px;
-  margin-bottom: 5px;
-  color: ${props => props.theme.text};
-  font-family: 'GeistVF', sans-serif;
-`;
-
-const Select = styled.select`
+const FilterButton = styled.button`
   padding: 10px 15px;
   border-radius: 8px;
   border: 1px solid ${props => props.theme.primary};
-  background-color: ${props => props.theme.background};
-  color: ${props => props.theme.text};
-  font-size: 16px;
+  background-color: ${props => props.active ? props.theme.primary : props.theme.background};
+  color: ${props => props.active ? props.theme.background : props.theme.text};
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
 
-  &:hover, &:focus {
-    border-color: ${props => props.theme.secondary};
-    box-shadow: 0 0 0 2px ${props => props.theme.primary}40;
+  &:hover {
+    background-color: ${props => props.theme.primary};
+    color: ${props => props.theme.background};
   }
 
   @media (max-width: 768px) {
-    scale: 0.8;
-    padding: 5px 10px;
-    margin-left: -15px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 `;
 
@@ -96,48 +84,75 @@ function Anime() {
       setIsLoading(true);
       try {
         const data = await fetchAnimeByCategory(category, currentPage);
-        setAnimeList(data.results || []);
-        setTotalPages(Math.ceil(data.totalResults / 25));
+        setAnimeList(data.animes || []);
+        setTotalPages(data.totalPages);
       } catch (error) {
         console.error('Error fetching anime:', error);
       }
       setIsLoading(false);
     };
-
+    
     getAnime();
   }, [currentPage, category]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
+  const handleCategoryChange = (newCategory) => {
+    setCategory(newCategory);
+    setCurrentPage(1);
   };
 
   return (
     <div>
       <AnimeTitle>Anime</AnimeTitle>
       <FilterContainer>
-        <FilterGroup>
-          <FilterLabel htmlFor="category">Category</FilterLabel>
-          <Select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="POPULARITY_DESC">Most Popular</option>
-            <option value="SCORE_DESC">Top Rated</option>
-            <option value="UPDATED_AT_DESC">Recently Updated</option>
-            <option value="START_DATE_DESC">Newest</option>
-          </Select>
-        </FilterGroup>
+        <FilterButton 
+          active={category === 'POPULARITY_DESC'} 
+          onClick={() => handleCategoryChange('POPULARITY_DESC')}
+        >
+          Most Popular
+        </FilterButton>
+        <FilterButton 
+          active={category === 'SCORE_DESC'} 
+          onClick={() => handleCategoryChange('SCORE_DESC')}
+        >
+          Top Rated
+        </FilterButton>
+        <FilterButton 
+          active={category === 'UPDATED_AT_DESC'} 
+          onClick={() => handleCategoryChange('UPDATED_AT_DESC')}
+        >
+          Recently Updated
+        </FilterButton>
+        <FilterButton 
+          active={category === 'START_DATE_DESC'} 
+          onClick={() => handleCategoryChange('START_DATE_DESC')}
+        >
+          Newest
+        </FilterButton>
       </FilterContainer>
       {isLoading ? (
-        <div>Loading...</div>
+        <LoadingScreen />
       ) : (
         <AnimeGrid>
           {animeList.map((anime) => (
-            <AnimeCard 
-              key={anime.id} 
+            <AnimeCard
+              key={anime.id}
               anime={{
                 id: anime.id,
-                title: anime.title.romaji,
-                poster: anime.image,
-                rating: anime.rating / 10
-              }} 
+                title: anime.title,
+                image: anime.image,
+                rating: anime.rating,
+                duration: anime.duration,
+                type: anime.type,
+                episodes: anime.totalEpisodes
+              }}
             />
           ))}
         </AnimeGrid>

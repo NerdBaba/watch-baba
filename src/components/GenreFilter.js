@@ -4,28 +4,28 @@ import styled from 'styled-components';
 const FilterContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 20px;
 `;
 
 const GenreButton = styled.button`
-  background-color: ${props => props.active ? props.theme.text : props.theme.primary};
-  color: ${props => props.active ? props.theme.primary : props.theme.text};
-  border: none;
-  padding: 6px 10px;
-  border-radius: 20px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid ${props => props.theme.primary};
+  background-color: ${props => props.active ? props.theme.primary : props.theme.background};
+  color: ${props => props.active ? props.theme.background : props.theme.text};
+  font-size: 14px;
   cursor: pointer;
-  font-size: 13px;
-  transition: all 0.3s;
-
-  @media (min-width: 768px) {
-    padding: 8px 12px;
-    font-size: 15px;
-  }
+  transition: all 0.3s ease;
 
   &:hover {
-    background-color: ${props => props.theme.text};
-    color: ${props => props.theme.primary};
+    background-color: ${props => props.theme.primary};
+    color: ${props => props.theme.background};
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 12px;
   }
 `;
 

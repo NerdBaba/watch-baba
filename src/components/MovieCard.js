@@ -33,6 +33,7 @@ const PosterContainer = styled.div`
   background-color: #333; // Placeholder background color
   display: flex;
   justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   align-items: center;
 `;
 

@@ -21,6 +21,34 @@ const FilterWrapper = styled.div`
   color: ${props => props.theme.primary};
 `;
 
+const SectionTitle = styled.h2`
+   font-size: 20px;
+  margin-bottom: 15px;
+  color: ${props => props.theme.text};
+  display: flex;
+  align-items: center;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 23px;
+    background-color: ${props => props.theme.primary};
+    margin-right: 10px;
+    border-radius: 32px;
+
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 26px;
+    margin-bottom: 20px;
+    
+    &:before {
+      height: 28px;
+    }
+  }
+`;
+
 function Movies() {
   const [movies, setMovies] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -75,7 +103,7 @@ function Movies() {
 
  return (
     <div>
-      <h2>Popular Movies</h2>
+      <SectionTitle>Popular Movies</SectionTitle>
       <FilterWrapper>
         <GenreFilter
           genres={genres}

@@ -23,7 +23,7 @@ const Card = styled(Link)`
   }
 
   @media (max-width: 480px) {
-    max-width: 4300px;
+    max-width: 430px;
   }
 `;
 const PosterContainer = styled.div`
@@ -120,14 +120,13 @@ function AnimeCard({ anime }) {
   const link = `/anime/${anime.id}`;
   
   // Normalize the data structure
-  const normalizedAnime = {
+ const normalizedAnime = {
     id: anime.id,
-    name: anime.title?.romaji || anime.title?.english || 'Unknown Title',
-    poster: anime.image || anime.coverImage?.large,
-    rating: (anime.rating / 10).toFixed(1) || anime.averageScore / 10,
-    duration: anime.duration ? `${anime.duration} min` : null,
-    type: anime.type || anime.format,
-    episodes: anime.episodes ? { sub: anime.episodes } : null
+    name: anime.title?.english || anime.title?.romaji || 'Unknown Title',
+    poster: anime.image,
+    rating: anime.rating / 10, // Assuming the API returns rating out of 100
+    type: anime.type,
+    episodes: anime.episodes
   };
 
   const handleClick = useCallback((e) => {
@@ -147,15 +146,12 @@ function AnimeCard({ anime }) {
           </PlaceholderSVG>
         )}
         <HoverOverlay>
-          <Rating>⭐ {normalizedAnime.rating}</Rating>
-          {normalizedAnime.duration && (
-            <DetailItem><Icon>⌛</Icon> {normalizedAnime.duration}</DetailItem>
-          )}
+          <Rating>⭐ {normalizedAnime.rating.toFixed(1)}</Rating>
           {normalizedAnime.type && (
             <DetailItem><Icon>📺</Icon> {normalizedAnime.type}</DetailItem>
           )}
           {normalizedAnime.episodes && (
-            <DetailItem><Icon>🌐</Icon> {normalizedAnime.episodes.sub} episodes</DetailItem>
+            <DetailItem><Icon>🌐</Icon> {normalizedAnime.episodes} episodes</DetailItem>
           )}
         </HoverOverlay>
       </PosterContainer>
@@ -163,5 +159,4 @@ function AnimeCard({ anime }) {
     </Card>
   );
 }
-
 export default AnimeCard;
