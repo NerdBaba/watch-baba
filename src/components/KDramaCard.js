@@ -4,11 +4,11 @@ import styled from 'styled-components';
 
 const Card = styled(Link)`
   width: 100%;
-  max-width: 200px;
+  max-width: 250px; // Increased from 200px
   text-decoration: none;
   color: #fff;
   position: relative;
-  border-radius: 4px;
+  border-radius: 8px; // Slightly increased for better aesthetics
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
@@ -18,11 +18,23 @@ const Card = styled(Link)`
   }
 
   @media (max-width: 768px) {
-    max-width: 150px;
+    max-width: 180px; // Increased from 150px
   }
 
   @media (max-width: 480px) {
-    max-width: 130px;
+    max-width: 150px; // Adjusted for better mobile layout
+  }
+`;
+
+const Title = styled.h3`
+  margin: 12px 0 6px;
+  font-size: 16px; // Increased from 14px
+  font-weight: 600;
+  color: ${props => props.theme.primary};
+  padding: 0 12px;
+
+  @media (max-width: 480px) {
+    font-size: 14px; // Increased from 12px
   }
 `;
 
@@ -44,16 +56,7 @@ const Poster = styled.img`
   border-radius: 4px;
 `;
 
-const Title = styled.h3`
-  margin: 12px 0 6px;
-  font-size: 14px;
-  color: ${props => props.theme.primary};
-  padding: 0 12px;
 
-  @media (max-width: 480px) {
-    font-size: 12px;
-  }
-`;
 
 const ReleaseDate = styled.p`
   font-size: 13px;
@@ -67,6 +70,7 @@ const ReleaseDate = styled.p`
 `;
 
 function KDramaCard({ drama }) {
+    if (!drama) return null;
   return (
     <Card to={`/kdrama/${drama.id}`}>
       <PosterContainer>

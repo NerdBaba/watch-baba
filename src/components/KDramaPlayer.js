@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { MediaPlayer, MediaProvider } from '@vidstack/react';
 import {
@@ -125,6 +125,11 @@ function KDramaPlayer({
   episodeNumber
 }) {
   const [sourceIndex, setSourceIndex] = useState(0);
+  const [key, setKey] = useState(0); // this line
+
+  useEffect(() => {
+    setKey(prevKey => prevKey + 1); // Force video player to remount
+  }, [streamingData, sourceIndex]);
 
   const currentSource = streamingData.sources[sourceIndex];
 
@@ -161,6 +166,7 @@ function KDramaPlayer({
 
         <VideoWrapper>
           <StyledMediaPlayer
+            key={key} 
             title={title}
             crossorigin
           >

@@ -2,6 +2,8 @@
 export const themes = {
   // Dark Themes
   default: { name: 'Netflix', primary: '#E50914', background: '#141414', text: '#FFFFFF', description: 'Modern streaming theme', category: 'dark' },
+  Yellowjacket: { name: 'Yellowjacket', primary: '#ffd700', background: '#1a1a1a', text: '#ffffff', description: 'Bold and energetic', category: 'dark' },
+  cyberpunk: { name: 'Cyberpunk', primary: '#FFE600', background: '#372963', text: '#00FF9C', description: 'High-tech low-life', category: 'dark' },
   nightcity: { name: 'Night City', primary: '#00FFFF', background: '#120458', text: '#FF00FF', description: 'Cyberpunk-inspired neon nights', category: 'dark' },
   dracula: { name: 'Dracula', primary: '#BD93F9', background: '#282A36', text: '#F8F8F2', description: 'A dark theme for the night owls', category: 'dark' },
   deepSpace: { name: 'Deep Space', primary: '#7B4DFF', background: '#0A0E21', text: '#E0E0E0', description: 'Explore the cosmos', category: 'dark' },
@@ -12,7 +14,7 @@ export const themes = {
   monochrome: { name: 'Monochrome', primary: '#FFFFFF', background: '#000000', text: '#FFFFFF', description: 'Simple black and white', category: 'amoled' },
   neonPulse: { name: 'Neon Pulse', primary: '#FE2C55', background: '#000000', text: '#FFFFFF', description: 'Vibrant neon on pure black', category: 'amoled' },
   outrun: { name: 'Outrun', primary: '#FF00FF', background: '#000000', text: '#00FFFF', description: '80s retro-futurism', category: 'amoled' },
-  matrixGreen: { name: 'Matrix Green', primary: '#00FF00', background: '#000000', text: '#00FF00', description: 'Enter the Matrix', category: 'amoled' },
+  matrixGreen: { name: 'Matrix Green', primary: '#00FF00', background: '#000000', text: '#FFFFFF', description: 'Enter the Matrix', category: 'amoled' },
   starryNight: { name: 'Starry Night', primary: '#F0C420', background: '#000000', text: '#FFFFFF', description: 'Twinkling stars in the dark', category: 'amoled' },
   midnightBlue: { name: 'Midnight Blue', primary: '#0000FF', background: '#000000', text: '#FFFFFF', description: 'Deep blue in the darkness', category: 'amoled' },
   emeraldAbyss: { name: 'Emerald Abyss', primary: '#00FF00', background: '#000000', text: '#FFFFFF', description: 'Glowing green in the void', category: 'amoled' },
@@ -39,7 +41,6 @@ export const themes = {
   materialBlueGrey: { name: 'Material Blue Grey', primary: '#607D8B', background: '#ECEFF1', text: '#212121', description: 'Subtle and sophisticated', category: 'material' },
 
   // Additional Themes
-  Yellowjacket: { name: 'Yellowjacket', primary: '#ffd700', background: '#1a1a1a', text: '#ffffff', description: 'Bold and energetic', category: 'dark' },
   chemical: { name: 'Chemical', primary: '#1CE783', background: '#0B0C0F', text: '#FFFFFF', description: 'Toxic and glowing', category: 'dark' },
   royalBlue: { name: 'Royal Blue', primary: '#0063E5', background: '#040714', text: '#F9F9F9', description: 'Regal and sophisticated', category: 'dark' },
   azureWaters: { name: 'Azure Waters', primary: '#00A8E1', background: '#0F171E', text: '#FFFFFF', description: 'Deep ocean vibes', category: 'dark' },
@@ -51,7 +52,6 @@ export const themes = {
   nordAurora: { name: 'Nord Aurora', primary: '#88C0D0', background: '#2E3440', text: '#D8DEE9', description: 'Arctic-inspired palette', category: 'dark' },
   monokai: { name: 'Monokai', primary: '#F92672', background: '#272822', text: '#F8F8F2', description: 'Popular code editor theme', category: 'dark' },
   gruvbox: { name: 'Gruvbox', primary: '#FE8019', background: '#282828', text: '#EBDBB2', description: 'Retro groove color scheme', category: 'dark' },
-  cyberpunk: { name: 'Cyberpunk', primary: '#FFE600', background: '#372963', text: '#00FF9C', description: 'High-tech low-life', category: 'dark' },
   greenTea: { name: 'Green Tea', primary: '#A8E6CF', background: '#DCEDC1', text: '#1D3557', description: 'Refreshing and calm', category: 'light' },
   oceanBreeze: { name: 'Ocean Breeze', primary: '#48CAE4', background: '#E0FBFC', text: '#023047', description: 'Cool coastal colors', category: 'light' },
   desertSand: { name: 'Desert Sand', primary: '#C19A6B', background: '#F4E3CF', text: '#5E503F', description: 'Warm and earthy', category: 'light' },

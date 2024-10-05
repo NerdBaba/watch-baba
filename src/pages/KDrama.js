@@ -7,21 +7,46 @@ import LoadingScreen from '../components/LoadingScreen';
 
 const KDramaContainer = styled.div`
   padding: 20px;
+  @media (max-width: 768px) {
+   padding: 5px; 
+  }
 `;
 
 const GridContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 
   @media (max-width: 768px) {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  }
+    gap: 10px;
 `;
 
 const Title = styled.h1`
   margin-bottom: 20px;
-  color: ${props => props.theme.primary};
+  font-size: 26px;
+  color: ${props => props.theme.text};
+  align-items: center;
+  
+&:before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 26px;
+    background-color: ${props => props.theme.primary};
+    margin-right: 10px;
+    margin-bottom: -3px;
+    border-radius: 32px;
+    @media (max-width: 768px) {
+      height: 24px;
+      margin-bottom: -4px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+  margin-bottom: 15px;
+  }
 `;
 
 function KDrama() {

@@ -4,6 +4,9 @@ import MovieCard from '../components/MovieCard';
 import AnimeCard from '../components/AnimeCard';
 import { getPopularMovies, getPopularTvShowsInIndia, getMovieGenres, getTvShowGenres, discoverMovies, discoverTvShows } from '../services/tmdbApi';
 import { fetchAnimeHome } from '../services/aniWatchApi';
+import KDramaCard from '../components/KDramaCard';
+import { getPopularKDramas } from '../services/kDramaApi';
+
 
 const HomeContainer = styled.div`
   padding: 20px;
@@ -63,11 +66,12 @@ const SectionTitle = styled.h2`
     height: 24px;
     background-color: ${props => props.theme.primary};
     margin-right: 10px;
-    border-radius: 4px;
+    border-radius: 32px;
+
   }
   
   @media (min-width: 768px) {
-    font-size: 24px;
+    font-size: 26px;
     margin-bottom: 20px;
     
     &:before {
@@ -93,23 +97,33 @@ function Home() {
   const [movieGenres, setMovieGenres] = useState([]);
   const [tvGenres, setTvGenres] = useState([]);
   const [networkContent, setNetworkContent] = useState({});
+  const [popularKDramas, setPopularKDramas] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [moviesRes, tvShowsRes, animeRes, movieGenresRes, tvGenresRes] = await Promise.all([
-          getPopularMovies(),
-          getPopularTvShowsInIndia(),
-          fetchAnimeHome(),
-          getMovieGenres(),
-          getTvShowGenres()
-        ]);
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const [moviesRes, tvShowsRes, animeRes,  movieGenresRes, tvGenresRes] = await Promise.all([
+        getPopularMovies(),
+        getPopularTvShowsInIndia(),
+        fetchAnimeHome(),
+        getMovieGenres(),
+        getTvShowGenres()
+      ]);
 
-        setPopularMovies(moviesRes.data.results);
-        setPopularTvShows(tvShowsRes.data.results);
-        setPopularAnime(animeRes.results || []);
-        setMovieGenres(movieGenresRes.data.genres);
-        setTvGenres(tvGenresRes.data.genres);
+      setPopularMovies(moviesRes.data.results);
+      setPopularTvShows(tvShowsRes.data.results);
+      setPopularAnime(animeRes.results || []);
+       
+         const kdramaRes = await getPopularKDramas();
+        console.log('K-Drama API response:', kdramaRes);
+        if (kdramaRes.data && Array.isArray(kdramaRes.data.results)) {
+          setPopularKDramas(kdramaRes.data.results);
+        } else {
+          console.error('Unexpected K-Drama API response structure:', kdramaRes);
+        }
+
+      setMovieGenres(movieGenresRes.data.genres);
+      setTvGenres(tvGenresRes.data.genres);
 
         // Fetch content for each network
         const networkContentPromises = networks.map(async (network) => {
@@ -141,6 +155,7 @@ function Home() {
         {content.map((item) => (
           <CardWrapper key={item.id}>
             <CardComponent 
+              drama={CardComponent === KDramaCard ? item : null}
               movie={CardComponent === MovieCard ? {
                 ...item,
                 title: item.title || item.name,
@@ -161,6 +176,8 @@ function Home() {
       {renderScrollableSection('Popular Movies', popularMovies, MovieCard)}
       {renderScrollableSection('Popular TV Shows', popularTvShows, MovieCard)}
       {renderScrollableSection('Popular Anime', popularAnime, AnimeCard)}
+{popularKDramas && popularKDramas.length > 0 && 
+        renderScrollableSection('Popular K-Dramas', popularKDramas, KDramaCard)}
 
       {networks.map((network) => (
         <React.Fragment key={network.id}>
