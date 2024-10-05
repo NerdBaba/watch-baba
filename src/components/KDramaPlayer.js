@@ -52,6 +52,7 @@ const ControlGroup = styled.div`
   gap: 5px;
   align-items: center;
   flex-wrap: wrap;
+  
 
   @media (max-width: 768px) {
     font-size: 0.9rem;
@@ -62,15 +63,15 @@ const EpisodeTitle = styled.span`
   color: ${props => props.theme.primary || '#fff'};
   font-size: 1.1rem;
   font-family: 'GeistVF', sans-serif;
-
+  
   @media (max-width: 768px) {
     font-size: 0.9rem;
   }
 `;
 
 const ControlButton = styled.button`
-  background: rgba(0, 0, 0, 0.5);
-  color: ${props => props.active ? 'white' : (props.theme.primary || '#fff')};
+  background: ${props => props.active ?  (props.theme.primary) : (props.theme.background || '#fff')};
+  color: ${props => props.active ? (props.theme.background) : (props.theme.primary || '#fff')};
   border: none;
   border-radius: 4px;
   padding: 8px 12px;
@@ -84,9 +85,10 @@ const ControlButton = styled.button`
   font-family: 'GeistVF', sans-serif;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+    opacity: 0.8;
+    background-color: ${props => props.theme.background || '#ff0000'};
   }
-
+  
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;

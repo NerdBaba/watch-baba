@@ -33,6 +33,7 @@ const HeroContent = styled.div`
 const Title = styled.h1`
   font-size: 2.5rem;
   margin-bottom: 10px;
+  color: white;
   font-weight: 700;
   
   @media (max-width: 768px) {
@@ -54,7 +55,7 @@ const MetaInfo = styled.div`
 `;
 
 const MetaItem = styled.span`
-  color: ${props => props.theme.text};
+  color: white;
   opacity: 0.8;
   font-size: 1rem;
 
@@ -144,12 +145,30 @@ const Section = styled.section`
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.8rem;
-  margin-bottom: 20px;
-  color: ${props => props.theme.primary};
+   font-size: 20px;
+  margin-bottom: 15px;
+  color: ${props => props.theme.text};
+  display: flex;
+  align-items: center;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 23px;
+    background-color: ${props => props.theme.primary};
+    margin-right: 10px;
+    border-radius: 32px;
 
-  @media (max-width: 768px) {
-    font-size: 1.4rem;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 26px;
+    margin-bottom: 20px;
+    
+    &:before {
+      height: 28px;
+    }
   }
 `;
 

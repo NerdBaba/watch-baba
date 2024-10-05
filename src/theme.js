@@ -14,7 +14,7 @@ export const themes = {
   monochrome: { name: 'Monochrome', primary: '#FFFFFF', background: '#000000', text: '#FFFFFF', description: 'Simple black and white', category: 'amoled' },
   neonPulse: { name: 'Neon Pulse', primary: '#FE2C55', background: '#000000', text: '#FFFFFF', description: 'Vibrant neon on pure black', category: 'amoled' },
   outrun: { name: 'Outrun', primary: '#FF00FF', background: '#000000', text: '#00FFFF', description: '80s retro-futurism', category: 'amoled' },
-  matrixGreen: { name: 'Matrix Green', primary: '#00FF00', background: '#000000', text: '#FFFFFF', description: 'Enter the Matrix', category: 'amoled' },
+  matrixGreen: { name: 'Matrix Green', primary: '#00FF00', background: '#000000', text: '#00FF00', description: 'Enter the Matrix', category: 'amoled' },
   starryNight: { name: 'Starry Night', primary: '#F0C420', background: '#000000', text: '#FFFFFF', description: 'Twinkling stars in the dark', category: 'amoled' },
   midnightBlue: { name: 'Midnight Blue', primary: '#0000FF', background: '#000000', text: '#FFFFFF', description: 'Deep blue in the darkness', category: 'amoled' },
   emeraldAbyss: { name: 'Emerald Abyss', primary: '#00FF00', background: '#000000', text: '#FFFFFF', description: 'Glowing green in the void', category: 'amoled' },

@@ -67,8 +67,8 @@ const EpisodeTitle = styled.span`
 `;
 
 const ControlButton = styled.button`
-  background: rgba(0, 0, 0, 0.5);
-  color: ${props => props.active ? 'white' : (props.theme.primary || '#fff')};
+  background: ${props => props.active ?  (props.theme.primary) : (props.theme.background || '#fff')};
+  color: ${props => props.active ? (props.theme.background) : (props.theme.primary || '#fff')};
   border: none;
   border-radius: 4px;
   padding: 8px 12px;
@@ -82,9 +82,10 @@ const ControlButton = styled.button`
   font-family: 'GeistVF', sans-serif;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+    opacity: 0.8;
+    background-color: ${props => props.theme.background || '#ff0000'};
   }
-
+  
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;

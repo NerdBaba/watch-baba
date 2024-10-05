@@ -156,11 +156,30 @@ const Section = styled.section`
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 20px;
+   font-size: 20px;
+  margin-bottom: 15px;
+  color: ${props => props.theme.text};
+  display: flex;
+  align-items: center;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 23px;
+    background-color: ${props => props.theme.primary};
+    margin-right: 10px;
+    border-radius: 32px;
 
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 26px;
+    margin-bottom: 20px;
+    
+    &:before {
+      height: 28px;
+    }
   }
 `;
 
@@ -778,7 +797,7 @@ useEffect(() => {
 )}
             {watchOption === 'server12' && (
                 <EmbedPlayer
-                src={`https://multiembed.mov/?video_id=${tvShow.id}&tmdb=1&s=${selectedSeason}&e=${selectedEpisode}`}
+                src={`https://moviesapi.club/tv/${tvShow.id}-${selectedSeason}-${selectedEpisode}`}
                 allowFullScreen
                 />
               )}
