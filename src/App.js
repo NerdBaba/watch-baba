@@ -23,7 +23,8 @@ import MangaDetails from './pages/MangaDetails';
 import MangaReader from './pages/MangaReader';
 import KDrama from './pages/KDrama';
 import KDramaDetails from './pages/KDramaDetails';
-
+import Sports from './pages/Sports';
+import Watch from './pages/Watch';
 
 
 const AppContainer = styled.div`
@@ -179,6 +180,9 @@ useEffect(() => {
                 <Route path="/kdrama" element={<KDrama />} />
                 <Route path="/kdrama/:id/*" element={<KDramaDetails />} />
                 <Route path="/themes" element={<Themes setTheme={changeTheme} />} />
+                // In your App.js, add this to your Routes
+                <Route path="/sports" element={<Sports />} />
+                <Route path="/watch/:id" element={<Watch />} />
               </Routes>
             </ContentWrapper>
             <Footer />

@@ -95,8 +95,9 @@ const PlaceholderSVG = styled.svg`
 
 const Title = styled.h3`
   margin: 12px 0 6px;
-  font-size: 14px;
+  font-size: 16px;
   color: ${props => props.theme.primary};
+  font-family: 'GeistVF', sans-serif;
   padding: 0 12px;
 
     @media (max-width: 480px) {
