@@ -36,10 +36,9 @@ const Hero = styled.div`
   padding: 40px;
 
   @media (max-width: 768px) {
-    height: 60vh;
-    padding: 20px;
+    height: 50vh; // Reduced from 60vh to 50vh
+    padding: 15px; // Reduced padding
   }
-
   &::before {
     content: '';
     position: absolute;
@@ -58,6 +57,9 @@ const HeroContent = styled.div`
 
   @media (max-width: 768px) {
     max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px; // Adds a small gap between elements
   }
 `;
 
@@ -84,8 +86,11 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-`;
 
+  @media (max-width: 768px) {
+    gap: 5px;
+  }
+`;
 const Button = styled.button`
   padding: 10px 20px;
   font-size: 1.1rem;
@@ -102,8 +107,9 @@ const Button = styled.button`
   }
 
   @media (max-width: 768px) {
-    font-size: 1rem;
-    padding: 8px 16px;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    gap: 5px;
   }
 `;
 
@@ -111,6 +117,11 @@ const Tagline = styled.p`
   font-style: italic;
   color: white;
   margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+  }
 `;
 
 const Ratings = styled.div`
@@ -409,8 +420,8 @@ const LogoImage = styled.img`
   margin-bottom: 20px;
 
   @media (max-width: 768px) {
-   max-width: 200px; 
-   height: auto;
+    max-width: 150px; // Reduced from 200px to 150px
+    margin-bottom: 10px;
   }
 `;
 

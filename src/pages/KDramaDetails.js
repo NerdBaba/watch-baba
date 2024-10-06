@@ -230,7 +230,7 @@ const EpisodeGrid = styled.div`
 `;
 
 const EpisodeCard = styled.div`
-  background: ${props => props.theme.secondary};
+  background: ${props => props.theme.primary}33;
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;

@@ -23,20 +23,20 @@ const TvShowContainer = styled.div`
 
 
 const Hero = styled.div`
-  position: relative;
+   position: relative;
   height: 80vh;
   background-image: url(${props => props.backdrop});
   background-size: cover;
   background-position: center;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
   padding: 40px;
 
   @media (max-width: 768px) {
-    height: 60vh;
-    padding: 20px;
+    height: 50vh; // Reduced from 60vh to 50vh
+    padding: 15px; // Reduced padding
   }
-
   &::before {
     content: '';
     position: absolute;
@@ -48,6 +48,7 @@ const Hero = styled.div`
   }
 `;
 
+
 const HeroContent = styled.div`
   position: relative;
   z-index: 2;
@@ -55,9 +56,11 @@ const HeroContent = styled.div`
 
   @media (max-width: 768px) {
     max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px; // Adds a small gap between elements
   }
 `;
-
 const Title = styled.h1`
   font-size: 3rem;
   margin-bottom: 2px;
@@ -80,6 +83,10 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    gap: 5px;
+  }
 `;
 
 const Button = styled.button`
@@ -98,15 +105,23 @@ const Button = styled.button`
   }
 
   @media (max-width: 768px) {
-    font-size: 1rem;
-    padding: 8px 16px;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    gap: 5px;
   }
 `;
+
 const Tagline = styled.p`
   font-style: italic;
   color: white;
   margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+  }
 `;
+
 
 const Ratings = styled.div`
   display: flex;
@@ -363,8 +378,8 @@ const LogoImage = styled.img`
   margin-bottom: 20px;
 
   @media (max-width: 768px) {
-   max-width: 200px; 
-   height: auto;
+    max-width: 150px; // Reduced from 200px to 150px
+    margin-bottom: 10px;
   }
 `;
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass } from 'react-icons/fa';
+import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass, FaPlayCircle } from 'react-icons/fa';
 import { getPopularMovies, getPopularTvShows } from '../services/tmdbApi';
 
 const HeaderContainer = styled.header`
@@ -25,33 +25,36 @@ const HeaderContainer = styled.header`
   }
 `;
 
-const Logo = styled.h1`
-  font-size: 32px;
-  color: ${props => props.theme.primary};
-  font-weight: 700;
+const Logo = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 25px;
   margin: 0 0 15px 15px;
-
-  @font-face {
-    font-family: 'Pacify Angry';
-    src: url('fonts/Pacify%20Angry.ttf') format('truetype');
-  }
-  font-family: 'Pacify Angry', sans-serif;
+  font-family: 'Isidora Sans Bold', sans-serif;
+  background: linear-gradient(to right, ${props => props.theme.primary}, ${props => props.theme.text || props.theme.primary});
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 
   @media (min-width: 769px) {
-    font-size: 40px;
+    font-size: 50px;
     margin-bottom: 0;
   }
 
   @media (max-width: 768px) {
     font-size: 30px;
     margin: 0;
+    margin-top: -10px;
   }
 `;
+
 
 const SearchForm = styled.form`
   width: 100%;
   max-width: 250px;
   margin-bottom: 15px;
+
 
   @media (min-width: 769px) {
     margin-bottom: 0;
@@ -72,12 +75,13 @@ const SearchBarContainer = styled.div`
 const SearchBar = styled.input`
   padding: 10px;
   padding-right: 40px;
-  border-radius: 5px;
+  border-radius: 10px;
   border: 3px solid ${props => props.theme.primary};
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.text};
   width: 100%;
   box-sizing: border-box;
+
 `;
 
 const SearchIcon = styled(FaSearch)`
@@ -218,7 +222,10 @@ function Header({ toggleSidebar }) {
       <MobileButton onClick={toggleSidebar}>
         {getSidebarIcon()}
       </MobileButton>
-      <Logo>{isOnMangaPage ? 'Read.Baba' : 'Watch.Baba'}</Logo>
+      <Logo>
+      {isOnMangaPage ? 'readbaba' : 'watchbaba'}
+    </Logo>
+
       <SearchForm onSubmit={handleSearch}>
         <SearchBarContainer>
           <SearchBar

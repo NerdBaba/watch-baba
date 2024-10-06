@@ -57,10 +57,11 @@ const ControlGroup = styled.div`
 `;
 
 const EpisodeTitle = styled.span`
-  color: ${props => props.theme.primary || '#fff'};
+  color: ${props => props.theme.text};
   font-size: 1.1rem;
+  padding: 8px;
   font-family: 'GeistVF', sans-serif;
-
+  
   @media (max-width: 768px) {
     font-size: 0.9rem;
   }
@@ -83,7 +84,7 @@ const ControlButton = styled.button`
 
   &:hover {
     opacity: 0.8;
-    background-color: ${props => props.theme.background || '#ff0000'};
+  background-color: ${props => props.active ? props.theme.primary : `${props.theme.primary}33`};
   }
   
   &:disabled {
