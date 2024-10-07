@@ -145,7 +145,7 @@ const Section = styled.section`
 `;
 
 const SectionTitle = styled.h2`
-   font-size: 20px;
+  font-size: 20px;
   margin-bottom: 15px;
   color: ${props => props.theme.text};
   display: flex;
@@ -154,8 +154,8 @@ const SectionTitle = styled.h2`
   &:before {
     content: '';
     display: inline-block;
-    width: 7px;
-    height: 23px;
+    width: 5px;
+    height: 22px;
     background-color: ${props => props.theme.primary};
     margin-right: 10px;
     border-radius: 32px;
@@ -168,6 +168,7 @@ const SectionTitle = styled.h2`
     
     &:before {
       height: 28px;
+      width: 7px;
     }
   }
 `;
