@@ -66,6 +66,7 @@ function Watch() {
           width="100%"
           height="100%"
           frameBorder="0"
+          sandbox="allow-same-origin allow-scripts allow-presentation allow-orientation-lock" 
           allowFullScreen
           allow="encrypted-media"
           title="Stream Player"
