@@ -1,7 +1,7 @@
 import React, { useState} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {styled,useTheme} from 'styled-components';
-import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass, FaPlayCircle } from 'react-icons/fa';
+import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass, FaPlayCircle,FaBaseballBall,FaMask } from 'react-icons/fa';
 import { getPopularMovies, getPopularTvShows } from '../services/tmdbApi';
 import Topbar from './Topbar';
 
@@ -35,7 +35,8 @@ const Logo = styled.div`
   font-size: 25px;
   margin: 0 0 15px 15px;
   font-family: 'Isidora Sans Bold', sans-serif;
-
+  cursor: pointer; /* Add pointer to indicate it's clickable */
+  
   .logo-text {
     margin-left: 10px;
     background: linear-gradient(to right, ${props => props.theme.primary}, ${props => props.theme.text || props.theme.primary}, ${props => props.theme.primary}ff);
@@ -49,7 +50,6 @@ const Logo = styled.div`
     font-size: 50px;
     margin-bottom: 0;
   }
-
   @media (max-width: 768px) {
     font-size: 35px;
     margin: 0;
@@ -217,6 +217,9 @@ function Header({ toggleSidebar }) {
       setIsMobileSearchOpen(false);
     }
   };
+  const handleLogoClick = () => {
+    navigate('/');  // Redirect to home page
+  };
 
   const handleRandomClick = async () => {
     try {
@@ -237,6 +240,8 @@ function Header({ toggleSidebar }) {
   const isOnTvShowsPage = location.pathname.includes('/tv');
   const isOnActorsPage = location.pathname.includes('/actors');
   const isOnDiscoveryPage = location.pathname === '/discovery';
+  const isOnSportsPage = location.pathname.includes('/sports');
+  const isOnKDramaPage = location.pathname.includes('/kdrama');
 
   const getIcon = () => {
     if (isOnMangaPage) return FaBook;
@@ -245,6 +250,8 @@ function Header({ toggleSidebar }) {
     if (isOnTvShowsPage) return FaTv;
     if (isOnAnimePage) return FaEye;
     if (isOnActorsPage) return FaUser;
+    if (isOnSportsPage) return FaBaseballBall;
+    if (isOnKDramaPage) return FaMask;
     return FaPlayCircle;
   };
 
@@ -257,19 +264,20 @@ function Header({ toggleSidebar }) {
         <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor={theme.primary} />
           <stop offset="50%" stopColor={theme.text || theme.primary} />
-          <stop offset="100%" stopColor={`${theme.primary}ff`} />
+          <stop offset="100%" stopColor={`${theme.primary}cc`} />
         </linearGradient>
       </defs>
     </svg>
     
-    <Logo>
-      <GradientIcon>
-        <IconComponent />
-      </GradientIcon>
-      <span className="logo-text">
-        {isOnMangaPage ? 'readbaba' : 'watchbaba'}
-      </span>
-    </Logo>
+     {/* Logo Clickable for redirection */}
+      <Logo onClick={handleLogoClick}>
+        <GradientIcon>
+          <IconComponent />
+        </GradientIcon>
+        <span className="logo-text">
+          {isOnMangaPage ? 'readbaba' : 'watchbaba'}
+        </span>
+      </Logo>
 
     <SearchForm onSubmit={handleSearch}>
       <SearchBarContainer>

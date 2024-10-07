@@ -287,7 +287,11 @@ function Sports() {
       ) : matches.length > 0 ? (
         <MatchesGrid>
           {matches.map(match => (
-            <MatchCard key={match.id} to={`/watch/${match.id}`}>
+  <MatchCard 
+    key={match.id} 
+    to={`/watch/${match.id}`}
+    state={{ matchData: match }} // Pass match data as state
+  >
               {isLive(match) ? (
                 <LiveTag>LIVE</LiveTag>
               ) : (

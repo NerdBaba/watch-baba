@@ -44,6 +44,7 @@ export const discoverMovies = (page = 1, genreId = '', watchProviderId = '') => 
       page,
       with_genres: genreId,
       watch_region: 'IN',
+      region: 'IN',
       with_watch_providers: watchProviderId,
       sort_by: 'popularity.desc'
     }
@@ -56,6 +57,7 @@ export const discoverTvShows = (page = 1, genreId = '', watchProviderId = '') =>
       page,
       with_genres: genreId,
       watch_region: 'IN',
+      region: 'IN',
       with_watch_providers: watchProviderId,
       sort_by: 'popularity.desc'
     }
