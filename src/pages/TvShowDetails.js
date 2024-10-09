@@ -23,20 +23,20 @@ const TvShowContainer = styled.div`
 
 
 const Hero = styled.div`
-  position: relative;
+   position: relative;
   height: 80vh;
   background-image: url(${props => props.backdrop});
   background-size: cover;
   background-position: center;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
   padding: 40px;
 
   @media (max-width: 768px) {
-    height: 60vh;
-    padding: 20px;
+    height: 50vh; // Reduced from 60vh to 50vh
+    padding: 15px; // Reduced padding
   }
-
   &::before {
     content: '';
     position: absolute;
@@ -48,6 +48,7 @@ const Hero = styled.div`
   }
 `;
 
+
 const HeroContent = styled.div`
   position: relative;
   z-index: 2;
@@ -55,9 +56,11 @@ const HeroContent = styled.div`
 
   @media (max-width: 768px) {
     max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px; // Adds a small gap between elements
   }
 `;
-
 const Title = styled.h1`
   font-size: 3rem;
   margin-bottom: 2px;
@@ -80,6 +83,10 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    gap: 5px;
+  }
 `;
 
 const Button = styled.button`
@@ -98,15 +105,23 @@ const Button = styled.button`
   }
 
   @media (max-width: 768px) {
-    font-size: 1rem;
-    padding: 8px 16px;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    gap: 5px;
   }
 `;
+
 const Tagline = styled.p`
   font-style: italic;
   color: white;
   margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+  }
 `;
+
 
 const Ratings = styled.div`
   display: flex;
@@ -156,7 +171,7 @@ const Section = styled.section`
 `;
 
 const SectionTitle = styled.h2`
-   font-size: 20px;
+  font-size: 20px;
   margin-bottom: 15px;
   color: ${props => props.theme.text};
   display: flex;
@@ -165,8 +180,8 @@ const SectionTitle = styled.h2`
   &:before {
     content: '';
     display: inline-block;
-    width: 7px;
-    height: 23px;
+    width: 5px;
+    height: 22px;
     background-color: ${props => props.theme.primary};
     margin-right: 10px;
     border-radius: 32px;
@@ -179,10 +194,10 @@ const SectionTitle = styled.h2`
     
     &:before {
       height: 28px;
+      width: 7px;
     }
   }
 `;
-
 const CastContainer = styled.div`
   display: flex;
   overflow-x: auto;
@@ -258,6 +273,8 @@ const Backdrop = styled.div`
   bottom: 0;
   background: rgba(0, 0, 0, 0.9);
   z-index: 1000;
+  height: 100vh;
+
   display: flex;
   justify-content: center;
   align-items: center;
@@ -363,8 +380,8 @@ const LogoImage = styled.img`
   margin-bottom: 20px;
 
   @media (max-width: 768px) {
-   max-width: 200px; 
-   height: auto;
+    max-width: 150px; // Reduced from 200px to 150px
+    margin-bottom: 10px;
   }
 `;
 
@@ -512,29 +529,46 @@ function TvShowDetails() {
 
 
 // Fullscreen Fix For Mobiles
-  const videoContainerRef = useRef(null);
+const videoContainerRef = useRef(null);
 
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // Exiting fullscreen
-        document.body.style.zoom = 1;
-        document.body.style.width = '100%';
-        if (videoContainerRef.current) {
-          videoContainerRef.current.style.width = '100%';
-          videoContainerRef.current.style.height = 'auto';
-        }
+useEffect(() => {
+  const handleFullscreenChange = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      // Entering fullscreen
+      if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+        window.screen.orientation.lock('landscape').catch((err) => {
+          console.error('Failed to lock orientation:', err);
+        });
       }
-    };
+      
+      if (videoContainerRef.current) {
+        videoContainerRef.current.style.width = '100vw';
+        videoContainerRef.current.style.height = '100vh';
+      }
+    } else {
+      // Exiting fullscreen
+      if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+        window.screen.orientation.unlock();
+      }
+      
+      document.body.style.zoom = 1;
+      document.body.style.width = '100%';
+      
+      if (videoContainerRef.current) {
+        videoContainerRef.current.style.width = '100%';
+        videoContainerRef.current.style.height = 'auto';
+      }
+    }
+  };
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-    };
-  }, []);
+  return () => {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+  };
+}, []);
 
 
   const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
@@ -711,7 +745,7 @@ useEffect(() => {
                   <option value="server7">Server 7 (Ads)</option>
                   <option value="server8">Server 8</option>
                   <option value="server9">Server 9</option>
-                  <option value="server10">Server 10</option>
+                  <option value="server10">Server 10 (Ads)</option>
                   <option value="server11">Server 11</option>
                   <option value="server12">Server 12 (Ads) </option>
                   <option value="server13">Server 13 (Single Ad)</option>
@@ -746,8 +780,9 @@ useEffect(() => {
                 />
               )}
              {watchOption === 'server6' && (
-                <AdBlockedIframe 
-                  src={`https://vidsrc.pro/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}?player=new`}
+                <AdBlockedIframe
+                  src={`https://vidsrc.icu/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                  
                   allowFullScreen
                 />
               )} 
@@ -784,14 +819,14 @@ useEffect(() => {
                 />
               )}
               {watchOption === 'server10' && (
-                <AdBlockedIframe
+                <EmbedPlayer
                 src={`https://embed.su/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                 allowFullScreen
                 />
               )}
               {watchOption === 'server11' && megacloudHash && (
   <EmbedPlayer
-    src={`https://megacloud.tv/embed-1/e-1/${megacloudHash}?_debug=true`}
+    src={`${megacloudHash}`}
     allowFullScreen
   />
 )}

@@ -1,11 +1,15 @@
 import React, {forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars, FaPalette, FaEye,FaBook,  FaMask } from 'react-icons/fa';
+import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars, FaPalette, FaEye,FaBook,  FaMask,FaBaseballBall } from 'react-icons/fa';
 
 // import { themes } from '../theme';
 
 const SidebarContainer = styled.nav`
+  @media (max-width: 768px) {
+    display: none;
+  }
+
   width: ${(props) => (props.isOpen ? '200px' : '60px')};
   background-color: ${(props) => props.theme.background};
   padding: 20px 8px;
@@ -16,10 +20,6 @@ const SidebarContainer = styled.nav`
   z-index: 1000;
   top: 0;
   left: 0;
-
-  @media (max-width: 768px) {
-    left: ${(props) => (props.isOpen ? '0' : '-60px')};
-  }
 `;
 
 const NavItem = styled(Link)`
@@ -117,6 +117,10 @@ const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
       <NavItem to="/kdrama">
       <IconWrapper isOpen={isOpen}><FaMask /></IconWrapper>
       {isOpen && 'K-Drama'}
+      </NavItem>
+       <NavItem to="/sports">
+      <IconWrapper isOpen={isOpen}><FaBaseballBall /></IconWrapper>
+      {isOpen && 'Live Sports'}
       </NavItem>
       <NavItem to="/themes">
         <IconWrapper isOpen={isOpen}><FaPalette /></IconWrapper>

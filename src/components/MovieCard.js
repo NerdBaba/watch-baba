@@ -69,6 +69,7 @@ const Rating = styled.div`
   background-color: rgba(0, 0, 0, 0.7);
   color: #ffd700;
   padding: 4px 6px;
+  margin-top: 8px;
   border-radius: 4px;
   font-weight: bold;
   font-size: 14px;
@@ -95,7 +96,7 @@ const PlaceholderSVG = styled.svg`
 
 const Title = styled.h3`
   margin: 12px 0 6px;
-  font-size: 14px;
+  font-size: 15px;
   color: ${props => props.theme.primary};
   padding: 0 12px;
 

@@ -27,11 +27,12 @@ const AnimeTitle = styled.h2`
   &:before {
     content: '';
     display: inline-block;
-    width: 7px;
-    height: 23px;
+    width: 5px;
+    height: 22px;
     background-color: ${props => props.theme.primary};
     margin-right: 10px;
     border-radius: 32px;
+
   }
   
   @media (min-width: 768px) {
@@ -40,6 +41,7 @@ const AnimeTitle = styled.h2`
     
     &:before {
       height: 28px;
+      width: 7px;
     }
   }
 `;

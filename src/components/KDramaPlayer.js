@@ -26,6 +26,8 @@ const PlayerBackdrop = styled.div`
   padding: 20px;
 `;
 
+
+
 const PlayerContainer = styled.div`
   width: 100%;
   max-width: 1200px;
@@ -59,9 +61,11 @@ const ControlGroup = styled.div`
   }
 `;
 
+
 const EpisodeTitle = styled.span`
-  color: ${props => props.theme.primary || '#fff'};
+  color: ${props => props.theme.text};
   font-size: 1.1rem;
+  padding: 8px;
   font-family: 'GeistVF', sans-serif;
   
   @media (max-width: 768px) {
@@ -86,7 +90,7 @@ const ControlButton = styled.button`
 
   &:hover {
     opacity: 0.8;
-    background-color: ${props => props.theme.background || '#ff0000'};
+  background-color: ${props => props.active ? props.theme.primary : `${props.theme.primary}33`};
   }
   
   &:disabled {

@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import styled from 'styled-components';
-import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass } from 'react-icons/fa';
+import {styled,useTheme} from 'styled-components';
+import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass, FaPlayCircle,FaBaseballBall,FaMask } from 'react-icons/fa';
 import { getPopularMovies, getPopularTvShows } from '../services/tmdbApi';
+import Topbar from './Topbar';
 
 const HeaderContainer = styled.header`
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   align-items: center;
   padding: 20px;
   padding-bottom: 0;
@@ -20,38 +22,67 @@ const HeaderContainer = styled.header`
   @media (max-width: 768px) {
     padding: 10px;
     flex-direction: row;
+    margin-top: 10px;
+    margin-bottom: -10px;
     justify-content: space-between;
     align-items: center;
   }
 `;
 
-const Logo = styled.h1`
-  font-size: 32px;
-  color: ${props => props.theme.primary};
-  font-weight: 700;
-  margin: 0 0 15px 15px;
 
-  @font-face {
-    font-family: 'Pacify Angry';
-    src: url('fonts/Pacify%20Angry.ttf') format('truetype');
+
+const Logo = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 25px;
+  margin: 0 0 15px 15px;
+  font-family: 'Isidora Sans Bold', sans-serif;
+  cursor: pointer; /* Add pointer to indicate it's clickable */
+  
+  .logo-text {
+    margin-left: 10px;
+    background: linear-gradient(to right, ${props => props.theme.primary}, ${props => props.theme.text || props.theme.primary}, ${props => props.theme.primary}ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
   }
-  font-family: 'Pacify Angry', sans-serif;
 
   @media (min-width: 769px) {
-    font-size: 40px;
+    font-size: 50px;
     margin-bottom: 0;
   }
-
   @media (max-width: 768px) {
-    font-size: 30px;
+    font-size: 35px;
     margin: 0;
+    margin-bottom: 10px;
   }
 `;
 
+const GradientIcon = styled.div`
+  font-size: 25px;
+  display: flex;
+  margin-left: 15px;
+  margin-top: 10px;
+  align-items: center;
+  
+  svg {
+    width: 1em;
+    height: 1em;
+    fill: url(#gradient);
+  }
+
+  @media (min-width: 769px) {
+    font-size: 40px;
+    margin-top: 15px;
+
+  }
+`;
 const SearchForm = styled.form`
   width: 100%;
   max-width: 250px;
   margin-bottom: 15px;
+
 
   @media (min-width: 769px) {
     margin-bottom: 0;
@@ -72,12 +103,13 @@ const SearchBarContainer = styled.div`
 const SearchBar = styled.input`
   padding: 10px;
   padding-right: 40px;
-  border-radius: 5px;
+  border-radius: 10px;
   border: 3px solid ${props => props.theme.primary};
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.text};
   width: 100%;
   box-sizing: border-box;
+
 `;
 
 const SearchIcon = styled(FaSearch)`
@@ -112,6 +144,8 @@ const RandomButton = styled.button`
     display: none;
   }
 `;
+
+
 
 const DiceIcon = styled(FaDice)`
   margin-right: 5px;
@@ -169,9 +203,12 @@ const MobileSearchForm = styled(SearchForm)`
 `;
 
 
+
 function Header({ toggleSidebar }) {
+    const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isTopbarOpen, setIsTopbarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -181,6 +218,9 @@ function Header({ toggleSidebar }) {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
       setIsMobileSearchOpen(false);
     }
+  };
+  const handleLogoClick = () => {
+    navigate('/');  // Redirect to home page
   };
 
   const handleRandomClick = async () => {
@@ -196,73 +236,100 @@ function Header({ toggleSidebar }) {
     }
   };
 
- const isOnMangaPage = location.pathname.includes('/manga');
+  const isOnMangaPage = location.pathname.includes('/manga');
   const isOnMoviesPage = location.pathname.includes('/movies');
   const isOnAnimePage = location.pathname.includes('/anime');
   const isOnTvShowsPage = location.pathname.includes('/tv');
   const isOnActorsPage = location.pathname.includes('/actors');
   const isOnDiscoveryPage = location.pathname === '/discovery';
+  const isOnSportsPage = location.pathname.includes('/sports');
+  const isOnKDramaPage = location.pathname.includes('/kdrama');
 
-  const getSidebarIcon = () => {
-    if (isOnMangaPage) return <FaBook />;
-    if (isOnMoviesPage) return <FaFilm />;
-    if (isOnDiscoveryPage) return <FaCompass />;
-    if (isOnTvShowsPage) return <FaTv />;
-    if (isOnAnimePage) return <FaEye />;
-    if (isOnActorsPage) return <FaUser />;
-    return <FaBars />;
+  const getIcon = () => {
+    if (isOnMangaPage) return FaBook;
+    if (isOnMoviesPage) return FaFilm;
+    if (isOnDiscoveryPage) return FaCompass;
+    if (isOnTvShowsPage) return FaTv;
+    if (isOnAnimePage) return FaEye;
+    if (isOnActorsPage) return FaUser;
+    if (isOnSportsPage) return FaBaseballBall;
+    if (isOnKDramaPage) return FaMask;
+    return FaPlayCircle;
   };
 
- return (
-    <HeaderContainer>
-      <MobileButton onClick={toggleSidebar}>
-        {getSidebarIcon()}
+  const IconComponent = getIcon();
+
+  return (
+  <HeaderContainer>
+    <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor={theme.primary} />
+          <stop offset="50%" stopColor={theme.text || theme.primary} />
+          <stop offset="100%" stopColor={`${theme.primary}cc`} />
+        </linearGradient>
+      </defs>
+    </svg>
+    
+     {/* Logo Clickable for redirection */}
+      <Logo onClick={handleLogoClick}>
+        <GradientIcon>
+          <IconComponent />
+        </GradientIcon>
+        <span className="logo-text">
+          {isOnMangaPage ? 'readbaba' : 'watchbaba'}
+        </span>
+      </Logo>
+
+    <SearchForm onSubmit={handleSearch}>
+      <SearchBarContainer>
+        <SearchBar
+          type="text"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <SearchIcon onClick={handleSearch} />
+      </SearchBarContainer>
+    </SearchForm>
+    
+    <RandomButton onClick={handleRandomClick}>
+      <DiceIcon />
+      <span className="random-text">Random</span>
+    </RandomButton>
+    
+    <MobileControls>
+      <MobileButton onClick={() => setIsMobileSearchOpen(true)}>
+        <FaSearch />
       </MobileButton>
-      <Logo>{isOnMangaPage ? 'Read.Baba' : 'Watch.Baba'}</Logo>
-      <SearchForm onSubmit={handleSearch}>
-        <SearchBarContainer>
-          <SearchBar
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <SearchIcon onClick={handleSearch} />
-        </SearchBarContainer>
-      </SearchForm>
-      <RandomButton onClick={handleRandomClick}>
-        <DiceIcon />
-        <span className="random-text">Random</span>
-      </RandomButton>
-      <MobileControls>
-        <MobileButton onClick={() => setIsMobileSearchOpen(true)}>
-          <FaSearch />
-        </MobileButton>
-        <MobileButton onClick={handleRandomClick}>
-          <FaDice />
-        </MobileButton>
-      </MobileControls>
-      {isMobileSearchOpen && (
-        <MobileSearchOverlay>
-          <MobileSearchForm onSubmit={handleSearch}>
-            <SearchBarContainer>
-              <SearchBar
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-              />
-              <SearchIcon onClick={handleSearch} />
-            </SearchBarContainer>
-          </MobileSearchForm>
-          <CloseButton onClick={() => setIsMobileSearchOpen(false)}>
-            <FaTimes />
-          </CloseButton>
-        </MobileSearchOverlay>
-      )}
-    </HeaderContainer>
-  );
+      <MobileButton onClick={() => setIsTopbarOpen(true)}>
+        <FaBars />
+      </MobileButton>
+    </MobileControls>
+    
+    {isMobileSearchOpen && (
+      <MobileSearchOverlay>
+        <MobileSearchForm onSubmit={handleSearch}>
+          <SearchBarContainer>
+            <SearchBar
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            <SearchIcon onClick={handleSearch} />
+          </SearchBarContainer>
+        </MobileSearchForm>
+        <CloseButton onClick={() => setIsMobileSearchOpen(false)}>
+          <FaTimes />
+        </CloseButton>
+      </MobileSearchOverlay>
+    )}
+    
+    <Topbar isOpen={isTopbarOpen} onClose={() => setIsTopbarOpen(false)} />
+  </HeaderContainer>
+);
 }
 
 export default Header;

@@ -2,120 +2,175 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
-import { getTopRatedMovies, getUpcomingMovies, getNowPlayingMovies } from '../services/tmdbApi';
+import { 
+  getTopRatedMovies, 
+  getUpcomingMovies, 
+  getNowPlayingMovies,
+  discoverMovies,
+  discoverTvShows
+} from '../services/tmdbApi';
 
 const Grid = styled.div`
- display: grid;
+  display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
-
+  
   @media (max-width: 768px) {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
+  }
 `;
 
-const SelectWrapper = styled.div`
-  position: relative;
-  width: 100%;
-  max-width: 300px;
+const ButtonGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 20px;
 `;
 
-const CategorySelect = styled.select`
-  appearance: none;
-  width: 100%;
-  padding: 12px 20px;
-  background-color: ${props => props.theme.background};
-  color: ${props => props.theme.text};
+const CategoryButton = styled.button`
+  padding: 10px 15px;
+  background-color: ${props => props.active ? props.theme.primary : props.theme.background};
+  color: ${props => props.active ? props.theme.background : props.theme.text};
   border: 2px solid ${props => props.theme.primary};
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
-  outline: none;
   transition: all 0.3s;
 
   &:hover {
-    background-color: ${props => props.theme.background}ee;
+    background-color: ${props => props.theme.primary}cc;
+    color: ${props => props.theme.background};
   }
 
-  &:focus {
-    box-shadow: 0 0 0 2px ${props => props.theme.primary}80;
+  @media (max-width: 768px) {
+    font-size: 12px;
+    padding: 8px 12px;
   }
 `;
 
-const SelectArrow = styled.div`
-  position: absolute;
-  top: 50%;
-  right: 15px;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid ${props => props.theme.primary};
-  pointer-events: none;
-`;
+const networks = [
+  { id: 8, name: 'Netflix' },
+  { id: 119, name: 'Amazon Prime' },
+  { id: 350, name: 'Apple TV+' },
+  { id: 283, name: 'Crunchyroll' },
+  { id: 122, name: 'Hotstar' },
+  { id: 220, name: 'Jio Cinema' },
+  { id: 232, name: 'Zee5' },
+  { id: 11, name: 'MUBI' }
+];
+
+const categories = [
+  { id: 'top_rated', name: 'Top Rated' },
+  { id: 'upcoming', name: 'Upcoming' },
+  { id: 'now_playing', name: 'Now Playing' }
+];
 
 function Discovery() {
-  const [movies, setMovies] = useState([]);
+  const [content, setContent] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [category, setCategory] = useState('top_rated');
+  const [activeCategory, setActiveCategory] = useState('top_rated');
+  const [activeNetwork, setActiveNetwork] = useState(null);
 
   useEffect(() => {
-    const fetchMovies = async () => {
+    const fetchContent = async () => {
       try {
         let response;
-        switch (category) {
-          case 'top_rated':
-            response = await getTopRatedMovies(currentPage);
-            break;
-          case 'upcoming':
-            response = await getUpcomingMovies(currentPage);
-            break;
-          case 'now_playing':
-            response = await getNowPlayingMovies(currentPage);
-            break;
-          default:
-            response = await getTopRatedMovies(currentPage);
+        
+        if (activeNetwork) {
+          const [moviesRes, tvShowsRes] = await Promise.all([
+            discoverMovies(currentPage, '', activeNetwork),
+            discoverTvShows(currentPage, '', activeNetwork)
+          ]);
+          
+          const movies = moviesRes.data.results.map(movie => ({ ...movie, media_type: 'movie' }));
+          const tvShows = tvShowsRes.data.results.map(tvShow => ({ ...tvShow, media_type: 'tv' }));
+          
+          const combinedContent = [...movies, ...tvShows].sort((a, b) => b.popularity - a.popularity);
+          
+          setContent(combinedContent);
+          setTotalPages(Math.max(moviesRes.data.total_pages, tvShowsRes.data.total_pages));
+        } else {
+          switch (activeCategory) {
+            case 'top_rated':
+              response = await getTopRatedMovies(currentPage);
+              break;
+            case 'upcoming':
+              response = await getUpcomingMovies(currentPage);
+              break;
+            case 'now_playing':
+              response = await getNowPlayingMovies(currentPage);
+              break;
+            default:
+              response = await getTopRatedMovies(currentPage);
+          }
+          setContent(response.data.results.map(movie => ({ ...movie, media_type: 'movie' })));
+          setTotalPages(response.data.total_pages);
         }
-        setMovies(response.data.results);
-        setTotalPages(response.data.total_pages);
       } catch (error) {
-        console.error('Error fetching movies:', error);
+        console.error('Error fetching content:', error);
       }
     };
 
-    fetchMovies();
-  }, [category, currentPage]);
+    fetchContent();
+  }, [activeCategory, activeNetwork, currentPage]);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
     window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
-  const handleCategoryChange = (e) => {
-    setCategory(e.target.value);
+  const handleCategoryClick = (categoryId) => {
+    setActiveCategory(categoryId);
+    setActiveNetwork(null);
     setCurrentPage(1);
   };
 
-return (
+  const handleNetworkClick = (networkId) => {
+    setActiveNetwork(networkId);
+    setActiveCategory(null);
+    setCurrentPage(1);
+  };
+
+  return (
     <div>
-      <h2>Discover Movies</h2>
-      <SelectWrapper>
-        <CategorySelect value={category} onChange={handleCategoryChange}>
-          <option value="top_rated">Top Rated</option>
-          <option value="upcoming">Upcoming</option>
-          <option value="now_playing">Now Playing</option>
-        </CategorySelect>
-        <SelectArrow />
-      </SelectWrapper>
+      <h2>Discover Content</h2>
+      <ButtonGroup>
+        {categories.map((category) => (
+          <CategoryButton
+            key={category.id}
+            active={activeCategory === category.id}
+            onClick={() => handleCategoryClick(category.id)}
+          >
+            {category.name}
+          </CategoryButton>
+        ))}
+      </ButtonGroup>
+      <ButtonGroup>
+        {networks.map((network) => (
+          <CategoryButton
+            key={network.id}
+            active={activeNetwork === network.id}
+            onClick={() => handleNetworkClick(network.id)}
+          >
+            {network.name}
+          </CategoryButton>
+        ))}
+      </ButtonGroup>
       <Grid>
-        {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
+        {content.map((item) => (
+          <MovieCard 
+            key={item.id} 
+            movie={{
+              ...item,
+              title: item.title || item.name,
+              release_date: item.release_date || item.first_air_date
+            }} 
+          />
         ))}
       </Grid>
       <Pagination
@@ -127,4 +182,4 @@ return (
   );
 }
 
-export default Discovery
+export default Discovery;

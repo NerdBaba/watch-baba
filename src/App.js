@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createGlobalStyle, styled } from 'styled-components';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import Topbar from './components/Topbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Discovery from './pages/Discovery';
@@ -23,6 +24,8 @@ import MangaDetails from './pages/MangaDetails';
 import MangaReader from './pages/MangaReader';
 import KDrama from './pages/KDrama';
 import KDramaDetails from './pages/KDramaDetails';
+import Sports from './pages/Sports';
+import Watch from './pages/Watch';
 
 
 
@@ -104,6 +107,7 @@ const GlobalStyle = createGlobalStyle`
 function App() {
   const [currentTheme, setCurrentTheme] = useState(themes.default);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isTopbarOpen, setIsTopbarOpen] = useState(false);
   const sidebarRef = useRef(null);
   useEffect(() => {
     const savedThemeName = loadTheme();
@@ -159,7 +163,11 @@ useEffect(() => {
         <AppContainer>
           <Sidebar ref={sidebarRef} setTheme={changeTheme} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
           <MainContent sidebarOpen={isSidebarOpen}>
-            <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <Header 
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        toggleTopbar={() => setIsTopbarOpen(!isTopbarOpen)}
+      />
+            <Topbar isOpen={isTopbarOpen} onClose={() => setIsTopbarOpen(false)} />
             <ContentWrapper>
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -179,6 +187,9 @@ useEffect(() => {
                 <Route path="/kdrama" element={<KDrama />} />
                 <Route path="/kdrama/:id/*" element={<KDramaDetails />} />
                 <Route path="/themes" element={<Themes setTheme={changeTheme} />} />
+                // In your App.js, add this to your Routes
+                <Route path="/sports" element={<Sports />} />
+                <Route path="/watch/:id" element={<Watch />} />
               </Routes>
             </ContentWrapper>
             <Footer />

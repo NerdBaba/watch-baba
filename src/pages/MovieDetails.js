@@ -36,10 +36,9 @@ const Hero = styled.div`
   padding: 40px;
 
   @media (max-width: 768px) {
-    height: 60vh;
-    padding: 20px;
+    height: 50vh; // Reduced from 60vh to 50vh
+    padding: 15px; // Reduced padding
   }
-
   &::before {
     content: '';
     position: absolute;
@@ -58,6 +57,9 @@ const HeroContent = styled.div`
 
   @media (max-width: 768px) {
     max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px; // Adds a small gap between elements
   }
 `;
 
@@ -84,8 +86,11 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-`;
 
+  @media (max-width: 768px) {
+    gap: 5px;
+  }
+`;
 const Button = styled.button`
   padding: 10px 20px;
   font-size: 1.1rem;
@@ -102,8 +107,9 @@ const Button = styled.button`
   }
 
   @media (max-width: 768px) {
-    font-size: 1rem;
-    padding: 8px 16px;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    gap: 5px;
   }
 `;
 
@@ -111,6 +117,11 @@ const Tagline = styled.p`
   font-style: italic;
   color: white;
   margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+  }
 `;
 
 const Ratings = styled.div`
@@ -181,7 +192,7 @@ const Section = styled.section`
 `;
 
 const SectionTitle = styled.h2`
-   font-size: 20px;
+  font-size: 20px;
   margin-bottom: 15px;
   color: ${props => props.theme.text};
   display: flex;
@@ -190,8 +201,8 @@ const SectionTitle = styled.h2`
   &:before {
     content: '';
     display: inline-block;
-    width: 7px;
-    height: 23px;
+    width: 5px;
+    height: 22px;
     background-color: ${props => props.theme.primary};
     margin-right: 10px;
     border-radius: 32px;
@@ -204,10 +215,10 @@ const SectionTitle = styled.h2`
     
     &:before {
       height: 28px;
+      width: 7px;
     }
   }
 `;
-
 const CastContainer = styled.div`
   display: flex;
   overflow-x: auto;
@@ -282,6 +293,7 @@ const Backdrop = styled.div`
   bottom: 0;
   background: rgba(0, 0, 0, 0.9);
   z-index: 1000;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -409,8 +421,8 @@ const LogoImage = styled.img`
   margin-bottom: 20px;
 
   @media (max-width: 768px) {
-   max-width: 200px; 
-   height: auto;
+    max-width: 150px; // Reduced from 200px to 150px
+    margin-bottom: 10px;
   }
 `;
 
@@ -973,7 +985,7 @@ useEffect(() => {
                   <option value="server8">Server 8</option>
                   <option value="tamilyogi">TamilYogi</option>
                   <option value="server9">Server 9</option>
-                  <option value="server10">Server 10</option>
+                  <option value="server10">Server 10 (Ads)</option>
                   <option value="server11">Server 11</option>
                   <option value="server12">Server 12 (Ads)</option>
                   <option value="server13">Server 13 (Single Ad)</option>
@@ -1013,7 +1025,7 @@ useEffect(() => {
               )}
               {watchOption === 'server6' && (
                 <AdBlockedIframe
-                src={`https://vidsrc.pro/embed/movie/${movie.id}?player=new`}
+                src={`https://vidsrc.icu/embed/movie/${movie.id}`}
               allowFullScreen
               />
               )}
@@ -1044,14 +1056,14 @@ useEffect(() => {
                 />
             )}
             {watchOption === 'server10' && (
-                <AdBlockedIframe
+                <EmbedPlayer
                 src={`https://embed.su/embed/movie/${movie.id}`}
                 allowFullScreen
                 />
               )}
             {watchOption === 'server11' && megacloudHash && (
   <AdBlockedIframe
-    src={`https://megacloud.tv/embed-1/e-1/${megacloudHash}?_debug=true`}
+    src={`${megacloudHash}`}
     allowFullScreen
   />
 )}
