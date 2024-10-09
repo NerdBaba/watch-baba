@@ -89,6 +89,28 @@ const ServerButton = styled.button`
 `;
 
 
+const Banner = styled.div`
+  background: ${props => props.theme.primary}CC;
+  color: ${props => props.theme.background};
+  padding: 10px;
+  text-align: center;
+  border-radius: 8px;
+  font-family: 'GeistVF', sans-serif;
+  margin-bottom: 15px;
+  font-size: 14px;
+
+
+
+  a {
+    color: ${props => props.theme.background || '#3498db'};
+    text-decoration: none;
+    font-weight: bold;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
 
 
 const SPORTS = [
@@ -140,14 +162,14 @@ function Watch() {
       setLoading(true);
       
       // First try live/popular
-      let response = await fetch('https://streamed.su/api/matches/live/popular');
+      let response = await fetch('https://sports.mda2233.workers.dev/api/matches/live/popular');
       let matches = await response.json();
       let match = matches.find(m => m.id === id);
       
       // If not found, try each sport
       if (!match) {
         for (const sport of SPORTS) {
-          response = await fetch(`https://streamed.su/api/matches/${sport}`);
+          response = await fetch(`https://sports.mda2233.workers.dev/api/matches/${sport}`);
           matches = await response.json();
           match = matches.find(m => m.id === id);
           if (match) break;
@@ -182,6 +204,11 @@ function Watch() {
 
   return (
     <WatchContainer>
+      <Banner>
+        <a href="https://fmhy.pages.dev/adblockvpnguide#vpn" target="_blank" rel="noopener noreferrer">
+          If Stream Doesn't Load Use A Free VPN
+        </a>
+      </Banner>
       <PlayerContainer>
         <iframe
           src={getEmbedUrl(selectedSource, selectedNumber)}

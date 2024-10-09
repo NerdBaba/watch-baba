@@ -985,7 +985,7 @@ useEffect(() => {
                   <option value="server8">Server 8</option>
                   <option value="tamilyogi">TamilYogi</option>
                   <option value="server9">Server 9</option>
-                  <option value="server10">Server 10</option>
+                  <option value="server10">Server 10 (Ads)</option>
                   <option value="server11">Server 11</option>
                   <option value="server12">Server 12 (Ads)</option>
                   <option value="server13">Server 13 (Single Ad)</option>
@@ -1025,7 +1025,7 @@ useEffect(() => {
               )}
               {watchOption === 'server6' && (
                 <AdBlockedIframe
-                src={`https://vidsrc.pro/embed/movie/${movie.id}?player=new`}
+                src={`https://vidsrc.icu/embed/movie/${movie.id}`}
               allowFullScreen
               />
               )}
@@ -1056,14 +1056,14 @@ useEffect(() => {
                 />
             )}
             {watchOption === 'server10' && (
-                <AdBlockedIframe
+                <EmbedPlayer
                 src={`https://embed.su/embed/movie/${movie.id}`}
                 allowFullScreen
                 />
               )}
             {watchOption === 'server11' && megacloudHash && (
   <AdBlockedIframe
-    src={`https://megacloud.tv/embed-1/e-1/${megacloudHash}?_debug=true`}
+    src={`${megacloudHash}`}
     allowFullScreen
   />
 )}

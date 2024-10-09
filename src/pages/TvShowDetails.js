@@ -529,29 +529,46 @@ function TvShowDetails() {
 
 
 // Fullscreen Fix For Mobiles
-  const videoContainerRef = useRef(null);
+const videoContainerRef = useRef(null);
 
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        // Exiting fullscreen
-        document.body.style.zoom = 1;
-        document.body.style.width = '100%';
-        if (videoContainerRef.current) {
-          videoContainerRef.current.style.width = '100%';
-          videoContainerRef.current.style.height = 'auto';
-        }
+useEffect(() => {
+  const handleFullscreenChange = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      // Entering fullscreen
+      if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+        window.screen.orientation.lock('landscape').catch((err) => {
+          console.error('Failed to lock orientation:', err);
+        });
       }
-    };
+      
+      if (videoContainerRef.current) {
+        videoContainerRef.current.style.width = '100vw';
+        videoContainerRef.current.style.height = '100vh';
+      }
+    } else {
+      // Exiting fullscreen
+      if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+        window.screen.orientation.unlock();
+      }
+      
+      document.body.style.zoom = 1;
+      document.body.style.width = '100%';
+      
+      if (videoContainerRef.current) {
+        videoContainerRef.current.style.width = '100%';
+        videoContainerRef.current.style.height = 'auto';
+      }
+    }
+  };
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-    };
-  }, []);
+  return () => {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+  };
+}, []);
 
 
   const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
@@ -728,7 +745,7 @@ useEffect(() => {
                   <option value="server7">Server 7 (Ads)</option>
                   <option value="server8">Server 8</option>
                   <option value="server9">Server 9</option>
-                  <option value="server10">Server 10</option>
+                  <option value="server10">Server 10 (Ads)</option>
                   <option value="server11">Server 11</option>
                   <option value="server12">Server 12 (Ads) </option>
                   <option value="server13">Server 13 (Single Ad)</option>
@@ -763,8 +780,9 @@ useEffect(() => {
                 />
               )}
              {watchOption === 'server6' && (
-                <AdBlockedIframe 
-                  src={`https://vidsrc.pro/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}?player=new`}
+                <AdBlockedIframe
+                  src={`https://vidsrc.icu/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                  
                   allowFullScreen
                 />
               )} 
@@ -801,14 +819,14 @@ useEffect(() => {
                 />
               )}
               {watchOption === 'server10' && (
-                <AdBlockedIframe
+                <EmbedPlayer
                 src={`https://embed.su/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                 allowFullScreen
                 />
               )}
               {watchOption === 'server11' && megacloudHash && (
   <EmbedPlayer
-    src={`https://megacloud.tv/embed-1/e-1/${megacloudHash}?_debug=true`}
+    src={`${megacloudHash}`}
     allowFullScreen
   />
 )}

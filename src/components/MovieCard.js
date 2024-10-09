@@ -69,6 +69,7 @@ const Rating = styled.div`
   background-color: rgba(0, 0, 0, 0.7);
   color: #ffd700;
   padding: 4px 6px;
+  margin-top: 8px;
   border-radius: 4px;
   font-weight: bold;
   font-size: 14px;
