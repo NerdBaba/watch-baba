@@ -7,15 +7,21 @@ const SportsContainer = styled.div`
   padding: 20px;
   color: ${props => props.theme.text};
   background: ${props => props.theme.background};
+  font-family: 'GeistVF', 'Watchbaba', sans-serif;
+  
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 `;
 
 const SectionTitle = styled.h2`
   font-size: 1.25rem;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   color: ${props => props.theme.text};
   display: flex;
   justify-content: space-between;
   align-items: center;
+
 `;
 
 const NavigationButtons = styled.div`
@@ -108,12 +114,18 @@ const SportName = styled.span`
 `;
 
 const MatchesGrid = styled.div`
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
   max-height: 600px;
   overflow-y: auto;
-  padding-right: 10px;
+  padding-top: 8px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+  }
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -125,7 +137,7 @@ const MatchesGrid = styled.div`
   }
 
   &::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.primary};
+    background: ${props => props.theme.primary}33;
     border-radius: 4px;
   }
 `;
@@ -133,18 +145,69 @@ const MatchesGrid = styled.div`
 const MatchCard = styled(Link)`
   background: ${props => props.theme.background};
   border: 1px solid ${props => props.theme.primary};
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 16px;
+  padding: 12px;
   text-decoration: none;
   color: ${props => props.theme.text};
   transition: all 0.3s ease;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 768px) {
+    border-radius: 12px;
+    padding: 10px;
+    width: 90%;
+    margin-right: 0;
+  }
 
   &:hover {
-    background: ${props => props.theme.primary};
-    color: ${props => props.theme.background};
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+`;
+
+const MatchPoster = styled.div`
+  width: 100%;
+  height: 120px;
+  background-image: ${props => props.poster ? `url(${props.poster})` : 'none'};
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    height: 120px;
+    border-radius: 8px;
+  }
+
+  &::before {
+    content: '${props => props.placeholder || ''}';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: ${props => props.poster ? 'none' : props.theme.primary};
+    opacity: 0.1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: ${props => props.theme.text};
+    font-family: 'Watchbaba', sans-serif;
+  }
+`;
+
+const SportTitle = styled.h3`
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: ${props => props.theme.primary};
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
   }
 `;
 
@@ -157,53 +220,87 @@ const TeamsContainer = styled.div`
 const TeamInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  max-width: 45%;
+
+  @media (max-width: 768px) {
+    gap: 4px;
+  }
 `;
 
 const TeamBadge = styled.img`
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 18px;
+    height: 18px;
+  }
 `;
 
 const TeamBadgePlaceholder = styled.div`
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: ${props => props.theme.primary};
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: ${props => props.theme.background};
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
+  }
 `;
 
 const TeamName = styled.span`
-  font-size: 0.875rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 0.7rem;
+  }
 `;
 
 const MatchTime = styled.div`
-  font-size: 0.75rem;
-  color: ${props => props.theme.text};
-  margin-bottom: 8px;
+  font-size: 0.7rem;
+  color: ${props => props.theme.background};
+  margin-bottom: 6px;
   background: ${props => props.theme.primary};
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 3px 6px;
+  border-radius: 10px;
+
+  @media (max-width: 768px) {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+  }
 `;
 
 const LiveTag = styled.span`
   background: #ff3b30;
   color: #ffffff;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
+  padding: 3px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
   font-weight: 500;
   display: inline-block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   box-shadow: 0 2px 4px rgba(255, 59, 48, 0.3);
-`;
 
+  @media (max-width: 768px) {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+  }
+`;
 const NoMatches = styled.div`
   text-align: center;
   padding: 20px;
@@ -320,8 +417,10 @@ function Sports() {
         </SportCard>
         {sports.map(sport => (
           <SportCard key={sport.id} onClick={() => setSelectedSport(sport.id)}>
-            <SportIcon active={selectedSport === sport.id}>{sport.name.charAt(0).toUpperCase()}</SportIcon>
-           <SportName>{sport.name}</SportName>
+            <SportIcon active={selectedSport === sport.id}>
+              <FaBowlingBall />
+            </SportIcon>
+            <SportName>{sport.name}</SportName>
           </SportCard>
         ))}
       </SportCardsGrid>
@@ -344,6 +443,11 @@ function Sports() {
               to={`/watch/${match.id}`}
               state={{ matchData: match }}
             >
+              <MatchPoster 
+                poster={match.poster ? `https://sports.mda2233.workers.dev${match.poster}` : null}
+                placeholder={match.category.charAt(0).toUpperCase()}
+              />
+              <SportTitle>{match.category}</SportTitle>
               {isLive(match) ? (
                 <LiveTag>LIVE</LiveTag>
               ) : (

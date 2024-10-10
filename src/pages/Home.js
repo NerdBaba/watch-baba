@@ -17,6 +17,22 @@ const HomeContainer = styled.div`
     width: 100%;
   }
 `;
+
+const LoadingSpinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid ${props => props.theme.spinnerBorder};
+  border-top: 4px solid ${props => props.theme.primary};
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
 const ScrollContainer = styled.div`
   display: flex;
   overflow-x: auto;
@@ -185,26 +201,27 @@ function Home() {
     </>
   );
 
-  return (
-    <HomeContainer>
-      {!loadingPrimary && (
-        <>
-          {renderScrollableSection('Popular Movies', popularMovies, MovieCard)}
-          {renderScrollableSection('Popular TV Shows', popularTvShows, MovieCard)}
-          {renderScrollableSection('Popular Anime', popularAnime, AnimeCard)}
-          {popularKDramas && popularKDramas.length > 0 &&
-            renderScrollableSection('Popular K-Dramas', popularKDramas, KDramaCard)}
-        </>
-      )}
+return (
+  <HomeContainer>
+    {(loadingPrimary) && <LoadingSpinner />}
+    
+    {!loadingPrimary && (
+      <>
+        {renderScrollableSection('Popular Movies', popularMovies, MovieCard)}
+        {renderScrollableSection('Popular TV Shows', popularTvShows, MovieCard)}
+        {renderScrollableSection('Popular Anime', popularAnime, AnimeCard)}
+        {popularKDramas && popularKDramas.length > 0 &&
+          renderScrollableSection('Popular K-Dramas', popularKDramas, KDramaCard)}
+      </>
+    )}
 
-      {!loadingNetworks && networks.map((network) => (
-        <React.Fragment key={network.id}>
-          {networkContent[network.name] && networkContent[network.name].length > 0 &&
-            renderScrollableSection(network.name, networkContent[network.name], MovieCard)}
-        </React.Fragment>
-      ))}
-    </HomeContainer>
-  );
+    {!loadingNetworks && networks.map((network) => (
+      <React.Fragment key={network.id}>
+        {networkContent[network.name] && networkContent[network.name].length > 0 &&
+          renderScrollableSection(network.name, networkContent[network.name], MovieCard)}
+      </React.Fragment>
+    ))}
+  </HomeContainer>
+);
 }
-
 export default Home;

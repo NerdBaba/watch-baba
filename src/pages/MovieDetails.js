@@ -494,18 +494,14 @@ const DownloadLinkButton = styled.a`
 
 
 const AdBlockedIframe = ({ src, allowFullScreen }) => {
-  const [isBlocked, setIsBlocked] = useState(false);
   const iframeRef = useRef(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
     const checkDomain = () => {
       const blockedDomains = [
         'example-ad-domain.com',
         'another-ad-domain.com',
-          'cooperateboneco.com',
-          'amung.us',
-          'prd.jwpltx.com',
-        // Add more blocked domains here
       ];
       const url = new URL(src);
       if (blockedDomains.some(domain => url.hostname.includes(domain))) {
@@ -531,7 +527,7 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
   }, [src]);
 
   if (isBlocked) {
-    return null; // Return nothing if the domain is blocked
+    return null;
   }
 
   return (
@@ -873,6 +869,38 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
+  const handleFullscreenChange = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+          window.screen.orientation.lock('landscape').catch((err) => {
+            console.error('Failed to lock orientation:', err);
+          });
+        }
+      } catch (err) {
+        // Handle error or silently fail if screen orientation API is not supported
+      }
+    } else {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+          window.screen.orientation.unlock();
+        }
+      } catch (err) {
+        // Handle error or silently fail
+      }
+    }
+  };
+
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+  return () => {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+  };
+}, []);
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -1031,7 +1059,8 @@ useEffect(() => {
               )}
                 {watchOption === 'server7' && (
                 <EmbedPlayer 
-                  src={`https://moviee.tv/embed/movie/${movie.id}`}
+                  // src={`https://moviee.tv/embed/movie/${movie.id}`}
+                src={`https://vidsrc.xyz/embed/movie/${movie.id}`}
                   allowFullScreen
                 />
               )}
