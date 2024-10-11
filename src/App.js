@@ -26,6 +26,8 @@ import KDrama from './pages/KDrama';
 import KDramaDetails from './pages/KDramaDetails';
 import Sports from './pages/Sports';
 import Watch from './pages/Watch';
+import Books from './pages/Books';
+
 
 
 
@@ -190,6 +192,8 @@ useEffect(() => {
                 // In your App.js, add this to your Routes
                 <Route path="/sports" element={<Sports />} />
                 <Route path="/watch/:id" element={<Watch />} />
+                // In your Routes component, add these new routes:
+<Route path="/books" element={<Books />} />
               </Routes>
             </ContentWrapper>
             <Footer />

@@ -24,7 +24,7 @@ const LoadingSpinner = styled.div`
   border: 4px solid ${props => props.theme.spinnerBorder};
   border-top: 4px solid ${props => props.theme.primary};
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 2s linear infinite;
   margin: 20px auto;
 
   @keyframes spin {

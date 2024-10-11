@@ -13,10 +13,11 @@ const SidebarContainer = styled.nav`
   width: ${(props) => (props.isOpen ? '200px' : '60px')};
   background-color: ${(props) => props.theme.background};
   padding: 20px 8px;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   position: fixed;
   height: 100%;
-  overflow-y: auto;
+  overflow-y: hidden;
+  overflow-x: hidden;
   z-index: 1000;
   top: 0;
   left: 0;

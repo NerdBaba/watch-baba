@@ -9,6 +9,7 @@ const TopbarOverlay = styled.div`
   @media (max-width: 768px) {
     display: ${props => props.isOpen ? 'flex' : 'none'};
     position: fixed;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
     top: 0;
     left: 0;
     right: 0;

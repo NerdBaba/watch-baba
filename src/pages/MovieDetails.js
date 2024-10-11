@@ -6,7 +6,7 @@ import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExte
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 // import DownloadOption from '../components/DownloadOption';
-import { FaPlay, FaInfoCircle, FaTimes, FaDownload } from 'react-icons/fa';
+import { FaPlay, FaInfoCircle, FaTimes, FaDownload, FaUser } from 'react-icons/fa';
 
 
 
@@ -71,12 +71,17 @@ const Title = styled.h1`
     font-size: 2rem;
   }
 `;
-
 const Overview = styled.p`
   font-size: 1.2rem;
   margin-bottom: 20px;
   font-family: 'GeistVF';
   color: white;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
   @media (max-width: 768px) {
     font-size: 0.8rem;
   }
@@ -140,9 +145,7 @@ const RatingItem = styled.span`
   align-items: center;
   gap: 5px;
   font-family: 'GeistVF';
-  svg {
-    color: ${props => props.theme.accent};
-  }
+  color: white;
 
 @media (max-width: 768px) {
     font-size: 0.8rem;
@@ -156,7 +159,7 @@ const InfoItem = styled.p`
   color:white;
 
   @media (max-width: 768px) {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
   }
 `;
 
@@ -263,6 +266,27 @@ const CastImage = styled.img`
     width: 100px;
     height: 100px;
   }
+`;
+
+const PlaceholderImage = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: ${props => props.theme.primary};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    width: 100px;
+    height: 100px;
+  }
+`;
+
+const PlaceholderIcon = styled(FaUser)`
+  font-size: 60px;
+  color: ${props => props.theme.background};
 `;
 
 const CastName = styled.p`
@@ -962,15 +986,21 @@ useEffect(() => {
           <Section>
             <SectionTitle>Cast</SectionTitle>
             <CastContainer>
-              {cast.map((member) => (
-                <CastMember key={member.id} to={`/actor/${member.id}`}>
-                  <CastImage 
-                    src={member.profile_path ? `https://image.tmdb.org/t/p/w200${member.profile_path}` : '/placeholder.png'} 
-                    alt={member.name} 
-                  />
-                  <CastName>{member.name}</CastName>
-                </CastMember>
-              ))}
+             {cast.map((member) => (
+  <CastMember key={member.id} to={`/actor/${member.id}`}>
+    {member.profile_path ? (
+      <CastImage 
+        src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} 
+        alt={member.name} 
+      />
+    ) : (
+      <PlaceholderImage>
+        <PlaceholderIcon />
+      </PlaceholderImage>
+    )}
+    <CastName>{member.name}</CastName>
+  </CastMember>
+))}
             </CastContainer>
           </Section>
         </Suspense>

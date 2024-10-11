@@ -6,7 +6,7 @@ import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShow
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 // import DownloadOption from '../components/DownloadOption';
-import { FaPlay, FaInfoCircle, FaTimes} from 'react-icons/fa';
+import { FaPlay, FaInfoCircle, FaTimes, FaUser} from 'react-icons/fa';
 
 
 const TvShowContainer = styled.div`
@@ -338,6 +338,28 @@ const ControlsContainer = styled.div`
     align-items: center;
   }
 `;
+
+const PlaceholderImage = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: ${props => props.theme.primary};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    width: 100px;
+    height: 100px;
+  }
+`;
+
+const PlaceholderIcon = styled(FaUser)`
+  font-size: 60px;
+  color: ${props => props.theme.background};
+`;
+
 
 const Select = styled.select`
   background-color: ${props => props.theme.background};
@@ -724,15 +746,21 @@ useEffect(() => {
         <Section>
           <SectionTitle>Cast</SectionTitle>
           <CastContainer>
-            {cast.map((member) => (
-              <CastMember key={member.id} to={`/actor/${member.id}`}>
-                <CastImage 
-                  src={member.profile_path ? `https://image.tmdb.org/t/p/w200${member.profile_path}` : '/placeholder.png'} 
-                  alt={member.name} 
-                />
-                <CastName>{member.name}</CastName>
-              </CastMember>
-            ))}
+             {cast.map((member) => (
+  <CastMember key={member.id} to={`/actor/${member.id}`}>
+    {member.profile_path ? (
+      <CastImage 
+        src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} 
+        alt={member.name} 
+      />
+    ) : (
+      <PlaceholderImage>
+        <PlaceholderIcon />
+      </PlaceholderImage>
+    )}
+    <CastName>{member.name}</CastName>
+  </CastMember>
+))}
           </CastContainer>
         </Section>
 
