@@ -304,9 +304,45 @@ const VideoContainer = styled.div`
   max-width: 1200px;
   aspect-ratio: 16 / 9;
 
+   @media (min-width: 501px) {
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
 
-  @media (min-width: 768px) and (max-width: 1024px) {
-    width: 95%;
+    &::-webkit-scrollbar-track {
+      background: ${props => props.theme.background};
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: ${props => props.theme.primary};
+      border-radius: 5px;
+    }
+  }
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 500px) {
+    overflow-y: hidden;
+  }
+
+@media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 80vw;
+    padding: 2vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 75vw;
+    padding: 1.5vw;
   }
 `;
 
@@ -330,6 +366,8 @@ const EmbedPlayer = styled.iframe`
   height: 100%;
   border: none;
   aspect-ratio: 16 / 9;
+
+
 
   @media (max-width: 768px) {
     height: 56.25vw;

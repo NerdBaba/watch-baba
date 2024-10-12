@@ -2,7 +2,7 @@ import React, {forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars, FaPalette, FaEye,FaBook,  FaMask,FaBaseballBall } from 'react-icons/fa';
-
+import{Sidebar as FeatherSidebar} from 'react-feather';
 // import { themes } from '../theme';
 
 const SidebarContainer = styled.nav`
@@ -85,7 +85,7 @@ const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
   return (
     <SidebarContainer ref={ref} isOpen={isOpen}>
       <ToggleButton onClick={toggleSidebar} isOpen={isOpen}>
-        {isOpen ? <FaTimes /> : <FaBars />}
+        {isOpen ? <FaTimes /> : <FeatherSidebar />}
       </ToggleButton>
       <NavItem to="/">
         <IconWrapper isOpen={isOpen}><FaHome /></IconWrapper>

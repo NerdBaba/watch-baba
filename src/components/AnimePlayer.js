@@ -32,6 +32,27 @@ const PlayerContainer = styled.div`
   max-width: 1200px;
   display: flex;
   flex-direction: column;
+@media (min-width: 501px) {
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: ${props => props.theme.background};
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: ${props => props.theme.primary};
+      border-radius: 5px;
+    }
+  }
+
+  @media (max-width: 500px) {
+    overflow-y: hidden;
+  }
+
+overflow: auto;
+  -webkit-overflow-scrolling: touch;
 
   @media (min-width: 1440px) {
     max-width: 1400px;

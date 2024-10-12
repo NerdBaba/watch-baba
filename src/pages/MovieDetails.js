@@ -341,12 +341,52 @@ const Backdrop = styled.div`
 
 const VideoContainer = styled.div`
   position: relative;
-  width: 90%;
-  max-width: 1200px;
-  aspect-ratio: 16 / 9;
+  width: 90vw; 
+  margin: 0 auto;
+  padding: 5vw;
+  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
 
-  @media (min-width: 768px) and (max-width: 1024px) {
-    width: 95%;
+  @media (min-width: 501px) {
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: ${props => props.theme.background};
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: ${props => props.theme.primary};
+      border-radius: 5px;
+    }
+  }
+
+  @media (max-width: 500px) {
+    overflow-y: hidden;
+  }
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 80vw;
+    padding: 2vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 75vw;
+    padding: 1.5vw;
   }
 `;
 
@@ -371,12 +411,14 @@ const EmbedPlayer = styled.iframe`
   height: 100%;
   border: none;
   aspect-ratio: 16 / 9;
+  // overflow: auto;
+  // -webkit-overflow-scrolling: touch;
 
   @media (max-width: 768px) {
     height: 56.25vw;
   }
 
-   @media (max-width: 1024px) {
+  @media (max-width: 1024px) {
     height: 56.25vw;
   }
 `;
@@ -1066,6 +1108,7 @@ useEffect(() => {
                   <option value="server16">Server 16 (Site)</option>
                 </ServerDropdown>
               </ControlsContainer>
+
               {watchOption === 'server1' && (
                 <VideoPlayer tmdbId={movie.id} />
               )}

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {styled,useTheme} from 'styled-components';
 import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass, FaPlayCircle,FaBaseballBall,FaMask } from 'react-icons/fa';
 import { getPopularMovies, getPopularTvShows } from '../services/tmdbApi';
+import { FaBarsStaggered } from 'react-icons/fa6';
 import Topbar from './Topbar';
 
 const HeaderContainer = styled.header`
@@ -52,9 +53,10 @@ const Logo = styled.div`
     font-size: 50px;
     margin-bottom: 0;
   }
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     font-size: 35px;
     margin: 0;
+    margin-right: 15px;
     margin-bottom: 10px;
   }
 `;
@@ -303,7 +305,7 @@ function Header({ toggleSidebar }) {
         <FaSearch />
       </MobileButton>
       <MobileButton onClick={() => setIsTopbarOpen(true)}>
-        <FaBars />
+        <FaBarsStaggered  />
       </MobileButton>
     </MobileControls>
     
