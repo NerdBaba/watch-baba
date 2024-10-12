@@ -15,6 +15,26 @@ const Card = styled(Link)`
   &:hover {
     transform: scale(1.05);
   }
+
+  @media (min-width: 768px) {
+    border-radius: 6px;
+  }
+
+  @media (min-width: 1024px) {
+    border-radius: 8px;
+  }
+
+  @media (min-width: 1440px) {
+    border-radius: 10px;
+  }
+
+  @media (min-width: 2560px) {
+    border-radius: 12px;
+  }
+
+  @media (min-width: 3840px) {
+    border-radius: 16px;
+  }
 `;
 
 const PosterContainer = styled.div`
@@ -25,13 +45,14 @@ const PosterContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  border-radius: inherit;
 `;
 
 const Poster = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: inherit;
 `;
 
 const HoverOverlay = styled.div`
@@ -57,6 +78,44 @@ const Title = styled.h3`
   font-size: 14px;
   color: ${props => props.theme.primary};
   padding: 0 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+
+  
+    @media (max-width: 480px) {
+    font-size: 12px;
+  }
+  @media (min-width: 768px) {
+    font-size: 14px;
+    margin: 14px 0 7px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 16px;
+    margin: 16px 0 8px;
+  }
+
+  @media (min-width: 1440px) {
+    font-size: 18px;
+    margin: 18px 0 9px;
+    padding: 0 14px;
+  }
+
+  @media (min-width: 2560px) {
+    font-size: 24px;
+    margin: 20px 0 10px;
+    padding: 0 16px;
+  }
+
+  @media (min-width: 3840px) {
+    font-size: 32px;
+    margin: 24px 0 12px;
+    padding: 0 20px;
+  }
 `;
 
 const DetailItem = styled.div`

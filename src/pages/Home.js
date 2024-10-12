@@ -14,7 +14,17 @@ const HomeContainer = styled.div`
   
   @media (max-width: 768px) {
     padding: 10px;
-    width: 100%;
+  }
+
+  @media (min-width: 2560px) {
+    padding: 30px;
+    max-width: 2400px;
+    margin: 0 auto;
+  }
+
+  @media (min-width: 3840px) {
+    padding: 40px;
+    max-width: 3400px;
   }
 `;
 
@@ -31,33 +41,82 @@ const LoadingSpinner = styled.div`
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+
+  @media (min-width: 2560px) {
+    width: 60px;
+    height: 60px;
+    border-width: 6px;
+  }
+
+  @media (min-width: 3840px) {
+    width: 80px;
+    height: 80px;
+    border-width: 8px;
+  }
 `;
 
 const ScrollContainer = styled.div`
   display: flex;
   overflow-x: auto;
   margin-bottom: 0px;
-  padding-bottom: 10px;
+  padding-bottom: 0px;
   width: 100%;
   -webkit-overflow-scrolling: touch;
   
-  /* Hide scrollbar for cleaner mobile appearance */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   
   &::-webkit-scrollbar {
-    display: none; /* WebKit */
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+   margin-bottom: 10px; 
+   padding-bottom: 5px;
+  }
+
+  @media (min-width: 2560px) {
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+  }
+
+  @media (min-width: 3840px) {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
   }
 `;
 
 const CardWrapper = styled.div`
   flex: 0 0 auto;
-  width: 150px;
-  margin-right: 15px;
+  width: 120px;
+  margin-right: 10px;
+
+  @media (min-width: 480px) {
+    width: 140px;
+    margin-right: 15px;
+  }
 
   @media (min-width: 768px) {
-    width: 200px;
+    width: 160px;
+  }
+
+  @media (min-width: 1024px) {
+    width: 180px;
     margin-right: 20px;
+  }
+
+  @media (min-width: 1440px) {
+    width: 200px;
+  }
+
+  @media (min-width: 2560px) {
+    width: 240px;
+    margin-right: 25px;
+  }
+
+  @media (min-width: 3840px) {
+    width: 300px;
+    margin-right: 30px;
   }
 
   &:last-child {
@@ -66,7 +125,7 @@ const CardWrapper = styled.div`
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 20px;
+  font-size: 18px;
   margin-bottom: 15px;
   color: ${(props) => props.theme.text};
   display: flex;
@@ -75,20 +134,69 @@ const SectionTitle = styled.h2`
   &:before {
     content: '';
     display: inline-block;
-    width: 5px;
-    height: 22px;
+    width: 4px;
+    height: 18px;
     background-color: ${(props) => props.theme.primary};
-    margin-right: 10px;
+    margin-right: 8px;
     border-radius: 32px;
   }
 
+  @media (min-width: 480px) {
+    font-size: 20px;
+
+    &:before {
+      width: 5px;
+      height: 20px;
+    }
+  }
+
   @media (min-width: 768px) {
-    font-size: 26px;
+    font-size: 22px;
     margin-bottom: 20px;
 
     &:before {
-      height: 28px;
+      height: 22px;
+      width: 6px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 24px;
+
+    &:before {
+      height: 24px;
       width: 7px;
+    }
+  }
+
+  @media (min-width: 1440px) {
+    font-size: 26px;
+
+    &:before {
+      height: 26px;
+      width: 8px;
+    }
+  }
+
+  @media (min-width: 2560px) {
+    font-size: 32px;
+    margin-bottom: 25px;
+
+    &:before {
+      height: 32px;
+      width: 10px;
+      margin-right: 12px;
+    }
+  }
+
+  @media (min-width: 3840px) {
+    font-size: 40px;
+    margin-bottom: 30px;
+
+    &:before {
+      height: 40px;
+      width: 12px;
+      margin-right: 16px;
     }
   }
 `;

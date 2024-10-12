@@ -29,10 +29,30 @@ const PlayerBackdrop = styled.div`
 
 
 const PlayerContainer = styled.div`
-  width: 100%;
-  max-width: 1200px;
-  display: flex;
-  flex-direction: column;
+width: 90vw; 
+  margin: 0 auto;
+  padding: 5vw;  /* Padding is now responsive to the viewport width */
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 80vw;
+    padding: 2vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 75vw;
+    padding: 1.5vw;
+  }
 `;
 
 const ControlsBar = styled.div`

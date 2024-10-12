@@ -8,7 +8,6 @@ import {
 import '@vidstack/react/player/styles/default/theme.css';
 import '@vidstack/react/player/styles/default/layouts/video.css';
 import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
-
 const PlayerBackdrop = styled.div`
   position: fixed;
   top: 0;
@@ -21,7 +20,11 @@ const PlayerBackdrop = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 10px;
+
+  @media (min-width: 768px) {
+    padding: 20px;
+  }
 `;
 
 const PlayerContainer = styled.div`
@@ -29,19 +32,27 @@ const PlayerContainer = styled.div`
   max-width: 1200px;
   display: flex;
   flex-direction: column;
+
+  @media (min-width: 1440px) {
+    max-width: 1400px;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 2000px;
+  }
 `;
 
 const ControlsBar = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 5px;
   margin-bottom: 10px;
   width: 100%;
   justify-content: space-between;
   align-items: center;
 
-  @media (max-width: 768px) {
-    gap: 5px;
+  @media (min-width: 768px) {
+    gap: 10px;
   }
 `;
 
@@ -50,30 +61,35 @@ const ControlGroup = styled.div`
   gap: 5px;
   align-items: center;
   flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
 `;
 
 const EpisodeTitle = styled.span`
   color: ${props => props.theme.text};
-  font-size: 1.1rem;
-  padding: 8px;
+  font-size: 0.9rem;
+  padding: 6px;
   font-family: 'GeistVF', sans-serif;
   
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
+  @media (min-width: 768px) {
+    font-size: 1.1rem;
+    padding: 8px;
+  }
+
+  @media (min-width: 1440px) {
+    font-size: 1.2rem;
+  }
+
+  @media (min-width: 2560px) {
+    font-size: 1.3rem;
   }
 `;
 
 const ControlButton = styled.button`
-  background: ${props => props.active ?  (props.theme.primary) : (props.theme.background || '#fff')};
-  color: ${props => props.active ? (props.theme.background) : (props.theme.primary || '#fff')};
+  background: ${props => props.active ? props.theme.primary : props.theme.background};
+  color: ${props => props.active ? props.theme.background : props.theme.primary};
   border: none;
   border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
+  padding: 6px 10px;
+  font-size: 0.8rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -84,7 +100,7 @@ const ControlButton = styled.button`
 
   &:hover {
     opacity: 0.8;
-  background-color: ${props => props.active ? props.theme.primary : `${props.theme.primary}33`};
+    background-color: ${props => props.active ? props.theme.primary : `${props.theme.primary}33`};
   }
   
   &:disabled {
@@ -92,9 +108,19 @@ const ControlButton = styled.button`
     cursor: not-allowed;
   }
 
-  @media (max-width: 768px) {
-    padding: 6px 10px;
-    font-size: 0.8rem;
+  @media (min-width: 768px) {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  @media (min-width: 1440px) {
+    padding: 10px 14px;
+    font-size: 1rem;
+  }
+
+  @media (min-width: 2560px) {
+    padding: 12px 16px;
+    font-size: 1.1rem;
   }
 `;
 
