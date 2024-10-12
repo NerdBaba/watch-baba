@@ -11,9 +11,12 @@ const HomeContainer = styled.div`
   padding: 20px;
   display: grid;
   overflow-x: hidden;
+
+
   
   @media (max-width: 768px) {
     padding: 10px;
+    width: 100%;
   }
 
   @media (min-width: 2560px) {
@@ -88,7 +91,7 @@ const ScrollContainer = styled.div`
 
 const CardWrapper = styled.div`
   flex: 0 0 auto;
-  width: 120px;
+  width: 140px;
   margin-right: 10px;
 
   @media (min-width: 480px) {
