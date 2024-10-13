@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 const Card = styled(Link)`
   width: 100%;
-  max-width: 160px;
+  max-width: 200px;
   text-decoration: none;
   color: #fff;
   position: relative;
@@ -197,7 +197,7 @@ const Icon = styled.span`
 
 const Title = styled.h3`
   margin: 12px 0 6px;
-  font-size: 14px;
+  font-size: 15px;
   color: ${props => props.theme.primary};
   padding: 0 12px;
   display: -webkit-box;
@@ -209,16 +209,7 @@ const Title = styled.h3`
  @media (max-width: 480px) {
     font-size: 12px;
   }
-  @media (min-width: 768px) {
-    font-size: 14px;
-    margin: 14px 0 7px;
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 16px;
-    margin: 16px 0 8px;
-  }
-
+ 
   @media (min-width: 1440px) {
     font-size: 18px;
     margin: 18px 0 9px;
@@ -243,6 +234,10 @@ const Genre = styled.p`
   color: ${props => props.theme.text};
   margin: 0 0 12px;
   padding: 0 12px;
+
+  @media (max-width: 480px) {
+   font-size: 10px; 
+  }
 
   @media (min-width: 768px) {
     font-size: 13px;

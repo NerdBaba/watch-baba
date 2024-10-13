@@ -26,7 +26,8 @@ const TvShowContainer = styled.div`
   }
 
   @media (min-width: 1440px) {
-    max-width: 80vw;
+        max-width: 100vw;
+
     padding: 2vw;
   }
 

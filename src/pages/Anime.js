@@ -7,7 +7,7 @@ import LoadingScreen from '../components/LoadingScreen';
 
 const AnimeContainer = styled.div`
   padding: 20px;
-  max-width: 1600px;
+  max-width: 2000px;
   margin: 0 auto;
 
   @media (min-width: 2560px) {

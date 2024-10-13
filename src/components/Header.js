@@ -29,7 +29,34 @@ const HeaderContainer = styled.header`
     align-items: center;
   }
 `;
+const CustomIcon = styled.i`
+  font-family: 'icomoon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 25px;
+  display: flex;
+  margin-left: 15px;
+  margin-top: 10px;
+  align-items: center;
+  
+  svg {
+    width: 1em;
+    height: 1em;
+    fill: url(#gradient);
+  }
 
+  @media (min-width: 769px) {
+    font-size: 40px;
+    margin-top: 15px;
+  }
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+`;
 
 
 const Logo = styled.div`
@@ -207,7 +234,7 @@ const MobileSearchForm = styled(SearchForm)`
 
 
 function Header({ toggleSidebar }) {
-    const theme = useTheme();
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isTopbarOpen, setIsTopbarOpen] = useState(false);
@@ -221,8 +248,20 @@ function Header({ toggleSidebar }) {
       setIsMobileSearchOpen(false);
     }
   };
+
   const handleLogoClick = () => {
-    navigate('/');  // Redirect to home page
+    const path = location.pathname;
+    if (path.startsWith('/manga/')) {
+      navigate('/manga');
+    } else if (path.startsWith('/movie/') || path.startsWith('/tv/')) {
+      navigate('/');
+    } else if (path.startsWith('/anime/')) {
+      navigate('/anime');
+    } else if (path.startsWith('/watch/')) {
+      navigate('/sports');
+    } else {
+      navigate('/');
+    }
   };
 
   const handleRandomClick = async () => {
@@ -246,40 +285,45 @@ function Header({ toggleSidebar }) {
   const isOnDiscoveryPage = location.pathname === '/discovery';
   const isOnSportsPage = location.pathname.includes('/sports');
   const isOnKDramaPage = location.pathname.includes('/kdrama');
+  const isOnBooksPage = location.pathname.includes('/books');
 
   const getIcon = () => {
-    if (isOnMangaPage) return FaBook;
+    if (isOnMangaPage) return "icon-mangaka";
     if (isOnMoviesPage) return FaFilm;
     if (isOnDiscoveryPage) return FaCompass;
     if (isOnTvShowsPage) return FaTv;
-    if (isOnAnimePage) return FaEye;
+    if (isOnAnimePage) return "icon-anime";
     if (isOnActorsPage) return FaUser;
     if (isOnSportsPage) return FaBaseballBall;
-    if (isOnKDramaPage) return FaMask;
+    if (isOnKDramaPage) return "icon-manga";
+    if (isOnBooksPage) return FaBook;
     return FaPlayCircle;
   };
 
   const IconComponent = getIcon();
 
-  return (
-  <HeaderContainer>
-    <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-      <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={theme.primary} />
-          <stop offset="50%" stopColor={theme.text || theme.primary} />
-          <stop offset="100%" stopColor={`${theme.primary}cc`} />
-        </linearGradient>
-      </defs>
-    </svg>
-    
-     {/* Logo Clickable for redirection */}
+   return (
+    <HeaderContainer>
+      <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={theme.primary} />
+            <stop offset="50%" stopColor={theme.text || theme.primary} />
+            <stop offset="100%" stopColor={`${theme.primary}cc`} />
+          </linearGradient>
+        </defs>
+      </svg>
+      
       <Logo onClick={handleLogoClick}>
         <GradientIcon>
-          <IconComponent />
+          {typeof IconComponent === 'string' ? (
+            <CustomIcon className={IconComponent} />
+          ) : (
+            <IconComponent />
+          )}
         </GradientIcon>
         <span className="logo-text">
-          {isOnMangaPage ? 'readbaba' : 'watchbaba'}
+          {isOnMangaPage || isOnBooksPage ? 'readbaba' : 'watchbaba'}
         </span>
       </Logo>
 

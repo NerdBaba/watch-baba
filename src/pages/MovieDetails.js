@@ -27,12 +27,12 @@ const MovieContainer = styled.div`
   }
 
   @media (min-width: 1440px) {
-    max-width: 80vw;
-    padding: 2vw;
+    max-width: 100vw;
+    padding: 1vw;
   }
 
   @media (min-width: 2560px) {
-    max-width: 75vw;
+    max-width: 100vw;
     padding: 1.5vw;
   }
 `;
