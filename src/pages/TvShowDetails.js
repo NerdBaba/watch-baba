@@ -39,7 +39,7 @@ const MobileCover = styled.div`
 `;
 
 const MobileContent = styled.div`
-  padding: 20px;
+  padding: 0px;
 `;
 
 
@@ -514,11 +514,13 @@ const LogoImage = styled.img`
   height: auto;
   margin-bottom: 20px;
 
-  @media (max-width: 768px) {
-    max-width: 100%; // Reduced from 200px to 150px
+   @media (max-width: 768px) {
+    max-width: 90%;
     margin-top: 20px;
-    object-fit: contain;
     margin-bottom: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 `;
 
