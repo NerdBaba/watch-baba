@@ -7,28 +7,49 @@ import LoadingScreen from '../components/LoadingScreen';
 
 const KDramaContainer = styled.div`
   padding: 20px;
+  max-width: 2000px;
+  margin: 0 auto;
+  
   @media (max-width: 768px) {
-   padding: 5px; 
+    padding: 5px;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 2400px;
+  }
+
+  @media (min-width: 3840px) {
+    max-width: 3400px;
   }
 `;
 
 const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
 
   @media (max-width: 768px) {
+    display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
+  }
+`;
+
+const CardWrapper = styled.div`
+  width: 200px;
+
+  @media (max-width: 768px) {
+    width: auto;
+  }
 `;
 
 const Title = styled.h1`
   margin-bottom: 20px;
   font-size: 26px;
   color: ${props => props.theme.text};
-  align-items: center;
-  
-&:before {
+
+  &:before {
     content: '';
     display: inline-block;
     width: 7px;
@@ -37,6 +58,7 @@ const Title = styled.h1`
     margin-right: 10px;
     margin-bottom: -3px;
     border-radius: 32px;
+    
     @media (max-width: 768px) {
       height: 24px;
       margin-bottom: -4px;
@@ -45,7 +67,7 @@ const Title = styled.h1`
 
   @media (max-width: 768px) {
     font-size: 20px;
-  margin-bottom: 15px;
+    margin-bottom: 15px;
   }
 `;
 
@@ -76,15 +98,19 @@ function KDrama() {
     setCurrentPage(page);
   };
 
-if (loading) {
-  return <LoadingScreen />;
-}
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
+    
     <KDramaContainer>
-      <Title>Popular K-Dramas</Title>
+    <Title>Popular K-Dramas</Title>
       <GridContainer>
         {dramas.map((drama) => (
-          <KDramaCard key={drama.id} drama={drama} />
+          <CardWrapper key={drama.id}>
+            <KDramaCard drama={drama} />
+          </CardWrapper>
         ))}
       </GridContainer>
       <Pagination

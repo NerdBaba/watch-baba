@@ -7,12 +7,29 @@ import { getKDramaInfo, getKDramaEpisode } from '../services/kDramaApi';
 
 
 const DetailContainer = styled.div`
-  padding: 20px;
-  max-width: 2000px;
+ width: 90vw; 
   margin: 0 auto;
+  padding: 4vw;  /* Padding is now responsive to the viewport width */
+  box-sizing: border-box;
 
-  @media (max-width: 768px) {
-    padding: 10px;
+  @media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 80vw;
+    padding: 2vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 75vw;
+    padding: 1.5vw;
   }
 `;
 const HeroContent = styled.div`

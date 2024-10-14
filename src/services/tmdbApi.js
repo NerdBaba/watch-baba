@@ -38,10 +38,11 @@ export const getPopularMovies = (page = 1, genreId = '') => {
   });
 };
 
-export const discoverMovies = (page = 1, genreId = '', watchProviderId = '') => {
+export const discoverMoviesHome = (page = 1, genreId = '', watchProviderId = '',options = {}) => {
   return tmdbApi.get('/discover/movie', {
     params: {
       page,
+      ...options,
       with_genres: genreId,
       watch_region: 'IN',
       region: 'IN',
@@ -51,10 +52,11 @@ export const discoverMovies = (page = 1, genreId = '', watchProviderId = '') => 
   });
 };
 
-export const discoverTvShows = (page = 1, genreId = '', watchProviderId = '') => {
+export const discoverTvShowsHome = (page = 1, genreId = '', watchProviderId = '',options = {}) => {
   return tmdbApi.get('/discover/tv', {
     params: {
       page,
+      ...options,
       with_genres: genreId,
       watch_region: 'IN',
       region: 'IN',
@@ -63,7 +65,30 @@ export const discoverTvShows = (page = 1, genreId = '', watchProviderId = '') =>
     }
   });
 };
+export const discoverMovies = (page = 1, options = {}) => {
+  return tmdbApi.get('/discover/movie', {
+    params: {
+      page,
+      watch_region: 'IN',
+      region: 'IN',
+      include_adult: false, // Exclude adult content
+      ...options,
+    }
+  });
+};
 
+// Modify the discoverTvShows function
+export const discoverTvShows = (page = 1, options = {}) => {
+  return tmdbApi.get('/discover/tv', {
+    params: {
+      page,
+      watch_region: 'IN',
+      region: 'IN',
+      include_adult: false, // Exclude adult content
+      ...options,
+    }
+  });
+};
 export const getPopularTvShows = (page = 1) => {
   return tmdbApi.get('/tv/popular', {
     params: { page }
@@ -94,6 +119,13 @@ export const getTvShowGenres = () => {
   return tmdbApi.get('/genre/tv/list');
 };
 
+export const getMovieVideos = (movieId) => {
+  return axios.get(`${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}`);
+};
+
+export const getTvShowVideos = (tvShowId) => {
+ return axios.get(`${BASE_URL}/tv/${tvShowId}/videos?api_key=${API_KEY}`); 
+}
 
 export const getTvShowExternalIds = (id) => tmdbApi.get(`/tv/${id}/external_ids`);
 export const getMovieExternalIds = (id) => tmdbApi.get(`/movie/${id}/external_ids`);

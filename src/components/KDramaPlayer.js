@@ -29,10 +29,51 @@ const PlayerBackdrop = styled.div`
 
 
 const PlayerContainer = styled.div`
-  width: 100%;
-  max-width: 1200px;
-  display: flex;
-  flex-direction: column;
+width: 90vw; 
+  margin: 0 auto;
+  padding: 5vw;  /* Padding is now responsive to the viewport width */
+  box-sizing: border-box;
+  @media (min-width: 501px) {
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: ${props => props.theme.background};
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: ${props => props.theme.primary};
+      border-radius: 5px;
+    }
+  }
+
+  @media (max-width: 500px) {
+    overflow-y: hidden;
+  }
+
+overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 80vw;
+    padding: 2vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 75vw;
+    padding: 1.5vw;
+  }
 `;
 
 const ControlsBar = styled.div`
@@ -107,11 +148,13 @@ const ControlButton = styled.button`
 const VideoWrapper = styled.div`
   width: 100%;
   position: relative;
+  
   aspect-ratio: 16 / 9;
 `;
 
 const StyledMediaPlayer = styled(MediaPlayer)`
   width: 100%;
+
   height: 100%;
   --video-brand: ${props => props.theme.primary || '#ff0000'};
   --video-controls-color: ${props => props.theme.primary || '#ff0000'};

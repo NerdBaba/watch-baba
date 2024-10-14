@@ -2,20 +2,30 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchAnimeDetails, fetchEpisodeSources } from '../services/aniWatchApi';
-import { FaPlay, FaBook, FaInfoCircle, FaStar, FaCalendar, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';import AnimePlayer from '../components/AnimePlayer';
+import { FaPlay, FaBook, FaInfoCircle, FaStar, FaCalendar, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import AnimePlayer from '../components/AnimePlayer';
 import AnimeCard from '../components/AnimeCard';
 import LoadingScreen from '../components/LoadingScreen';
-
+import Pagination from '../components/Pagination';
 const AnimeDetailsContainer = styled.div`
-  max-width: 2000px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
   background-color: ${props => props.theme.backgroundSecondary};
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 
-  @media (min-width: 769px) {
+  @media (min-width: 768px) {
     padding: 2rem;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 1400px;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 2000px;
+    padding: 3rem;
   }
 `;
 
@@ -24,7 +34,7 @@ const AnimeHeader = styled.div`
   flex-direction: column;
   gap: 1rem;
 
-  @media (min-width: 769px) {
+  @media (min-width: 768px) {
     flex-direction: row;
     gap: 2rem;
   }
@@ -37,36 +47,61 @@ const AnimePoster = styled.img`
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   margin: 0 auto;
 
-  @media (min-width: 769px) {
+  @media (min-width: 768px) {
     width: 300px;
     margin: 0;
   }
-`;
 
+  @media (min-width: 1440px) {
+    width: 350px;
+  }
+
+  @media (min-width: 2560px) {
+    width: 400px;
+  }
+`;
 
 const AnimeInfo = styled.div`
   flex: 1;
 `;
 
 const AnimeTitle = styled.h1`
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
   color: ${props => props.theme.primary};
 
-  @media (max-width: 768px) {
-    font-size: 2rem;
+  @media (min-width: 768px) {
+    font-size: 2.5rem;
+  }
+
+  @media (min-width: 1440px) {
+    font-size: 3rem;
+  }
+
+  @media (min-width: 2560px) {
+    font-size: 3.5rem;
   }
 `;
 
 const AnimeDescription = styled.p`
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1rem;
   color: ${props => props.theme.text};
-  @media (max-width: 768px) {
-   font-size: 0.9rem; 
+
+  @media (min-width: 768px) {
+    font-size: 1.1rem;
+  }
+
+  @media (min-width: 1440px) {
+    font-size: 1.2rem;
+  }
+
+  @media (min-width: 2560px) {
+    font-size: 1.3rem;
   }
 `;
+
 
 const AnimeMetaInfo = styled.div`
   display: flex;
@@ -222,16 +257,24 @@ const EpisodeTitle = styled.p`
 `;
 
 const AnimeGrid = styled.div`
- display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
 
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+  }
+
+  @media (min-width: 1440px) {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+
+  @media (min-width: 2560px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 30px;
   }
 `;
-
 const LoadingContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -493,14 +536,25 @@ const cleanHtmlTags = (text) => {
     setError('Failed to load episode. Please try again later.');
   }
 };
- 
-  const handlePreviousPage = () => {
-    setCurrentPage(prev => Math.max(prev - 1, 1));
+
+const [episodesPerPage] = useState(20);
+  const totalPages = Math.ceil(episodes.length / episodesPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
-  const handleNextPage = () => {
-    setCurrentPage(prev => Math.min(prev + 1, Math.ceil(episodes.length / 20)));
-  };
+  const indexOfLastEpisode = currentPage * episodesPerPage;
+  const indexOfFirstEpisode = indexOfLastEpisode - episodesPerPage;
+  const currentEpisodes = episodes.slice(indexOfFirstEpisode, indexOfLastEpisode);
+ 
+  // const handlePreviousPage = () => {
+  //   setCurrentPage(prev => Math.max(prev - 1, 1));
+  // };
+
+  // const handleNextPage = () => {
+  //   setCurrentPage(prev => Math.min(prev + 1, Math.ceil(episodes.length / 20)));
+  // };
 
   const handleEpisodeInputChange = (e) => {
     setEpisodeInput(e.target.value);
@@ -528,7 +582,7 @@ const cleanHtmlTags = (text) => {
     return <ErrorContainer>No anime data available.</ErrorContainer>;
   }
 
-  const currentEpisodes = episodes.slice((currentPage - 1) * 20, currentPage * 20);
+  // const currentEpisodes = episodes.slice((currentPage - 1) * 20, currentPage * 20);
   return (
     <AnimeDetailsContainer>
     {anime.cover && <AnimeCover coverImage={anime.cover} />}
@@ -590,54 +644,48 @@ const cleanHtmlTags = (text) => {
       </AnimeHeader>
 
      {episodes.length > 0 && (
-      <EpisodeContainer>
-        <SectionTitle>Episodes</SectionTitle>
-        <EpisodeSearchContainer>
-          <EpisodeInput
-            type="number"
-            placeholder="Go to episode..."
-            value={episodeInput}
-            onChange={handleEpisodeInputChange}
+        <EpisodeContainer>
+          <SectionTitle>Episodes</SectionTitle>
+          <EpisodeSearchContainer>
+            <EpisodeInput
+              type="number"
+              placeholder="Go to episode..."
+              value={episodeInput}
+              onChange={handleEpisodeInputChange}
+            />
+            <EpisodeGoButton onClick={handleEpisodeGoClick}>Go</EpisodeGoButton>
+          </EpisodeSearchContainer>
+          
+          {/* Mobile Episode Numbers */}
+          <EpisodeNumberGrid>
+            {currentEpisodes.map((episode) => (
+              <EpisodeNumber
+                key={episode.id}
+                onClick={() => handleEpisodeSelect(episode)}
+              >
+                {episode.number}
+              </EpisodeNumber>
+            ))}
+          </EpisodeNumberGrid>
+          
+          {/* Desktop Episode Grid */}
+          <EpisodeGrid>
+            {currentEpisodes.map((episode) => (
+              <EpisodeCard key={episode.id} onClick={() => handleEpisodeSelect(episode)}>
+                <EpisodeImage src={episode.image} alt={`Episode ${episode.number}`} />
+                <EpisodeTitle>Episode {episode.number}</EpisodeTitle>
+              </EpisodeCard>
+            ))}
+          </EpisodeGrid>
+          
+          {/* New Pagination Component */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
-          <EpisodeGoButton onClick={handleEpisodeGoClick}>Go</EpisodeGoButton>
-        </EpisodeSearchContainer>
-
-        {/* Mobile Episode Numbers */}
-        <EpisodeNumberGrid>
-          {currentEpisodes.map((episode) => (
-            <EpisodeNumber
-              key={episode.id}
-              onClick={() => handleEpisodeSelect(episode)}
-            >
-              {episode.number}
-            </EpisodeNumber>
-          ))}
-        </EpisodeNumberGrid>
-
-        {/* Desktop Episode Grid */}
-        <EpisodeGrid>
-          {currentEpisodes.map((episode) => (
-            <EpisodeCard key={episode.id} onClick={() => handleEpisodeSelect(episode)}>
-              <EpisodeImage src={episode.image} alt={`Episode ${episode.number}`} />
-              <EpisodeTitle>Episode {episode.number}</EpisodeTitle>
-            </EpisodeCard>
-          ))}
-        </EpisodeGrid>
-
-        <PaginationContainer>
-          <PaginationButton onClick={handlePreviousPage} disabled={currentPage === 1}>
-            <FaChevronLeft />
-          </PaginationButton>
-          <span>Page {currentPage} of {Math.ceil(episodes.length / 20)}</span>
-          <PaginationButton 
-            onClick={handleNextPage} 
-            disabled={currentPage === Math.ceil(episodes.length / 20)}
-          >
-            <FaChevronRight />
-          </PaginationButton>
-        </PaginationContainer>
-      </EpisodeContainer>
-    )}
+        </EpisodeContainer>
+      )}
 
 
        {/* Trailer Section */}

@@ -6,64 +6,86 @@ import {
   getTopRatedMovies, 
   getUpcomingMovies, 
   getNowPlayingMovies,
-  discoverMovies,
-  discoverTvShows
+  discoverMoviesHome as discoverMovies,
+  discoverTvShowsHome as discoverTvShows,
 } from '../services/tmdbApi';
+import { FilterDropdown } from '../components/GenreFilter'; // Import FilterDropdown from GenreFilter
+
+const SectionTitle = styled.h2`
+  font-size: 20px;
+  margin-bottom: 15px;
+  margin-left: 10px;
+  color: ${props => props.theme.text};
+  display: flex;
+  align-items: center;
+  
+  &:before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 23px;
+    background-color: ${props => props.theme.primary};
+    margin-right: 10px;
+    border-radius: 32px;
+  }
+  
+  @media (min-width: 768px) {
+    font-size: 26px;
+    margin-bottom: 20px;
+    
+    &:before {
+      height: 28px;
+    }
+  }
+`;
 
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
-  
+
   @media (max-width: 768px) {
+    display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
   }
 `;
 
-const ButtonGroup = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-`;
-
-const CategoryButton = styled.button`
-  padding: 10px 15px;
-  background-color: ${props => props.active ? props.theme.primary : props.theme.background};
-  color: ${props => props.active ? props.theme.background : props.theme.text};
-  border: 2px solid ${props => props.theme.primary};
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-
-  &:hover {
-    background-color: ${props => props.theme.primary}cc;
-    color: ${props => props.theme.background};
-  }
+const CardWrapper = styled.div`
+  width: 200px;
 
   @media (max-width: 768px) {
-    font-size: 12px;
-    padding: 8px 12px;
+    width: auto;
   }
 `;
 
-const networks = [
-  { id: 8, name: 'Netflix' },
-  { id: 119, name: 'Amazon Prime' },
-  { id: 350, name: 'Apple TV+' },
-  { id: 283, name: 'Crunchyroll' },
-  { id: 122, name: 'Hotstar' },
-  { id: 220, name: 'Jio Cinema' },
-  { id: 232, name: 'Zee5' },
-  { id: 11, name: 'MUBI' }
-];
+const FilterContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-left: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  @media (max-width: 768px) {
+    gap: 5px;
+  }
+`;
 
 const categories = [
-  { id: 'top_rated', name: 'Top Rated' },
-  { id: 'upcoming', name: 'Upcoming' },
-  { id: 'now_playing', name: 'Now Playing' }
+  { value: 'top_rated', label: 'Top Rated' },
+  { value: 'upcoming', label: 'Upcoming' },
+  { value: 'now_playing', label: 'Now Playing' }
+];
+
+const networks = [
+  { value: '8', label: 'Netflix' },
+  { value: '119', label: 'Amazon Prime' },
+  { value: '350', label: 'Apple TV+' },
+  { value: '283', label: 'Crunchyroll' },
+  { value: '122', label: 'Hotstar' },
+  { value: '220', label: 'Jio Cinema' },
+  { value: '232', label: 'Zee5' },
+  { value: '11', label: 'MUBI' }
 ];
 
 function Discovery() {
@@ -71,14 +93,14 @@ function Discovery() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [activeCategory, setActiveCategory] = useState('top_rated');
-  const [activeNetwork, setActiveNetwork] = useState(null);
+  const [activeNetwork, setActiveNetwork] = useState('all');
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
         let response;
         
-        if (activeNetwork) {
+        if (activeNetwork !== 'all') {
           const [moviesRes, tvShowsRes] = await Promise.all([
             discoverMovies(currentPage, '', activeNetwork),
             discoverTvShows(currentPage, '', activeNetwork)
@@ -124,45 +146,38 @@ function Discovery() {
     });
   };
 
-  const handleCategoryClick = (categoryId) => {
+  const handleCategoryChange = (categoryId) => {
     setActiveCategory(categoryId);
-    setActiveNetwork(null);
+    setActiveNetwork('all');
     setCurrentPage(1);
   };
 
-  const handleNetworkClick = (networkId) => {
+  const handleNetworkChange = (networkId) => {
     setActiveNetwork(networkId);
-    setActiveCategory(null);
+    setActiveCategory('all');
     setCurrentPage(1);
   };
 
   return (
     <div>
-      <h2>Discover Content</h2>
-      <ButtonGroup>
-        {categories.map((category) => (
-          <CategoryButton
-            key={category.id}
-            active={activeCategory === category.id}
-            onClick={() => handleCategoryClick(category.id)}
-          >
-            {category.name}
-          </CategoryButton>
-        ))}
-      </ButtonGroup>
-      <ButtonGroup>
-        {networks.map((network) => (
-          <CategoryButton
-            key={network.id}
-            active={activeNetwork === network.id}
-            onClick={() => handleNetworkClick(network.id)}
-          >
-            {network.name}
-          </CategoryButton>
-        ))}
-      </ButtonGroup>
+      <SectionTitle>Discover Content</SectionTitle>
+      <FilterContainer>
+        <FilterDropdown
+          label="Category"
+          options={[{ value: 'all', label: 'All Categories' }, ...categories]}
+          value={activeCategory}
+          onChange={handleCategoryChange}
+        />
+        <FilterDropdown
+          label="Network"
+          options={[{ value: 'all', label: 'All Networks' }, ...networks]}
+          value={activeNetwork}
+          onChange={handleNetworkChange}
+        />
+      </FilterContainer>
       <Grid>
         {content.map((item) => (
+        <CardWrapper key={item.id}>
           <MovieCard 
             key={item.id} 
             movie={{
@@ -171,6 +186,7 @@ function Discovery() {
               release_date: item.release_date || item.first_air_date
             }} 
           />
+          </CardWrapper>
         ))}
       </Grid>
       <Pagination

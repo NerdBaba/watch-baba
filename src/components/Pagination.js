@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
+import { useLocation } from 'react-router-dom'; // Assuming you're using React Router
 
 const PaginationContainer = styled.div`
   display: flex;
@@ -37,12 +38,12 @@ const PageButton = styled.button`
 `;
 
 function Pagination({ currentPage, totalPages, onPageChange }) {
+  const location = useLocation(); // Get the current route location
   const pageNumbers = [];
   const maxVisiblePages = 5;
 
   let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
   let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
   if (endPage - startPage + 1 < maxVisiblePages) {
     startPage = Math.max(1, endPage - maxVisiblePages + 1);
   }
@@ -52,8 +53,13 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
   }
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentPage]);
+    // Only smooth scroll if the page is not in /anime/id
+    if (!location.pathname.includes('/anime/')) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      ;
+    }
+  }, [currentPage, location.pathname]);
 
   return (
     <PaginationContainer>

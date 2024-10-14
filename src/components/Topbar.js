@@ -1,7 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaEye, FaBook, FaMask, FaPalette, FaBaseballBall } from 'react-icons/fa';
+import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaPalette, FaBaseballBall, FaBook } from 'react-icons/fa';
+import { Sidebar as FeatherSidebar } from 'react-feather';
 
 const TopbarOverlay = styled.div`
   display: none;
@@ -9,6 +10,7 @@ const TopbarOverlay = styled.div`
   @media (max-width: 768px) {
     display: ${props => props.isOpen ? 'flex' : 'none'};
     position: fixed;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
     top: 0;
     left: 0;
     right: 0;
@@ -19,9 +21,6 @@ const TopbarOverlay = styled.div`
     flex-direction: column;
     padding: 20px;
     overflow-y: auto;
-
-    
-
   }
 `;
 
@@ -70,16 +69,30 @@ const Label = styled.span`
   font-size: 14px;
 `;
 
+const CustomIcon = styled.i`
+  font-family: 'icomoon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 1.5rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+`;
+
 const navItems = [
   { icon: FaHome, label: 'Home', path: '/' },
   { icon: FaCompass, label: 'Discovery', path: '/discovery' },
   { icon: FaFilm, label: 'Movies', path: '/movies' },
   { icon: FaTv, label: 'Series', path: '/tv' },
   { icon: FaUser, label: 'Actors', path: '/actors' },
-  { icon: FaEye, label: 'Anime', path: '/anime' },
-  { icon: FaBook, label: 'Manga', path: '/manga' },
-  { icon: FaMask, label: 'K-Drama', path: '/kdrama' },
+  { icon: () => <CustomIcon className="icon-anime" />, label: 'Anime', path: '/anime' },
+  { icon: () => <CustomIcon className="icon-mangaka" />, label: 'Manga', path: '/manga' },
+  { icon: () => <CustomIcon className="icon-manga" />, label: 'K-Drama', path: '/kdrama' },
   { icon: FaBaseballBall, label: 'Live Sports', path: '/sports' },
+  { icon: FaBook, label: 'Books', path: '/books' },
   { icon: FaPalette, label: 'Themes', path: '/themes' },
 ];
 

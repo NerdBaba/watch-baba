@@ -2,26 +2,86 @@ import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
-import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds } from '../services/tmdbApi';
+import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds, getMovieVideos } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 // import DownloadOption from '../components/DownloadOption';
-import { FaPlay, FaInfoCircle, FaTimes, FaDownload } from 'react-icons/fa';
+import { FaPlay, FaInfoCircle, FaTimes, FaDownload, FaUser } from 'react-icons/fa';
 
 
 
-const MovieContainer = styled.div`
-  width: 100%;
-  max-width: 2000px;
-  margin: 0 auto;
-  padding: 20px;
-  box-sizing: border-box;
-
+const MobileView = styled.div`
   @media (max-width: 768px) {
-    padding: 10px;
+    display: block;
+  }
+  @media (min-width: 769px) {
+    display: none;
   }
 `;
 
+const DesktopView = styled.div`
+  @media (max-width: 768px) {
+    display: none;
+  }
+  @media (min-width: 769px) {
+    display: block;
+  }
+`;
+
+const MobileCover = styled.div`
+  width: 100%;
+  height: 13rem;
+  object-fit: cover;
+  border-radius: 10px;
+  background-image: url(${props => props.backdrop});
+  background-size: cover;
+  background-position: center;
+`;
+
+const MobileContent = styled.div`
+  padding: 0px;
+`;
+
+
+
+const TrailerContainer = styled.div`
+  margin-top: 20px;
+`;
+
+const TrailerVideo = styled.iframe`
+  width: 100%;
+  height: 56.25vw; // 16:9 aspect ratio
+  max-height: 480px;
+  border: none;
+`;
+
+
+const MovieContainer = styled.div`
+    width: 90vw; 
+  margin: 0 auto;
+  padding: 2vw;  /* Padding is now responsive to the viewport width */
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 100vw;
+    padding: 1vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 100vw;
+    padding: 1.5vw;
+  }
+`;
 
 
 const Hero = styled.div`
@@ -71,12 +131,17 @@ const Title = styled.h1`
     font-size: 2rem;
   }
 `;
-
 const Overview = styled.p`
   font-size: 1.2rem;
   margin-bottom: 20px;
   font-family: 'GeistVF';
   color: white;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
   @media (max-width: 768px) {
     font-size: 0.8rem;
   }
@@ -90,6 +155,11 @@ const ButtonGroup = styled.div`
   @media (max-width: 768px) {
     gap: 5px;
   }
+`;
+
+const MobileButtonGroup = styled(ButtonGroup)`
+  justify-content: center;
+  margin-top: 20px;
 `;
 const Button = styled.button`
   padding: 10px 20px;
@@ -140,9 +210,7 @@ const RatingItem = styled.span`
   align-items: center;
   gap: 5px;
   font-family: 'GeistVF';
-  svg {
-    color: ${props => props.theme.accent};
-  }
+  color: white;
 
 @media (max-width: 768px) {
     font-size: 0.8rem;
@@ -156,7 +224,7 @@ const InfoItem = styled.p`
   color:white;
 
   @media (max-width: 768px) {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
   }
 `;
 
@@ -173,6 +241,12 @@ const PlayButton = styled(Button)`
   &:hover {
       background-color: ${props => props.theme.background};
     }
+
+  @media (max-width: 768px) {
+   background-color: ${props => props.theme.button};
+   color: ${props => props.theme.highlight};
+
+  }
 `;
 
 const InfoButton = styled(Button)`
@@ -219,6 +293,12 @@ const SectionTitle = styled.h2`
     }
   }
 `;
+
+
+const TrailerTitle = styled(SectionTitle)`
+  margin-bottom: 10px;
+`;
+
 const CastContainer = styled.div`
   display: flex;
   overflow-x: auto;
@@ -265,6 +345,27 @@ const CastImage = styled.img`
   }
 `;
 
+const PlaceholderImage = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: ${props => props.theme.primary};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    width: 100px;
+    height: 100px;
+  }
+`;
+
+const PlaceholderIcon = styled(FaUser)`
+  font-size: 60px;
+  color: ${props => props.theme.background};
+`;
+
 const CastName = styled.p`
   font-size: 0.9rem;
   margin: 0;
@@ -303,12 +404,52 @@ const Backdrop = styled.div`
 
 const VideoContainer = styled.div`
   position: relative;
-  width: 90%;
-  max-width: 1200px;
-  aspect-ratio: 16 / 9;
+  width: 90vw; 
+  margin: 0 auto;
+  padding: 5vw;
+  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
 
-  @media (min-width: 768px) and (max-width: 1024px) {
-    width: 95%;
+  @media (min-width: 501px) {
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: ${props => props.theme.background};
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: ${props => props.theme.primary};
+      border-radius: 5px;
+    }
+  }
+
+  @media (max-width: 500px) {
+    overflow-y: hidden;
+  }
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 80vw;
+    padding: 2vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 75vw;
+    padding: 1.5vw;
   }
 `;
 
@@ -333,12 +474,14 @@ const EmbedPlayer = styled.iframe`
   height: 100%;
   border: none;
   aspect-ratio: 16 / 9;
+  // overflow: auto;
+  // -webkit-overflow-scrolling: touch;
 
   @media (max-width: 768px) {
     height: 56.25vw;
   }
 
-   @media (max-width: 1024px) {
+  @media (max-width: 1024px) {
     height: 56.25vw;
   }
 `;
@@ -421,8 +564,12 @@ const LogoImage = styled.img`
   margin-bottom: 20px;
 
   @media (max-width: 768px) {
-    max-width: 150px; // Reduced from 200px to 150px
+    max-width: 90%;
+    margin-top: 20px;
     margin-bottom: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 `;
 
@@ -494,18 +641,14 @@ const DownloadLinkButton = styled.a`
 
 
 const AdBlockedIframe = ({ src, allowFullScreen }) => {
-  const [isBlocked, setIsBlocked] = useState(false);
   const iframeRef = useRef(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
     const checkDomain = () => {
       const blockedDomains = [
         'example-ad-domain.com',
         'another-ad-domain.com',
-          'cooperateboneco.com',
-          'amung.us',
-          'prd.jwpltx.com',
-        // Add more blocked domains here
       ];
       const url = new URL(src);
       if (blockedDomains.some(domain => url.hostname.includes(domain))) {
@@ -531,7 +674,7 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
   }, [src]);
 
   if (isBlocked) {
-    return null; // Return nothing if the domain is blocked
+    return null;
   }
 
   return (
@@ -569,17 +712,24 @@ function MovieDetails() {
    const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [selectedDownloadOption, setSelectedDownloadOption] = useState(null);
     const [isDownloadFetching, setIsDownloadFetching] = useState(false);
+  const [trailer, setTrailer] = useState(null);
+
 
   const fetchMovieData = useCallback(async () => {
     try {
-      const [detailsResponse, externalIdsResponse] = await Promise.all([
+      const [detailsResponse, externalIdsResponse, videosResponse] = await Promise.all([
         getMovieDetails(id),
-        getMovieExternalIds(id)
+        getMovieExternalIds(id),
+        getMovieVideos(id)
       ]);
 
       setMovie(detailsResponse.data);
       setExternalIds(externalIdsResponse.data);
       setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
+
+      // Find the first trailer in the results
+      const trailerVideo = videosResponse.data.results.find(video => video.type === 'Trailer');
+      setTrailer(trailerVideo);
 
       const [recommendationsResponse, creditsResponse] = await Promise.all([
         getMovieRecommendations(id),
@@ -873,6 +1023,38 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
+  const handleFullscreenChange = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+          window.screen.orientation.lock('landscape').catch((err) => {
+            console.error('Failed to lock orientation:', err);
+          });
+        }
+      } catch (err) {
+        // Handle error or silently fail if screen orientation API is not supported
+      }
+    } else {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+          window.screen.orientation.unlock();
+        }
+      } catch (err) {
+        // Handle error or silently fail
+      }
+    }
+  };
+
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+  return () => {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+  };
+}, []);
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -888,6 +1070,7 @@ useEffect(() => {
   
   return (
       <MovieContainer>
+      <DesktopView>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}>
           <HeroContent>
           <Suspense fallback={<LoadingPlaceholder />}>
@@ -934,19 +1117,35 @@ useEffect(() => {
           <Section>
             <SectionTitle>Cast</SectionTitle>
             <CastContainer>
-              {cast.map((member) => (
-                <CastMember key={member.id} to={`/actor/${member.id}`}>
-                  <CastImage 
-                    src={member.profile_path ? `https://image.tmdb.org/t/p/w200${member.profile_path}` : '/placeholder.png'} 
-                    alt={member.name} 
-                  />
-                  <CastName>{member.name}</CastName>
-                </CastMember>
-              ))}
+             {cast.map((member) => (
+  <CastMember key={member.id} to={`/actor/${member.id}`}>
+    {member.profile_path ? (
+      <CastImage 
+        src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} 
+        alt={member.name} 
+      />
+    ) : (
+      <PlaceholderImage>
+        <PlaceholderIcon />
+      </PlaceholderImage>
+    )}
+    <CastName>{member.name}</CastName>
+  </CastMember>
+))}
             </CastContainer>
           </Section>
         </Suspense>
-
+         {trailer && (
+          <Section>
+            <TrailerTitle>Trailer</TrailerTitle>
+            <TrailerContainer>
+              <TrailerVideo
+                src={`https://www.youtube.com/embed/${trailer.key}`}
+                allowFullScreen
+              />
+            </TrailerContainer>
+          </Section>
+        )}
         <Suspense fallback={<div>Loading recommendations...</div>}>
           <Section>
             <SectionTitle>More Like This</SectionTitle>
@@ -957,6 +1156,87 @@ useEffect(() => {
             </RecommendationsContainer>
           </Section>
         </Suspense>
+        </DesktopView>
+
+
+
+      <MobileView>
+        <MobileCover backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`} />
+        <MobileContent>
+          <Suspense fallback={<LoadingPlaceholder />}>
+            {logoUrl ? (
+              <LogoImage src={logoUrl} alt={movie.title} onError={() => setLogoUrl('')} />
+            ) : (
+              <Title>{movie.title}</Title>
+            )}
+          </Suspense>
+          
+          <MobileButtonGroup>
+            <PlayButton onClick={() => {
+              setIsWatching(true);
+              setWatchOption('server1');
+            }}>
+              <FaPlay /> Play
+            </PlayButton>
+            <DownloadButton 
+              disabled={isDownloadFetching || moviesDriveLinks.length === 0}
+              onClick={() => moviesDriveLinks.length > 0 && setShowDownloadOptions(true)}
+            >
+              <FaDownload /> {isDownloadFetching ? 'Fetching...' : 'Download'}
+            </DownloadButton>
+          </MobileButtonGroup>
+
+          <Overview>{movie.overview}</Overview>
+          <Ratings>
+            <RatingItem>⭐ {movie.vote_average.toFixed(1)}/10</RatingItem>
+          </Ratings>
+          <InfoItem>Release Date: {new Date(movie.release_date).toLocaleDateString()}</InfoItem>
+          <InfoItem>Runtime: {movie.runtime} minutes</InfoItem>
+          <InfoItem>Ends at: {calculateEndTime(currentTime, movie.runtime)}</InfoItem>
+
+          <Section>
+            <SectionTitle>Cast</SectionTitle>
+            <CastContainer>
+              {cast.map((member) => (
+                <CastMember key={member.id} to={`/actor/${member.id}`}>
+                  {member.profile_path ? (
+                    <CastImage 
+                      src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} 
+                      alt={member.name} 
+                    />
+                  ) : (
+                    <PlaceholderImage>
+                      <PlaceholderIcon />
+                    </PlaceholderImage>
+                  )}
+                  <CastName>{member.name}</CastName>
+                </CastMember>
+              ))}
+            </CastContainer>
+          </Section>
+
+          {trailer && (
+            <Section>
+              <TrailerTitle>Trailer</TrailerTitle>
+              <TrailerContainer>
+                <TrailerVideo
+                  src={`https://www.youtube.com/embed/${trailer.key}`}
+                  allowFullScreen
+                />
+              </TrailerContainer>
+            </Section>
+          )}
+
+          <Section>
+            <SectionTitle>More Like This</SectionTitle>
+            <RecommendationsContainer>
+              {recommendations.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))}
+            </RecommendationsContainer>
+          </Section>
+        </MobileContent>
+      </MobileView>
 
         {isWatching && (
           <Backdrop onClick={() => setIsWatching(false)}>
@@ -994,6 +1274,7 @@ useEffect(() => {
                   <option value="server16">Server 16 (Site)</option>
                 </ServerDropdown>
               </ControlsContainer>
+
               {watchOption === 'server1' && (
                 <VideoPlayer tmdbId={movie.id} />
               )}
@@ -1031,7 +1312,8 @@ useEffect(() => {
               )}
                 {watchOption === 'server7' && (
                 <EmbedPlayer 
-                  src={`https://moviee.tv/embed/movie/${movie.id}`}
+                  // src={`https://moviee.tv/embed/movie/${movie.id}`}
+                src={`https://vidsrc.xyz/embed/movie/${movie.id}`}
                   allowFullScreen
                 />
               )}

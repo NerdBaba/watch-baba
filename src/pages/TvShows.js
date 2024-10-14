@@ -3,25 +3,37 @@ import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
 import GenreFilter from '../components/GenreFilter';
-import {getPopularTvShowsInIndia , getTvShowGenres,  discoverTrendingTvShowsInIndia } from '../services/tmdbApi';
+import {discoverTvShows, getTvShowGenres  } from '../services/tmdbApi';
 
 const Grid = styled.div`
- display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+ display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
 
   @media (max-width: 768px) {
+    display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
+  }
+`;
+
+const CardWrapper = styled.div`
+  width: 200px;
+
+  @media (max-width: 768px) {
+    width: auto;
+  }
 `;
 
 const FilterWrapper = styled.div`
   margin-bottom: 20px;
-  
+  margin-left: 10px
 `;
 
 const SectionTitle = styled.h2`
    font-size: 20px;
+   margin-left: 10px;
   margin-bottom: 15px;
   color: ${props => props.theme.text};
   display: flex;
@@ -48,22 +60,26 @@ const SectionTitle = styled.h2`
   }
 `;
 
+
 function TvShows() {
   const [tvShows, setTvShows] = useState([]);
   const [genres, setGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('all');
+  const [selectedSort, setSelectedSort] = useState('popularity.desc');
+  const [selectedYear, setSelectedYear] = useState('all');
+  const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     const fetchTvShows = async () => {
       try {
-        let response;
-        if (selectedGenre) {
-          response = await discoverTrendingTvShowsInIndia(currentPage, selectedGenre);
-        } else {
-          response = await getPopularTvShowsInIndia(currentPage);
-        }
+        const response = await discoverTvShows(currentPage, {
+          with_genres: selectedGenre !== 'all' ? selectedGenre : '',
+          sort_by: selectedSort,
+          first_air_date_year: selectedYear !== 'all' ? selectedYear : '',
+          with_original_language: selectedLanguage !== 'all' ? selectedLanguage : '',
+        });
         setTvShows(response.data.results);
         setTotalPages(response.data.total_pages);
       } catch (error) {
@@ -72,7 +88,7 @@ function TvShows() {
     };
 
     fetchTvShows();
-  }, [currentPage, selectedGenre]);
+  }, [currentPage, selectedGenre, selectedSort, selectedYear, selectedLanguage]);
 
   useEffect(() => {
     const fetchGenres = async () => {
@@ -89,17 +105,33 @@ function TvShows() {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-   window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   const handleGenreSelect = (genreId) => {
     setSelectedGenre(genreId);
     setCurrentPage(1);
   };
- return (
+
+  const handleSortSelect = (sort) => {
+    setSelectedSort(sort);
+    setCurrentPage(1);
+  };
+
+  const handleYearSelect = (year) => {
+    setSelectedYear(year);
+    setCurrentPage(1);
+  };
+
+  const handleLanguageSelect = (language) => {
+    setSelectedLanguage(language);
+    setCurrentPage(1);
+  };
+
+  return (
     <div>
       <SectionTitle>Popular TV Shows</SectionTitle>
       <FilterWrapper>
@@ -107,10 +139,17 @@ function TvShows() {
           genres={genres}
           selectedGenre={selectedGenre}
           onGenreSelect={handleGenreSelect}
+          selectedSort={selectedSort}
+          onSortSelect={handleSortSelect}
+          selectedYear={selectedYear}
+          onYearSelect={handleYearSelect}
+          selectedLanguage={selectedLanguage}
+          onLanguageSelect={handleLanguageSelect}
         />
       </FilterWrapper>
       <Grid>
         {tvShows.map((show) => (
+        <CardWrapper key={show.id}>
           <MovieCard
             key={show.id}
             movie={{
@@ -121,6 +160,7 @@ function TvShows() {
             }}
             genres={genres}
           />
+          </CardWrapper>
         ))}
       </Grid>
       <Pagination

@@ -8,7 +8,7 @@ const ActorContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1200px;
+  max-width: 2000px;
   margin: 0 auto;
   padding: 20px;
 `;

@@ -1,8 +1,9 @@
 import React, { useState} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {styled,useTheme} from 'styled-components';
-import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass, FaPlayCircle,FaBaseballBall,FaMask } from 'react-icons/fa';
+import { FaSearch, FaDice, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaCompass, FaPlayCircle,FaBaseballBall} from 'react-icons/fa';
 import { getPopularMovies, getPopularTvShows } from '../services/tmdbApi';
+import { FaBarsStaggered } from 'react-icons/fa6';
 import Topbar from './Topbar';
 
 const HeaderContainer = styled.header`
@@ -28,7 +29,34 @@ const HeaderContainer = styled.header`
     align-items: center;
   }
 `;
+const CustomIcon = styled.i`
+  font-family: 'icomoon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 50px;
+  display: flex;
+  margin-left: 5px;
+  margin-top: 4px;
+  align-items: center;
+  
+  svg {
+    width: 1em;
+    height: 1em;
+    fill: url(#gradient);
+  }
 
+  @media (min-width: 769px) {
+    font-size: 60px;
+    margin-top: 4px;
+  }
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+`;
 
 
 const Logo = styled.div`
@@ -41,8 +69,15 @@ const Logo = styled.div`
   
   .logo-text {
     margin-left: 10px;
-    background: linear-gradient(to right, ${props => props.theme.primary}, ${props => props.theme.text || props.theme.primary}, ${props => props.theme.primary}ff);
-    -webkit-background-clip: text;
+background: linear-gradient(
+      to right,
+      ${props => props.theme.primary},
+      ${props => props.theme.accent},
+      ${props => props.theme.highlight},
+      ${props => props.theme.text || props.theme.primary},
+      ${props => props.theme.link},
+      ${props => props.theme.primary}ff
+    );    -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
@@ -52,9 +87,10 @@ const Logo = styled.div`
     font-size: 50px;
     margin-bottom: 0;
   }
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     font-size: 35px;
     margin: 0;
+    margin-right: 15px;
     margin-bottom: 10px;
   }
 `;
@@ -205,7 +241,7 @@ const MobileSearchForm = styled(SearchForm)`
 
 
 function Header({ toggleSidebar }) {
-    const theme = useTheme();
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isTopbarOpen, setIsTopbarOpen] = useState(false);
@@ -219,9 +255,30 @@ function Header({ toggleSidebar }) {
       setIsMobileSearchOpen(false);
     }
   };
-  const handleLogoClick = () => {
-    navigate('/');  // Redirect to home page
-  };
+const handleLogoClick = () => {
+        const path = location.pathname;
+        if (path.startsWith('/manga')) {
+            navigate('/manga');
+        } else if (path.startsWith('/movie')) {
+                navigate('/movies');
+            } else if (path.startsWith('/tv')) {
+                navigate('/tv');
+            } else if (path.startsWith('/kdrama')) {
+                navigate('/kdrama');
+
+            } else if (path.startsWith('/discovery')) {
+                navigate('/discovery');
+            } else if (path.startsWith('/books')) {
+                navigate('/books');
+            } 
+            else if (path.startsWith('/anime')) {
+                navigate('/anime');
+            } else if (path.startsWith('/watch')) {
+                navigate('/sports');
+            } else {
+                navigate('/');
+            }
+        };
 
   const handleRandomClick = async () => {
     try {
@@ -244,40 +301,45 @@ function Header({ toggleSidebar }) {
   const isOnDiscoveryPage = location.pathname === '/discovery';
   const isOnSportsPage = location.pathname.includes('/sports');
   const isOnKDramaPage = location.pathname.includes('/kdrama');
+  const isOnBooksPage = location.pathname.includes('/books');
 
   const getIcon = () => {
-    if (isOnMangaPage) return FaBook;
+    if (isOnMangaPage) return "icon-mangaka";
     if (isOnMoviesPage) return FaFilm;
     if (isOnDiscoveryPage) return FaCompass;
     if (isOnTvShowsPage) return FaTv;
-    if (isOnAnimePage) return FaEye;
+    if (isOnAnimePage) return "icon-anime";
     if (isOnActorsPage) return FaUser;
     if (isOnSportsPage) return FaBaseballBall;
-    if (isOnKDramaPage) return FaMask;
+    if (isOnKDramaPage) return "icon-manga";
+    if (isOnBooksPage) return FaBook;
     return FaPlayCircle;
   };
 
   const IconComponent = getIcon();
 
-  return (
-  <HeaderContainer>
-    <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-      <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={theme.primary} />
-          <stop offset="50%" stopColor={theme.text || theme.primary} />
-          <stop offset="100%" stopColor={`${theme.primary}cc`} />
-        </linearGradient>
-      </defs>
-    </svg>
-    
-     {/* Logo Clickable for redirection */}
+   return (
+    <HeaderContainer>
+      <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={theme.primary} />
+            <stop offset="50%" stopColor={theme.text || theme.primary} />
+            <stop offset="100%" stopColor={`${theme.primary}cc`} />
+          </linearGradient>
+        </defs>
+      </svg>
+      
       <Logo onClick={handleLogoClick}>
         <GradientIcon>
-          <IconComponent />
+          {typeof IconComponent === 'string' ? (
+            <CustomIcon className={IconComponent} />
+          ) : (
+            <IconComponent />
+          )}
         </GradientIcon>
         <span className="logo-text">
-          {isOnMangaPage ? 'readbaba' : 'watchbaba'}
+          {isOnMangaPage || isOnBooksPage ? 'readbaba' : 'watchbaba'}
         </span>
       </Logo>
 
@@ -303,7 +365,7 @@ function Header({ toggleSidebar }) {
         <FaSearch />
       </MobileButton>
       <MobileButton onClick={() => setIsTopbarOpen(true)}>
-        <FaBars />
+        <FaBarsStaggered  />
       </MobileButton>
     </MobileControls>
     

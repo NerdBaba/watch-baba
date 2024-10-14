@@ -2,24 +2,86 @@ import React, { useState, useEffect, useCallback, useRef} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
-import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds, getTvShowEpisodeDetails  } from '../services/tmdbApi';
+import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds, getTvShowEpisodeDetails, getTvShowVideos  } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 // import DownloadOption from '../components/DownloadOption';
-import { FaPlay, FaInfoCircle, FaTimes} from 'react-icons/fa';
+import { FaPlay, FaInfoCircle, FaTimes, FaUser} from 'react-icons/fa';
 
 
-const TvShowContainer = styled.div`
-  width: 100%;
-  max-width: 2000px; // Adjust this value as needed
-  margin: 0 auto;
-  padding: 20px;
-  box-sizing: border-box;
 
+const MobileView = styled.div`
   @media (max-width: 768px) {
-    padding: 10px;
+    display: block;
+  }
+  @media (min-width: 769px) {
+    display: none;
   }
 `;
+
+const DesktopView = styled.div`
+  @media (max-width: 768px) {
+    display: none;
+  }
+  @media (min-width: 769px) {
+    display: block;
+  }
+`;
+
+const MobileCover = styled.div`
+  width: 100%;
+  height: 13rem;
+  object-fit: cover;
+  border-radius: 10px;
+  background-image: url(${props => props.backdrop});
+  background-size: cover;
+  background-position: center;
+`;
+
+const MobileContent = styled.div`
+  padding: 0px;
+`;
+
+
+
+const TrailerContainer = styled.div`
+  margin-top: 20px;
+`;
+
+const TrailerVideo = styled.iframe`
+  width: 100%;
+  height: 56.25vw; // 16:9 aspect ratio
+  max-height: 480px;
+  border: none;
+`;
+const TvShowContainer = styled.div`
+  width: 90vw; 
+  margin: 0 auto;
+  padding: 2vw;  /* Padding is now responsive to the viewport width */
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+        max-width: 100vw;
+
+    padding: 2vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 75vw;
+    padding: 1.5vw;
+  }
+`;
+
 
 
 const Hero = styled.div`
@@ -88,7 +150,10 @@ const ButtonGroup = styled.div`
     gap: 5px;
   }
 `;
-
+const MobileButtonGroup = styled(ButtonGroup)`
+  justify-content: center;
+  margin-top: 20px;
+`;
 const Button = styled.button`
   padding: 10px 20px;
   font-size: 1.1rem;
@@ -152,6 +217,11 @@ const PlayButton = styled(Button)`
   &:hover {
       background-color: ${props => props.theme.background};
     }
+   @media (max-width: 768px) {
+   background-color: ${props => props.theme.button};
+   color: ${props => props.theme.highlight};
+
+  }
 `;
 
 const InfoButton = styled(Button)`
@@ -198,6 +268,11 @@ const SectionTitle = styled.h2`
     }
   }
 `;
+
+const TrailerTitle = styled(SectionTitle)`
+  margin-bottom: 10px;
+`;
+
 const CastContainer = styled.div`
   display: flex;
   overflow-x: auto;
@@ -288,9 +363,45 @@ const VideoContainer = styled.div`
   max-width: 1200px;
   aspect-ratio: 16 / 9;
 
+   @media (min-width: 501px) {
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
 
-  @media (min-width: 768px) and (max-width: 1024px) {
-    width: 95%;
+    &::-webkit-scrollbar-track {
+      background: ${props => props.theme.background};
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: ${props => props.theme.primary};
+      border-radius: 5px;
+    }
+  }
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 500px) {
+    overflow-y: hidden;
+  }
+
+@media (min-width: 768px) {
+    max-width: 90vw;
+    padding: 3vw;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85vw;
+    padding: 2.5vw;
+  }
+
+  @media (min-width: 1440px) {
+    max-width: 80vw;
+    padding: 2vw;
+  }
+
+  @media (min-width: 2560px) {
+    max-width: 75vw;
+    padding: 1.5vw;
   }
 `;
 
@@ -315,6 +426,8 @@ const EmbedPlayer = styled.iframe`
   border: none;
   aspect-ratio: 16 / 9;
 
+
+
   @media (max-width: 768px) {
     height: 56.25vw;
   }
@@ -338,6 +451,28 @@ const ControlsContainer = styled.div`
     align-items: center;
   }
 `;
+
+const PlaceholderImage = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: ${props => props.theme.primary};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+
+  @media (max-width: 768px) {
+    width: 100px;
+    height: 100px;
+  }
+`;
+
+const PlaceholderIcon = styled(FaUser)`
+  font-size: 60px;
+  color: ${props => props.theme.background};
+`;
+
 
 const Select = styled.select`
   background-color: ${props => props.theme.background};
@@ -379,23 +514,25 @@ const LogoImage = styled.img`
   height: auto;
   margin-bottom: 20px;
 
-  @media (max-width: 768px) {
-    max-width: 150px; // Reduced from 200px to 150px
+   @media (max-width: 768px) {
+    max-width: 90%;
+    margin-top: 20px;
     margin-bottom: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 `;
 
-
 const AdBlockedIframe = ({ src, allowFullScreen }) => {
-  const [isBlocked, setIsBlocked] = useState(false);
   const iframeRef = useRef(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
     const checkDomain = () => {
       const blockedDomains = [
         'example-ad-domain.com',
         'another-ad-domain.com',
-        // Add more blocked domains here
       ];
       const url = new URL(src);
       if (blockedDomains.some(domain => url.hostname.includes(domain))) {
@@ -421,7 +558,7 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
   }, [src]);
 
   if (isBlocked) {
-    return null; // Return nothing if the domain is blocked
+    return null;
   }
 
   return (
@@ -450,6 +587,8 @@ function TvShowDetails() {
   const [episodeId, setEpisodeId] = useState(null);
     const [logoUrl, setLogoUrl] = useState('');
   // const playerRef = useRef(null);
+  const [trailer, setTrailer] = useState(null);
+
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   
 
@@ -479,11 +618,12 @@ function TvShowDetails() {
    useEffect(() => {
     const fetchTvShowData = async () => {
       try {
-        const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse] = await Promise.all([
+        const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse, videosResponse] = await Promise.all([
           getTvShowDetails(id),
           getTvShowRecommendations(id),
           getTvShowCredits(id),
           getTvShowExternalIds(id),
+           getTvShowVideos(id)
         ]);
 
         setTvShow(detailsResponse.data);
@@ -495,7 +635,8 @@ function TvShowDetails() {
           setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
         }
 
-        // The specified snippet has been removed from here
+        const trailerVideo = videosResponse.data.results.find(video => video.type === 'Trailer');
+        setTrailer(trailerVideo);// The specified snippet has been removed from here
 
       } catch (error) {
         console.error('Error fetching TV show data:', error);
@@ -569,6 +710,40 @@ useEffect(() => {
     document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
   };
 }, []);
+
+useEffect(() => {
+  const handleFullscreenChange = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+          window.screen.orientation.lock('landscape').catch((err) => {
+            console.error('Failed to lock orientation:', err);
+          });
+        }
+      } catch (err) {
+        // Handle error or silently fail if screen orientation API is not supported
+      }
+    } else {
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+          window.screen.orientation.unlock();
+        }
+      } catch (err) {
+        // Handle error or silently fail
+      }
+    }
+  };
+
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+  return () => {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+  };
+}, []);
+
+
 
 
   const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
@@ -653,6 +828,7 @@ useEffect(() => {
 
   return (
       <TvShowContainer>
+      <DesktopView>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`}>
     <HeroContent>
    
@@ -692,17 +868,35 @@ useEffect(() => {
         <Section>
           <SectionTitle>Cast</SectionTitle>
           <CastContainer>
-            {cast.map((member) => (
-              <CastMember key={member.id} to={`/actor/${member.id}`}>
-                <CastImage 
-                  src={member.profile_path ? `https://image.tmdb.org/t/p/w200${member.profile_path}` : '/placeholder.png'} 
-                  alt={member.name} 
-                />
-                <CastName>{member.name}</CastName>
-              </CastMember>
-            ))}
+             {cast.map((member) => (
+  <CastMember key={member.id} to={`/actor/${member.id}`}>
+    {member.profile_path ? (
+      <CastImage 
+        src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} 
+        alt={member.name} 
+      />
+    ) : (
+      <PlaceholderImage>
+        <PlaceholderIcon />
+      </PlaceholderImage>
+    )}
+    <CastName>{member.name}</CastName>
+  </CastMember>
+))}
           </CastContainer>
         </Section>
+
+         {trailer && (
+          <Section>
+            <TrailerTitle>Trailer</TrailerTitle>
+            <TrailerContainer>
+              <TrailerVideo
+                src={`https://www.youtube.com/embed/${trailer.key}`}
+                allowFullScreen
+              />
+            </TrailerContainer>
+          </Section>
+        )}
 
         <Section>
           <SectionTitle>More Like This</SectionTitle>
@@ -712,6 +906,74 @@ useEffect(() => {
             ))}
           </RecommendationsContainer>
         </Section>
+        </DesktopView>
+
+        <MobileView>
+        <MobileCover backdrop={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`} />
+        <MobileContent>
+            {logoUrl ? (
+              <LogoImage src={logoUrl} alt={tvShow.name} onError={() => setLogoUrl('')} />
+            ) : (
+              <Title>{tvShow.name}</Title>
+            )}
+          
+          <MobileButtonGroup>
+            <PlayButton onClick={() => {
+              setIsWatching(true);
+              setWatchOption('server1');
+            }}>
+              <FaPlay /> Play
+            </PlayButton>
+          </MobileButtonGroup>
+
+          <Overview>{tvShow.overview}</Overview>
+          <Ratings>
+            <RatingItem>⭐ {tvShow.vote_average.toFixed(1)}/10</RatingItem>
+          </Ratings>
+
+          <Section>
+            <SectionTitle>Cast</SectionTitle>
+            <CastContainer>
+              {cast.map((member) => (
+                <CastMember key={member.id} to={`/actor/${member.id}`}>
+                  {member.profile_path ? (
+                    <CastImage 
+                      src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} 
+                      alt={member.name} 
+                    />
+                  ) : (
+                    <PlaceholderImage>
+                      <PlaceholderIcon />
+                    </PlaceholderImage>
+                  )}
+                  <CastName>{member.name}</CastName>
+                </CastMember>
+              ))}
+            </CastContainer>
+          </Section>
+
+          {trailer && (
+            <Section>
+              <TrailerTitle>Trailer</TrailerTitle>
+              <TrailerContainer>
+                <TrailerVideo
+                  src={`https://www.youtube.com/embed/${trailer.key}`}
+                  allowFullScreen
+                />
+              </TrailerContainer>
+            </Section>
+          )}
+
+          <Section>
+            <SectionTitle>More Like This</SectionTitle>
+            <RecommendationsContainer>
+              {recommendations.map((tvShow) => (
+                <MovieCard key={tvShow.id} movie={tvShow} />
+              ))}
+            </RecommendationsContainer>
+          </Section>
+        </MobileContent>
+      </MobileView>
 
         {isWatching && (
           <Backdrop onClick={() => setIsWatching(false)}>
@@ -772,10 +1034,10 @@ useEffect(() => {
                 </>
               )}
               {watchOption === 'server7' && (
-                <EmbedPlayer 
+                <EmbedPlayer
 
-                  src={`https://moviee.tv/embed/tv/${tvShow.id}?season=${selectedSeason}&episode=${selectedEpisode}`}
-
+                  // src={`https://moviee.tv/embed/tv/${tvShow.id}?season=${selectedSeason}&episode=${selectedEpisode}`}
+                     src={`https://vidsrc.xyz/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                   allowFullScreen
                 />
               )}
@@ -855,6 +1117,7 @@ useEffect(() => {
                 allowFullScreen
                 />
               )}
+              
  
             </VideoContainer>
           </Backdrop>

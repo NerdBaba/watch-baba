@@ -1,9 +1,8 @@
-import React, {forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaBars, FaPalette, FaEye,FaBook,  FaMask,FaBaseballBall } from 'react-icons/fa';
-
-// import { themes } from '../theme';
+import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaPalette, FaBaseballBall, FaBook } from 'react-icons/fa';
+import { Sidebar as FeatherSidebar } from 'react-feather';
 
 const SidebarContainer = styled.nav`
   @media (max-width: 768px) {
@@ -13,10 +12,11 @@ const SidebarContainer = styled.nav`
   width: ${(props) => (props.isOpen ? '200px' : '60px')};
   background-color: ${(props) => props.theme.background};
   padding: 20px 8px;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   position: fixed;
   height: 100%;
-  overflow-y: auto;
+  overflow-y: hidden;
+  overflow-x: hidden;
   z-index: 1000;
   top: 0;
   left: 0;
@@ -43,6 +43,7 @@ const IconWrapper = styled.span`
   display: flex;
   justify-content: center;
   width: ${(props) => (props.isOpen ? 'auto' : '100%')};
+  font-size: 1.3rem;
 `;
 
 const ToggleButton = styled.button`
@@ -56,35 +57,35 @@ const ToggleButton = styled.button`
   align-items: center;
   width: 100%;
   justify-content: ${(props) => (props.isOpen ? 'flex-end' : 'center')};
+
+  &:hover {
+    color: ${(props) => props.theme.text};
+    background-color: ${(props) => props.theme.hover};
+  }
 `;
 
-// const ThemeSelector = styled.select`
-//   width: 100%;
-//   padding: 5px;
-//   margin-top: 10px;
-//   background-color: ${(props) => props.theme.background};
-//   color: ${(props) => props.theme.text};
-//   border: 1px solid ${(props) => props.theme.primary};
-//   border-radius: 5px;
-// `;
+const CustomIcon = styled.i`
+  font-family: 'icomoon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 1.5rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+`;
 
 const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
-  // const theme = useContext(ThemeContext);
-
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
-  // const handleThemeChange = (e) => {
-  //   const themeName = e.target.value;
-  //   console.log('Selected theme:', themeName);
-  //   setTheme(themeName);
-  // };
-
   return (
     <SidebarContainer ref={ref} isOpen={isOpen}>
       <ToggleButton onClick={toggleSidebar} isOpen={isOpen}>
-        {isOpen ? <FaTimes /> : <FaBars />}
+        {isOpen ? <FaTimes /> : <FeatherSidebar />}
       </ToggleButton>
       <NavItem to="/">
         <IconWrapper isOpen={isOpen}><FaHome /></IconWrapper>
@@ -107,20 +108,24 @@ const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
         {isOpen && 'Actors'}
       </NavItem>
       <NavItem to="/anime">
-        <IconWrapper isOpen={isOpen}><FaEye /></IconWrapper>
+        <IconWrapper isOpen={isOpen}><CustomIcon className="icon-anime" /></IconWrapper>
         {isOpen && 'Anime'}
       </NavItem>
       <NavItem to="/manga">
-      <IconWrapper isOpen={isOpen}><FaBook /></IconWrapper>
-      {isOpen && 'Manga'}
+        <IconWrapper isOpen={isOpen}><CustomIcon className="icon-mangaka" /></IconWrapper>
+        {isOpen && 'Manga'}
       </NavItem>
       <NavItem to="/kdrama">
-      <IconWrapper isOpen={isOpen}><FaMask /></IconWrapper>
-      {isOpen && 'K-Drama'}
+        <IconWrapper isOpen={isOpen}><CustomIcon className="icon-manga" /></IconWrapper>
+        {isOpen && 'K-Drama'}
       </NavItem>
-       <NavItem to="/sports">
-      <IconWrapper isOpen={isOpen}><FaBaseballBall /></IconWrapper>
-      {isOpen && 'Live Sports'}
+      <NavItem to="/sports">
+        <IconWrapper isOpen={isOpen}><FaBaseballBall /></IconWrapper>
+        {isOpen && 'Live Sports'}
+      </NavItem>
+      <NavItem to="/books">
+        <IconWrapper isOpen={isOpen}><FaBook /></IconWrapper>
+        {isOpen && 'Books'}
       </NavItem>
       <NavItem to="/themes">
         <IconWrapper isOpen={isOpen}><FaPalette /></IconWrapper>
