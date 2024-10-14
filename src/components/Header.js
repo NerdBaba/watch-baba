@@ -255,21 +255,30 @@ function Header({ toggleSidebar }) {
       setIsMobileSearchOpen(false);
     }
   };
+const handleLogoClick = () => {
+        const path = location.pathname;
+        if (path.startsWith('/manga')) {
+            navigate('/manga');
+        } else if (path.startsWith('/movie')) {
+                navigate('/movies');
+            } else if (path.startsWith('/tv')) {
+                navigate('/tv');
+            } else if (path.startsWith('/kdrama')) {
+                navigate('/kdrama');
 
-  const handleLogoClick = () => {
-    const path = location.pathname;
-    if (path.startsWith('/manga/')) {
-      navigate('/manga');
-    } else if (path.startsWith('/movie/') || path.startsWith('/tv/')) {
-      navigate('/');
-    } else if (path.startsWith('/anime/')) {
-      navigate('/anime');
-    } else if (path.startsWith('/watch/')) {
-      navigate('/sports');
-    } else {
-      navigate('/');
-    }
-  };
+            } else if (path.startsWith('/discovery')) {
+                navigate('/discovery');
+            } else if (path.startsWith('/books')) {
+                navigate('/books');
+            } 
+            else if (path.startsWith('/anime')) {
+                navigate('/anime');
+            } else if (path.startsWith('/watch')) {
+                navigate('/sports');
+            } else {
+                navigate('/');
+            }
+        };
 
   const handleRandomClick = async () => {
     try {

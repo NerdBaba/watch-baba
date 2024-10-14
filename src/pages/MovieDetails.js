@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
-import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds } from '../services/tmdbApi';
+import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds, getMovieVideos } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 // import DownloadOption from '../components/DownloadOption';
@@ -10,10 +10,56 @@ import { FaPlay, FaInfoCircle, FaTimes, FaDownload, FaUser } from 'react-icons/f
 
 
 
+const MobileView = styled.div`
+  @media (max-width: 768px) {
+    display: block;
+  }
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
+const DesktopView = styled.div`
+  @media (max-width: 768px) {
+    display: none;
+  }
+  @media (min-width: 769px) {
+    display: block;
+  }
+`;
+
+const MobileCover = styled.div`
+  width: 100%;
+  height: 13rem;
+  object-fit: cover;
+  border-radius: 10px;
+  background-image: url(${props => props.backdrop});
+  background-size: cover;
+  background-position: center;
+`;
+
+const MobileContent = styled.div`
+  padding: 20px;
+`;
+
+
+
+const TrailerContainer = styled.div`
+  margin-top: 20px;
+`;
+
+const TrailerVideo = styled.iframe`
+  width: 100%;
+  height: 56.25vw; // 16:9 aspect ratio
+  max-height: 480px;
+  border: none;
+`;
+
+
 const MovieContainer = styled.div`
     width: 90vw; 
   margin: 0 auto;
-  padding: 5vw;  /* Padding is now responsive to the viewport width */
+  padding: 2vw;  /* Padding is now responsive to the viewport width */
   box-sizing: border-box;
 
   @media (min-width: 768px) {
@@ -110,6 +156,11 @@ const ButtonGroup = styled.div`
     gap: 5px;
   }
 `;
+
+const MobileButtonGroup = styled(ButtonGroup)`
+  justify-content: center;
+  margin-top: 20px;
+`;
 const Button = styled.button`
   padding: 10px 20px;
   font-size: 1.1rem;
@@ -190,6 +241,12 @@ const PlayButton = styled(Button)`
   &:hover {
       background-color: ${props => props.theme.background};
     }
+
+  @media (max-width: 768px) {
+   background-color: ${props => props.theme.button};
+   color: ${props => props.theme.highlight};
+
+  }
 `;
 
 const InfoButton = styled(Button)`
@@ -236,6 +293,12 @@ const SectionTitle = styled.h2`
     }
   }
 `;
+
+
+const TrailerTitle = styled(SectionTitle)`
+  margin-bottom: 10px;
+`;
+
 const CastContainer = styled.div`
   display: flex;
   overflow-x: auto;
@@ -501,7 +564,8 @@ const LogoImage = styled.img`
   margin-bottom: 20px;
 
   @media (max-width: 768px) {
-    max-width: 150px; // Reduced from 200px to 150px
+    max-width: 100%; // Reduced from 200px to 150px
+    margin-top: 20px;
     margin-bottom: 10px;
   }
 `;
@@ -645,17 +709,24 @@ function MovieDetails() {
    const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [selectedDownloadOption, setSelectedDownloadOption] = useState(null);
     const [isDownloadFetching, setIsDownloadFetching] = useState(false);
+  const [trailer, setTrailer] = useState(null);
+
 
   const fetchMovieData = useCallback(async () => {
     try {
-      const [detailsResponse, externalIdsResponse] = await Promise.all([
+      const [detailsResponse, externalIdsResponse, videosResponse] = await Promise.all([
         getMovieDetails(id),
-        getMovieExternalIds(id)
+        getMovieExternalIds(id),
+        getMovieVideos(id)
       ]);
 
       setMovie(detailsResponse.data);
       setExternalIds(externalIdsResponse.data);
       setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
+
+      // Find the first trailer in the results
+      const trailerVideo = videosResponse.data.results.find(video => video.type === 'Trailer');
+      setTrailer(trailerVideo);
 
       const [recommendationsResponse, creditsResponse] = await Promise.all([
         getMovieRecommendations(id),
@@ -996,6 +1067,7 @@ useEffect(() => {
   
   return (
       <MovieContainer>
+      <DesktopView>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}>
           <HeroContent>
           <Suspense fallback={<LoadingPlaceholder />}>
@@ -1060,7 +1132,17 @@ useEffect(() => {
             </CastContainer>
           </Section>
         </Suspense>
-
+         {trailer && (
+          <Section>
+            <TrailerTitle>Trailer</TrailerTitle>
+            <TrailerContainer>
+              <TrailerVideo
+                src={`https://www.youtube.com/embed/${trailer.key}`}
+                allowFullScreen
+              />
+            </TrailerContainer>
+          </Section>
+        )}
         <Suspense fallback={<div>Loading recommendations...</div>}>
           <Section>
             <SectionTitle>More Like This</SectionTitle>
@@ -1071,6 +1153,87 @@ useEffect(() => {
             </RecommendationsContainer>
           </Section>
         </Suspense>
+        </DesktopView>
+
+
+
+      <MobileView>
+        <MobileCover backdrop={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`} />
+        <MobileContent>
+          <Suspense fallback={<LoadingPlaceholder />}>
+            {logoUrl ? (
+              <LogoImage src={logoUrl} alt={movie.title} onError={() => setLogoUrl('')} />
+            ) : (
+              <Title>{movie.title}</Title>
+            )}
+          </Suspense>
+          
+          <MobileButtonGroup>
+            <PlayButton onClick={() => {
+              setIsWatching(true);
+              setWatchOption('server1');
+            }}>
+              <FaPlay /> Play
+            </PlayButton>
+            <DownloadButton 
+              disabled={isDownloadFetching || moviesDriveLinks.length === 0}
+              onClick={() => moviesDriveLinks.length > 0 && setShowDownloadOptions(true)}
+            >
+              <FaDownload /> {isDownloadFetching ? 'Fetching...' : 'Download'}
+            </DownloadButton>
+          </MobileButtonGroup>
+
+          <Overview>{movie.overview}</Overview>
+          <Ratings>
+            <RatingItem>⭐ {movie.vote_average.toFixed(1)}/10</RatingItem>
+          </Ratings>
+          <InfoItem>Release Date: {new Date(movie.release_date).toLocaleDateString()}</InfoItem>
+          <InfoItem>Runtime: {movie.runtime} minutes</InfoItem>
+          <InfoItem>Ends at: {calculateEndTime(currentTime, movie.runtime)}</InfoItem>
+
+          <Section>
+            <SectionTitle>Cast</SectionTitle>
+            <CastContainer>
+              {cast.map((member) => (
+                <CastMember key={member.id} to={`/actor/${member.id}`}>
+                  {member.profile_path ? (
+                    <CastImage 
+                      src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} 
+                      alt={member.name} 
+                    />
+                  ) : (
+                    <PlaceholderImage>
+                      <PlaceholderIcon />
+                    </PlaceholderImage>
+                  )}
+                  <CastName>{member.name}</CastName>
+                </CastMember>
+              ))}
+            </CastContainer>
+          </Section>
+
+          {trailer && (
+            <Section>
+              <TrailerTitle>Trailer</TrailerTitle>
+              <TrailerContainer>
+                <TrailerVideo
+                  src={`https://www.youtube.com/embed/${trailer.key}`}
+                  allowFullScreen
+                />
+              </TrailerContainer>
+            </Section>
+          )}
+
+          <Section>
+            <SectionTitle>More Like This</SectionTitle>
+            <RecommendationsContainer>
+              {recommendations.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))}
+            </RecommendationsContainer>
+          </Section>
+        </MobileContent>
+      </MobileView>
 
         {isWatching && (
           <Backdrop onClick={() => setIsWatching(false)}>

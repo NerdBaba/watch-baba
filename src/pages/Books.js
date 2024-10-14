@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import {  Download, Globe, FileText, HardDrive, Search, Bookmark } from 'react-feather';
+import {  Download, Globe, FileText, HardDrive, Search, Bookmark, Plus } from 'react-feather';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBook } from '@fortawesome/free-solid-svg-icons';
+import { saveWishlist, getWishlist, isBookWishlisted } from '../utils/WishlistBooks';
 
 
 const Container = styled.div`
@@ -290,6 +291,7 @@ const DownloadButton = styled.button`
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  min-width: 120px;
 
   &:hover {
     background: ${props => props.theme.hover};
@@ -300,13 +302,36 @@ const DownloadButton = styled.button`
   svg {
     margin-right: 8px;
   }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 `;
+
+const LoadingRing = styled.div`
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border: 2px solid ${props => props.theme.text};
+  border-radius: 50%;
+  border-top: 2px solid transparent;
+  animation: spin 2s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+
 
 const WishlistButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: ${props => props.theme.primary};
+   color: ${props => props.isWishlisted ? props.theme.text : props.theme.primary};
   &:hover {
    background-color: ${props => props.theme.hover}; 
   }
@@ -328,14 +353,24 @@ const defaultQueries = [
   'Self-Help'
 ];
 
+
 function Books() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentQuery, setCurrentQuery] = useState('');
+  const [wishlist, setWishlist] = useState([]);
+  const [downloadingBooks, setDownloadingBooks] = useState({});
 
   useEffect(() => {
-    if (searchQuery) {
+    const savedWishlist = getWishlist();
+    setWishlist(savedWishlist);
+
+    if (savedWishlist.length > 0) {
+      setBooks(savedWishlist);
+      setCurrentQuery('Wishlist');
+      setLoading(false);
+    } else if (searchQuery) {
       fetchBooks(searchQuery);
     } else {
       fetchRandomDefaultBooks();
@@ -361,23 +396,35 @@ function Books() {
     fetchBooks(randomQuery);
   };
 
-  const handleDownload = (link) => {
-    const a = document.createElement('a');
-    a.href = link;
-    a.download = '';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const handleDownload = async (book) => {
+    setDownloadingBooks(prev => ({ ...prev, [book.md5]: true }));
+    
+    try {
+      const response = await fetch(book.link);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${book.title}.${book.book_filetype.toLowerCase()}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading the file:', error);
+    } finally {
+      setDownloadingBooks(prev => ({ ...prev, [book.md5]: false }));
+    }
   };
 
   const handleImageError = (e) => {
-  e.target.style.display = 'none';
-  if (window.innerWidth <= 600) {
-    e.target.nextSibling.nextSibling.style.display = 'flex';
-  } else {
-    e.target.nextSibling.style.display = 'flex';
-  }
-};
+    e.target.style.display = 'none';
+    if (window.innerWidth <= 600) {
+      e.target.nextSibling.nextSibling.style.display = 'flex';
+    } else {
+      e.target.nextSibling.style.display = 'flex';
+    }
+  };
 
   const handleSearchChange = () => {
     if (searchQuery.trim() !== '') {
@@ -389,6 +436,20 @@ function Books() {
     if (e.key === 'Enter') {
       handleSearchChange();
     }
+  };
+
+  const handleWishlist = (book) => {
+    const isAlreadyWishlisted = isBookWishlisted(book, wishlist);
+    let newWishlist;
+
+    if (isAlreadyWishlisted) {
+      newWishlist = wishlist.filter((item) => item.md5 !== book.md5);
+    } else {
+      newWishlist = [...wishlist, book];
+    }
+
+    setWishlist(newWishlist);
+    saveWishlist(newWishlist);
   };
 
   return (
@@ -413,54 +474,72 @@ function Books() {
             {books.map((book) => (
               <BookCard key={book.md5}>
                 <CardContent>
-                  
                   <BookDetails>
                     <BookCover>
-  <BookImage
-    src={book.book_image}
-    alt={book.title}
-    onError={handleImageError}
-  />
-  <PlaceholderCover style={{ display: 'none' }}>
-    <FontAwesomeIcon icon={faBook} />
-    <div className="readbaba">readbaba</div>
-    <div className="book-title">{book.title}</div>
-  </PlaceholderCover>
-  <MobilePlaceholderCover style={{ display: 'none' }}>
-    <FontAwesomeIcon icon={faBook} className="icon" />
-    <div className="readbaba">readbaba</div>
-    <div className="book-title">{book.title}</div>
-  </MobilePlaceholderCover>
-</BookCover>
+                      <BookImage
+                        src={book.book_image}
+                        alt={book.title}
+                        onError={handleImageError}
+                      />
+                      <PlaceholderCover style={{ display: 'none' }}>
+                        <FontAwesomeIcon icon={faBook} />
+                        <div className="readbaba">readbaba</div>
+                        <div className="book-title">{book.title}</div>
+                      </PlaceholderCover>
+                      <MobilePlaceholderCover style={{ display: 'none' }}>
+                        <FontAwesomeIcon icon={faBook} className="icon" />
+                        <div className="readbaba">readbaba</div>
+                        <div className="book-title">{book.title}</div>
+                      </MobilePlaceholderCover>
+                    </BookCover>
                     <BookInfo>
                       <div>
                         <BookTitle>{book.title}</BookTitle>
                         <BookAuthor>By {book.authors || 'Unknown Author'}</BookAuthor>
                         <BookDescription>{book.description}</BookDescription>
                         <BookMeta>{book.book_content}</BookMeta>
-
-                  <BookMeta>
-                    <Globe size={14} />
-                    <span>{book.book_lang}</span>
-                  </BookMeta>
-                  <BookMeta>
-                    <FileText size={14} />
-                    <span>{book.book_filetype}</span>
-                  </BookMeta>
-                  <BookMeta>
-                    <HardDrive size={14} />
-                    <span>{book.book_size}</span>
-                  </BookMeta>
+                        <BookMeta>
+                          <Globe size={14} />
+                          <span>{book.book_lang}</span>
+                        </BookMeta>
+                        <BookMeta>
+                          <FileText size={14} />
+                          <span>{book.book_filetype}</span>
+                        </BookMeta>
+                        <BookMeta>
+                          <HardDrive size={14} />
+                          <span>{book.book_size}</span>
+                        </BookMeta>
                       </div>
-                       <ButtonGroup>
-    <DownloadButton onClick={() => handleDownload(book.link)}>
-      <Download size={14} />
-      Download
-    </DownloadButton>
-    <WishlistButton>
-      <Bookmark size={20} />
-    </WishlistButton>
-  </ButtonGroup>
+                      <ButtonGroup>
+                        <DownloadButton 
+                    onClick={() => handleDownload(book)}
+                    disabled={downloadingBooks[book.md5]}
+                  >
+                    {downloadingBooks[book.md5] ? (
+                      <>
+                        <LoadingRing />
+                        Downloading
+                      </>
+                    ) : (
+                      <>
+                        <Download size={14} />
+                        Download
+                      </>
+                    )}
+                  </DownloadButton>
+                  <WishlistButton
+                    onClick={() => handleWishlist(book)}
+                    isWishlisted={isBookWishlisted(book, wishlist)}
+                  >
+                    {isBookWishlisted(book, wishlist) ? (
+                      <Bookmark size={20} />
+                    ) : (
+                      <Plus size={20} />
+                    )}
+                  </WishlistButton>
+
+                      </ButtonGroup>
                     </BookInfo>
                   </BookDetails>
                 </CardContent>

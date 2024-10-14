@@ -2,17 +2,62 @@ import React, { useState, useEffect, useCallback, useRef} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
-import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds, getTvShowEpisodeDetails  } from '../services/tmdbApi';
+import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShowExternalIds, getTvShowEpisodeDetails, getTvShowVideos  } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 // import DownloadOption from '../components/DownloadOption';
 import { FaPlay, FaInfoCircle, FaTimes, FaUser} from 'react-icons/fa';
 
 
+
+const MobileView = styled.div`
+  @media (max-width: 768px) {
+    display: block;
+  }
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
+const DesktopView = styled.div`
+  @media (max-width: 768px) {
+    display: none;
+  }
+  @media (min-width: 769px) {
+    display: block;
+  }
+`;
+
+const MobileCover = styled.div`
+  width: 100%;
+  height: 13rem;
+  object-fit: cover;
+  border-radius: 10px;
+  background-image: url(${props => props.backdrop});
+  background-size: cover;
+  background-position: center;
+`;
+
+const MobileContent = styled.div`
+  padding: 20px;
+`;
+
+
+
+const TrailerContainer = styled.div`
+  margin-top: 20px;
+`;
+
+const TrailerVideo = styled.iframe`
+  width: 100%;
+  height: 56.25vw; // 16:9 aspect ratio
+  max-height: 480px;
+  border: none;
+`;
 const TvShowContainer = styled.div`
   width: 90vw; 
   margin: 0 auto;
-  padding: 4vw;  /* Padding is now responsive to the viewport width */
+  padding: 2vw;  /* Padding is now responsive to the viewport width */
   box-sizing: border-box;
 
   @media (min-width: 768px) {
@@ -105,7 +150,10 @@ const ButtonGroup = styled.div`
     gap: 5px;
   }
 `;
-
+const MobileButtonGroup = styled(ButtonGroup)`
+  justify-content: center;
+  margin-top: 20px;
+`;
 const Button = styled.button`
   padding: 10px 20px;
   font-size: 1.1rem;
@@ -169,6 +217,11 @@ const PlayButton = styled(Button)`
   &:hover {
       background-color: ${props => props.theme.background};
     }
+   @media (max-width: 768px) {
+   background-color: ${props => props.theme.button};
+   color: ${props => props.theme.highlight};
+
+  }
 `;
 
 const InfoButton = styled(Button)`
@@ -215,6 +268,11 @@ const SectionTitle = styled.h2`
     }
   }
 `;
+
+const TrailerTitle = styled(SectionTitle)`
+  margin-bottom: 10px;
+`;
+
 const CastContainer = styled.div`
   display: flex;
   overflow-x: auto;
@@ -457,7 +515,9 @@ const LogoImage = styled.img`
   margin-bottom: 20px;
 
   @media (max-width: 768px) {
-    max-width: 150px; // Reduced from 200px to 150px
+    max-width: 100%; // Reduced from 200px to 150px
+    margin-top: 20px;
+    object-fit: contain;
     margin-bottom: 10px;
   }
 `;
@@ -525,6 +585,8 @@ function TvShowDetails() {
   const [episodeId, setEpisodeId] = useState(null);
     const [logoUrl, setLogoUrl] = useState('');
   // const playerRef = useRef(null);
+  const [trailer, setTrailer] = useState(null);
+
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   
 
@@ -554,11 +616,12 @@ function TvShowDetails() {
    useEffect(() => {
     const fetchTvShowData = async () => {
       try {
-        const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse] = await Promise.all([
+        const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse, videosResponse] = await Promise.all([
           getTvShowDetails(id),
           getTvShowRecommendations(id),
           getTvShowCredits(id),
           getTvShowExternalIds(id),
+           getTvShowVideos(id)
         ]);
 
         setTvShow(detailsResponse.data);
@@ -570,7 +633,8 @@ function TvShowDetails() {
           setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
         }
 
-        // The specified snippet has been removed from here
+        const trailerVideo = videosResponse.data.results.find(video => video.type === 'Trailer');
+        setTrailer(trailerVideo);// The specified snippet has been removed from here
 
       } catch (error) {
         console.error('Error fetching TV show data:', error);
@@ -762,6 +826,7 @@ useEffect(() => {
 
   return (
       <TvShowContainer>
+      <DesktopView>
         <Hero backdrop={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`}>
     <HeroContent>
    
@@ -819,6 +884,18 @@ useEffect(() => {
           </CastContainer>
         </Section>
 
+         {trailer && (
+          <Section>
+            <TrailerTitle>Trailer</TrailerTitle>
+            <TrailerContainer>
+              <TrailerVideo
+                src={`https://www.youtube.com/embed/${trailer.key}`}
+                allowFullScreen
+              />
+            </TrailerContainer>
+          </Section>
+        )}
+
         <Section>
           <SectionTitle>More Like This</SectionTitle>
           <RecommendationsContainer>
@@ -827,6 +904,74 @@ useEffect(() => {
             ))}
           </RecommendationsContainer>
         </Section>
+        </DesktopView>
+
+        <MobileView>
+        <MobileCover backdrop={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`} />
+        <MobileContent>
+            {logoUrl ? (
+              <LogoImage src={logoUrl} alt={tvShow.name} onError={() => setLogoUrl('')} />
+            ) : (
+              <Title>{tvShow.name}</Title>
+            )}
+          
+          <MobileButtonGroup>
+            <PlayButton onClick={() => {
+              setIsWatching(true);
+              setWatchOption('server1');
+            }}>
+              <FaPlay /> Play
+            </PlayButton>
+          </MobileButtonGroup>
+
+          <Overview>{tvShow.overview}</Overview>
+          <Ratings>
+            <RatingItem>⭐ {tvShow.vote_average.toFixed(1)}/10</RatingItem>
+          </Ratings>
+
+          <Section>
+            <SectionTitle>Cast</SectionTitle>
+            <CastContainer>
+              {cast.map((member) => (
+                <CastMember key={member.id} to={`/actor/${member.id}`}>
+                  {member.profile_path ? (
+                    <CastImage 
+                      src={`https://image.tmdb.org/t/p/w200${member.profile_path}`} 
+                      alt={member.name} 
+                    />
+                  ) : (
+                    <PlaceholderImage>
+                      <PlaceholderIcon />
+                    </PlaceholderImage>
+                  )}
+                  <CastName>{member.name}</CastName>
+                </CastMember>
+              ))}
+            </CastContainer>
+          </Section>
+
+          {trailer && (
+            <Section>
+              <TrailerTitle>Trailer</TrailerTitle>
+              <TrailerContainer>
+                <TrailerVideo
+                  src={`https://www.youtube.com/embed/${trailer.key}`}
+                  allowFullScreen
+                />
+              </TrailerContainer>
+            </Section>
+          )}
+
+          <Section>
+            <SectionTitle>More Like This</SectionTitle>
+            <RecommendationsContainer>
+              {recommendations.map((tvShow) => (
+                <MovieCard key={tvShow.id} movie={tvShow} />
+              ))}
+            </RecommendationsContainer>
+          </Section>
+        </MobileContent>
+      </MobileView>
 
         {isWatching && (
           <Backdrop onClick={() => setIsWatching(false)}>

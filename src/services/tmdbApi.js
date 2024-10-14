@@ -71,18 +71,21 @@ export const discoverMovies = (page = 1, options = {}) => {
       page,
       watch_region: 'IN',
       region: 'IN',
-      ...options, // Move this to the end to override default values
+      include_adult: false, // Exclude adult content
+      ...options,
     }
   });
 };
 
+// Modify the discoverTvShows function
 export const discoverTvShows = (page = 1, options = {}) => {
   return tmdbApi.get('/discover/tv', {
     params: {
       page,
       watch_region: 'IN',
       region: 'IN',
-      ...options, // Move this to the end to override default values
+      include_adult: false, // Exclude adult content
+      ...options,
     }
   });
 };
@@ -116,6 +119,13 @@ export const getTvShowGenres = () => {
   return tmdbApi.get('/genre/tv/list');
 };
 
+export const getMovieVideos = (movieId) => {
+  return axios.get(`${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}`);
+};
+
+export const getTvShowVideos = (tvShowId) => {
+ return axios.get(`${BASE_URL}/tv/${tvShowId}/videos?api_key=${API_KEY}`); 
+}
 
 export const getTvShowExternalIds = (id) => tmdbApi.get(`/tv/${id}/external_ids`);
 export const getMovieExternalIds = (id) => tmdbApi.get(`/movie/${id}/external_ids`);
