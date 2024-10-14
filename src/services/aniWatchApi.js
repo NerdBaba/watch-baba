@@ -11,15 +11,7 @@ export const fetchAnimeHome = async () => {
   }
 };
 
-// export const fetchAnimeDetails = async (id) => {
-//   try {
-//     const response = await fetch(`${BASE_URL}/meta/anilist/info/${id}`);
-//     return await response.json();
-//   } catch (error) {
-//     console.error('Error fetching anime details:', error);
-//     throw error;
-//   }
-// };
+
 
 export const fetchAnimeByCategory = async (category = 'POPULARITY_DESC', page = 1) => {
   try {

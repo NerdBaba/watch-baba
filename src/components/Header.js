@@ -1,7 +1,7 @@
 import React, { useState} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {styled,useTheme} from 'styled-components';
-import { FaSearch, FaDice, FaBars, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaEye,FaCompass, FaPlayCircle,FaBaseballBall,FaMask } from 'react-icons/fa';
+import { FaSearch, FaDice, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaCompass, FaPlayCircle,FaBaseballBall} from 'react-icons/fa';
 import { getPopularMovies, getPopularTvShows } from '../services/tmdbApi';
 import { FaBarsStaggered } from 'react-icons/fa6';
 import Topbar from './Topbar';
@@ -37,10 +37,10 @@ const CustomIcon = styled.i`
   font-variant: normal;
   text-transform: none;
   line-height: 1;
-  font-size: 25px;
+  font-size: 50px;
   display: flex;
-  margin-left: 15px;
-  margin-top: 10px;
+  margin-left: 5px;
+  margin-top: 4px;
   align-items: center;
   
   svg {
@@ -50,8 +50,8 @@ const CustomIcon = styled.i`
   }
 
   @media (min-width: 769px) {
-    font-size: 40px;
-    margin-top: 15px;
+    font-size: 60px;
+    margin-top: 4px;
   }
 
   -webkit-font-smoothing: antialiased;
@@ -69,8 +69,15 @@ const Logo = styled.div`
   
   .logo-text {
     margin-left: 10px;
-    background: linear-gradient(to right, ${props => props.theme.primary}, ${props => props.theme.text || props.theme.primary}, ${props => props.theme.primary}ff);
-    -webkit-background-clip: text;
+background: linear-gradient(
+      to right,
+      ${props => props.theme.primary},
+      ${props => props.theme.accent},
+      ${props => props.theme.highlight},
+      ${props => props.theme.text || props.theme.primary},
+      ${props => props.theme.link},
+      ${props => props.theme.primary}ff
+    );    -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;

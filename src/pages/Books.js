@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Book as BookIcon, Download, User, Globe, FileText, HardDrive, Search, Bookmark } from 'react-feather';
-import { themes } from '../theme';
+import {  Download, Globe, FileText, HardDrive, Search, Bookmark } from 'react-feather';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBook, faDownload, faUser, faGlobe, faFileAlt, faHdd, faSearch, faBookmark } from '@fortawesome/free-solid-svg-icons';
-import { loadTheme } from '../utils/themeStorage';
+import { faBook } from '@fortawesome/free-solid-svg-icons';
 
-// Load the user's theme preference
-const userTheme = loadTheme() || 'default';
-const currentTheme = themes[userTheme];
 
 const Container = styled.div`
   padding: 20px;
-  background: ${currentTheme.background};
-  color: ${currentTheme.text};
+  background: ${props => props.theme.background};
+  color: ${props => props.theme.text};
   min-height: 100vh;
 `;
 
@@ -27,16 +22,16 @@ const SearchBarContainer = styled.div`
 const SearchBar = styled.input`
   padding: 12px 20px 12px 50px;
   width: 100%;
-  border: 2px solid ${currentTheme.primary};
+  border: 2px solid ${props => props.theme.primary};
   border-radius: 30px;
   font-size: 16px;
-  background: ${currentTheme.secondary};
-  color: ${currentTheme.text};
+  background: ${props => props.theme.secondary};
+  color: ${props => props.theme.text};
   transition: all 0.3s ease;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px ${currentTheme.primary}40;
+    box-shadow: 0 0 0 3px ${props => props.theme.primary}40;
   }
 `;
 
@@ -45,12 +40,12 @@ const SearchIcon = styled(Search)`
   left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  color: ${currentTheme.primary};
+  color: ${props => props.theme.primary};
 `;
 
 const SearchButton = styled.button`
-  background: ${currentTheme.button};
-  color: ${currentTheme.text};
+  background: ${props => props.theme.button};
+  color: ${props => props.theme.text};
   border: none;
   padding: 10px 20px;
   border-radius: 30px;
@@ -61,7 +56,7 @@ const SearchButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${currentTheme.hover};
+    background: ${props => props.theme.hover};
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
@@ -82,7 +77,7 @@ const BooksGrid = styled.div`
 `;
 
 const BookCard = styled.div`
-  background: ${currentTheme.secondary};
+  background: ${props => props.theme.secondary};
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -160,8 +155,8 @@ const PlaceholderCover = styled.div`
   align-items: center;
   font-family: 'Isidora Sans Bold', sans-serif;
 
-  color: ${currentTheme.text};
-  background: ${currentTheme.primary};
+  color: ${props => props.theme.text};
+  background: ${props => props.theme.primary};
   border-radius: 8px;
   z-index: 5;
 
@@ -196,8 +191,8 @@ const MobilePlaceholderCover = styled.div`
   width: 100%;
   height: auto;
   aspect-ratio: 5 / 8;
-  color: ${currentTheme.text};
-  background: ${currentTheme.primary};
+  color: ${props => props.theme.text};
+  background: ${props => props.theme.primary};
   font-family: 'Isidora Sans Bold', sans-serif;
   border-radius: 8px;
 
@@ -228,19 +223,21 @@ const BookInfo = styled.div`
 `;
 
 const BookTitle = styled.h2`
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
+  margin-right: 24px;
   margin-bottom: 8px;
-  color: ${currentTheme.text};
+  color: ${props => props.theme.text};
   @media (max-width: 600px) {
-    font-size: 20px;
+    font-size: 17px;
   }
 `;
 
 const BookAuthor = styled.p`
   font-size: 16px;
-  color: ${currentTheme.textMuted};
+  color: ${props => props.theme.textMuted};
   margin-bottom: 16px;
+  margin-right: 24px;
    @media (max-width: 600px) {
     font-size: 14px;
   }
@@ -248,7 +245,7 @@ const BookAuthor = styled.p`
 
 const BookDescription = styled.p`
   font-size: 14px;
-  color: ${currentTheme.textMuted};
+  color: ${props => props.theme.textMuted};
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -262,10 +259,14 @@ const BookDescription = styled.p`
 
 const BookMeta = styled.p`
   font-size: 14px;
-  color: ${currentTheme.textMuted};
+  color: ${props => props.theme.textMuted};
   margin-bottom: 8px;
    @media (max-width: 600px) {
     font-size: 12px;
+  }
+    svg {
+    margin-right: 6px;
+    min-width: 14px;
   }
 `;
 
@@ -277,8 +278,8 @@ const ButtonGroup = styled.div`
 `;
 
 const DownloadButton = styled.button`
-  background: ${currentTheme.button};
-  color: ${currentTheme.text};
+  background: ${props => props.theme.button};
+  color: ${props => props.theme.text};
   border: none;
   padding: 10px 20px;
   border-radius: 20px;
@@ -291,7 +292,7 @@ const DownloadButton = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${currentTheme.hover};
+    background: ${props => props.theme.hover};
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
@@ -305,7 +306,10 @@ const WishlistButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  color: ${currentTheme.primary};
+  color: ${props => props.theme.primary};
+  &:hover {
+   background-color: ${props => props.theme.hover}; 
+  }
   padding: 5px;
   display: flex;
   align-items: center;
@@ -434,9 +438,19 @@ function Books() {
                         <BookAuthor>By {book.authors || 'Unknown Author'}</BookAuthor>
                         <BookDescription>{book.description}</BookDescription>
                         <BookMeta>{book.book_content}</BookMeta>
-                        <BookMeta>File size: {book.book_size || 'Unknown'}</BookMeta>
-                        <BookMeta>File type: {book.book_filetype || 'Unknown'}</BookMeta>
-                        <BookMeta>MD5: {book.md5}</BookMeta>
+
+                  <BookMeta>
+                    <Globe size={14} />
+                    <span>{book.book_lang}</span>
+                  </BookMeta>
+                  <BookMeta>
+                    <FileText size={14} />
+                    <span>{book.book_filetype}</span>
+                  </BookMeta>
+                  <BookMeta>
+                    <HardDrive size={14} />
+                    <span>{book.book_size}</span>
+                  </BookMeta>
                       </div>
                        <ButtonGroup>
     <DownloadButton onClick={() => handleDownload(book.link)}>

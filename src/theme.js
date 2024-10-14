@@ -1,6 +1,6 @@
 export const themes = {
   // Dark Themes
-  default: {
+  Netflix: {
     name: 'Netflix',
     primary: '#E50914',
     background: '#141414',
@@ -70,12 +70,12 @@ export const themes = {
     accent: '#FF79C6',
     secondary: '#44475A',
     highlight: '#50FA7B',
-    button: '#8BE9FD',
+    button: '#BD93F9',
     link: '#FFB86C',
     border: '#6272A4',
     hover: '#FF5555'
   },
-  deepSpace: {
+  default: {
     name: 'Deep Space',
     primary: '#7B4DFF',
     background: '#0A0E21',
@@ -259,21 +259,7 @@ export const themes = {
     border: '#B8C7D9',
     hover: '#5B84B1'
   },
-  goldenSun: {
-    name: 'Golden Sun',
-    primary: '#000000',
-    background: '#FFC600',
-    text: '#000000',
-    description: 'Bright and energetic',
-    category: 'light',
-    accent: '#FFD700',
-    secondary: '#FFF1B8',
-    highlight: '#FF8C00',
-    button: '#FFA500',
-    link: '#FF4500',
-    border: '#FFB300',
-    hover: '#FFA000'
-  },
+  
 
   // Pastel Themes
   subtleVaporwave: {
@@ -293,7 +279,7 @@ export const themes = {
   },
   cherryBlossom: {
     name: 'Cherry Blossom',
-    primary: '#FFB7C5',
+    primary: '#ff607f',
     background: '#FFF0F5',
     text: '#DE3163',
     description: 'Delicate and dreamy',
@@ -610,21 +596,7 @@ export const themes = {
     border: '#504945',
     hover: '#FB4934'
   },
-  greenTea: {
-    name: 'Green Tea',
-    primary: '#A8E6CF',
-    background: '#DCEDC1',
-    text: '#1D3557',
-    description: 'Refreshing and calm',
-    category: 'light',
-    accent: '#FFD3B6',
-    secondary: '#E8F3D6',
-    highlight: '#FDFFAB',
-    button: '#6FB3B8',
-    link: '#B5EAD7',
-    border: '#C7EFCF',
-    hover: '#8ED2C9'
-  },
+ 
   oceanBreeze: {
     name: 'Ocean Breeze',
     primary: '#48CAE4',

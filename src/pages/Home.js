@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
 import AnimeCard from '../components/AnimeCard';
-import { getPopularMovies, getPopularTvShowsInIndia, getMovieGenres, getTvShowGenres, discoverMovies, discoverTvShows } from '../services/tmdbApi';
+import { getPopularMovies, getPopularTvShowsInIndia, getMovieGenres, getTvShowGenres, discoverMoviesHome, discoverTvShowsHome } from '../services/tmdbApi';
 import { fetchAnimeHome } from '../services/aniWatchApi';
 import KDramaCard from '../components/KDramaCard';
 import { getPopularKDramas } from '../services/kDramaApi';
@@ -136,8 +136,8 @@ function Home() {
         try {
           const networkContentPromises = networks.map(async (network) => {
             const [moviesRes, tvShowsRes] = await Promise.all([
-              discoverMovies(1, '', network.id),
-              discoverTvShows(1, '', network.id)
+              discoverMoviesHome(1, '', network.id),
+              discoverTvShowsHome(1, '', network.id)
             ]);
 
             const movies = moviesRes.data.results.map(movie => ({ ...movie, media_type: 'movie' }));

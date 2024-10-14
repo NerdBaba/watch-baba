@@ -38,10 +38,11 @@ export const getPopularMovies = (page = 1, genreId = '') => {
   });
 };
 
-export const discoverMovies = (page = 1, genreId = '', watchProviderId = '') => {
+export const discoverMoviesHome = (page = 1, genreId = '', watchProviderId = '',options = {}) => {
   return tmdbApi.get('/discover/movie', {
     params: {
       page,
+      ...options,
       with_genres: genreId,
       watch_region: 'IN',
       region: 'IN',
@@ -51,10 +52,11 @@ export const discoverMovies = (page = 1, genreId = '', watchProviderId = '') => 
   });
 };
 
-export const discoverTvShows = (page = 1, genreId = '', watchProviderId = '') => {
+export const discoverTvShowsHome = (page = 1, genreId = '', watchProviderId = '',options = {}) => {
   return tmdbApi.get('/discover/tv', {
     params: {
       page,
+      ...options,
       with_genres: genreId,
       watch_region: 'IN',
       region: 'IN',
@@ -63,7 +65,27 @@ export const discoverTvShows = (page = 1, genreId = '', watchProviderId = '') =>
     }
   });
 };
+export const discoverMovies = (page = 1, options = {}) => {
+  return tmdbApi.get('/discover/movie', {
+    params: {
+      page,
+      watch_region: 'IN',
+      region: 'IN',
+      ...options, // Move this to the end to override default values
+    }
+  });
+};
 
+export const discoverTvShows = (page = 1, options = {}) => {
+  return tmdbApi.get('/discover/tv', {
+    params: {
+      page,
+      watch_region: 'IN',
+      region: 'IN',
+      ...options, // Move this to the end to override default values
+    }
+  });
+};
 export const getPopularTvShows = (page = 1) => {
   return tmdbApi.get('/tv/popular', {
     params: { page }
