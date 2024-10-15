@@ -602,6 +602,16 @@ const DownloadButton = styled(Button)`
    &:hover {
       background-color: ${props => props.theme.background};
     }
+
+
+    @media (max-width: 768px) {
+   background-color: ${props => props.theme.primary};
+   color: ${props => props.theme.background};
+
+   &:hover { 
+    background-color: ${props => props.theme.hover}; 
+   }
+ }
 `;
 
 const CloseDownloadButton = styled(Button)`
