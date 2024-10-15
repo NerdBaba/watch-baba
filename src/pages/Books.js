@@ -46,7 +46,7 @@ const SearchIcon = styled(Search)`
 
 const SearchButton = styled.button`
   background: ${props => props.theme.button};
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.background};
   border: none;
   padding: 10px 20px;
   border-radius: 30px;
@@ -141,6 +141,9 @@ const BookImage = styled.img`
   &:hover {
     transform: scale(1.05);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  @media (max-width: 600px) {
+   margin-top: 10px; 
   }
 `;
 
@@ -280,7 +283,7 @@ const ButtonGroup = styled.div`
 
 const DownloadButton = styled.button`
   background: ${props => props.theme.button};
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.background};
   border: none;
   padding: 10px 20px;
   border-radius: 20px;
@@ -306,6 +309,10 @@ const DownloadButton = styled.button`
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 600px) {
+   margin-bottom: 10px; 
   }
 `;
 
@@ -339,6 +346,9 @@ const WishlistButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  @media (max-width: 600px) {
+   margin-bottom: 10px; 
+  }
 `;
 
 const defaultQueries = [

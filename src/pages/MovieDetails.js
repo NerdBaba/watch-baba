@@ -5,6 +5,7 @@ import axios from 'axios';
 import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds, getMovieVideos } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
+import TorrentComponent from '../components/TorrentComponent';
 // import DownloadOption from '../components/DownloadOption';
 import { FaPlay, FaInfoCircle, FaTimes, FaDownload, FaUser } from 'react-icons/fa';
 
@@ -144,6 +145,7 @@ const Overview = styled.p`
 
   @media (max-width: 768px) {
     font-size: 0.8rem;
+    color: ${props => props.theme.text};
   }
 `;
 
@@ -214,6 +216,7 @@ const RatingItem = styled.span`
 
 @media (max-width: 768px) {
     font-size: 0.8rem;
+    color: ${props => props.theme.text};
   }
 `;
 
@@ -225,6 +228,7 @@ const InfoItem = styled.p`
 
   @media (max-width: 768px) {
     font-size: 0.7rem;
+    color: ${props => props.theme.text};
   }
 `;
 
@@ -244,7 +248,10 @@ const PlayButton = styled(Button)`
 
   @media (max-width: 768px) {
    background-color: ${props => props.theme.button};
-   color: ${props => props.theme.highlight};
+   color: ${props => props.theme.background};
+   &:hover {
+    background-color: ${props => props.theme.hover}; 
+   }
 
   }
 `;
@@ -474,8 +481,6 @@ const EmbedPlayer = styled.iframe`
   height: 100%;
   border: none;
   aspect-ratio: 16 / 9;
-  // overflow: auto;
-  // -webkit-overflow-scrolling: touch;
 
   @media (max-width: 768px) {
     height: 56.25vw;
@@ -597,6 +602,16 @@ const DownloadButton = styled(Button)`
    &:hover {
       background-color: ${props => props.theme.background};
     }
+
+
+    @media (max-width: 768px) {
+   background-color: ${props => props.theme.primary};
+   color: ${props => props.theme.background};
+
+   &:hover { 
+    background-color: ${props => props.theme.hover}; 
+   }
+ }
 `;
 
 const CloseDownloadButton = styled(Button)`
@@ -713,6 +728,7 @@ function MovieDetails() {
   const [selectedDownloadOption, setSelectedDownloadOption] = useState(null);
     const [isDownloadFetching, setIsDownloadFetching] = useState(false);
   const [trailer, setTrailer] = useState(null);
+  const [showTorrents, setShowTorrents] = useState(false);
 
 
   const fetchMovieData = useCallback(async () => {
@@ -1103,12 +1119,15 @@ useEffect(() => {
   <InfoButton onClick={() => setShowMoreInfo(!showMoreInfo)}>
     <FaInfoCircle /> {showMoreInfo ? 'Less Info' : 'More Info'}
   </InfoButton>
-   <DownloadButton 
-          disabled={isDownloadFetching || moviesDriveLinks.length === 0}
-          onClick={() => moviesDriveLinks.length > 0 && setShowDownloadOptions(true)}
-        >
-          <FaDownload /> {isDownloadFetching ? 'Fetching...' : 'Download'}
-        </DownloadButton>
+   <DownloadButton onClick={() => setShowTorrents(true)}>
+  <FaDownload /> Show Torrents
+</DownloadButton>
+{showTorrents && (
+  <TorrentComponent 
+    tmdbId={externalIds.imdb_id} 
+    onClose={() => setShowTorrents(false)} 
+  />
+)}
 </ButtonGroup>
           </HeroContent>
         </Hero>
@@ -1178,12 +1197,15 @@ useEffect(() => {
             }}>
               <FaPlay /> Play
             </PlayButton>
-            <DownloadButton 
-              disabled={isDownloadFetching || moviesDriveLinks.length === 0}
-              onClick={() => moviesDriveLinks.length > 0 && setShowDownloadOptions(true)}
-            >
-              <FaDownload /> {isDownloadFetching ? 'Fetching...' : 'Download'}
-            </DownloadButton>
+            <DownloadButton onClick={() => setShowTorrents(true)}>
+  <FaDownload /> Show Torrents
+</DownloadButton>
+{showTorrents && (
+  <TorrentComponent 
+    tmdbId={externalIds.imdb_id} 
+    onClose={() => setShowTorrents(false)} 
+  />
+)}
           </MobileButtonGroup>
 
           <Overview>{movie.overview}</Overview>

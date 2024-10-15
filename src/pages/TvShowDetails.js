@@ -137,7 +137,14 @@ const Overview = styled.p`
   margin-bottom: 20px;
   color: white;
   @media (max-width: 768px) {
+    display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
     font-size: 0.8rem;
+    color: ${props => props.theme.text};
   }
 `;
 
@@ -193,6 +200,10 @@ const Ratings = styled.div`
   gap: 20px;
   margin-bottom: 20px;
   color: white;
+  @media (max-width: 768px) {
+   color: ${props => props.theme.text}; 
+   font-size: 0.8rem;
+  }
 `;
 
 const RatingItem = styled.span`
@@ -203,6 +214,8 @@ const RatingItem = styled.span`
   svg {
     color: ${props => props.theme.accent};
   }
+
+
 `;
 const PlayButton = styled(Button)`
   background-color: ${props => props.theme.background};
@@ -219,7 +232,10 @@ const PlayButton = styled(Button)`
     }
    @media (max-width: 768px) {
    background-color: ${props => props.theme.button};
-   color: ${props => props.theme.highlight};
+   color: ${props => props.theme.background};
+   &:hover {
+    background-color: ${props => props.theme.hover}; 
+   }
 
   }
 `;
@@ -359,11 +375,14 @@ const Backdrop = styled.div`
 
 const VideoContainer = styled.div`
   position: relative;
-  width: 90%;
-  max-width: 1200px;
-  aspect-ratio: 16 / 9;
+  width: 90vw; 
+  margin: 0 auto;
+  padding: 5vw;
+  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
 
-   @media (min-width: 501px) {
+  @media (min-width: 501px) {
     &::-webkit-scrollbar {
       width: 10px;
     }
@@ -377,14 +396,14 @@ const VideoContainer = styled.div`
       border-radius: 5px;
     }
   }
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
 
   @media (max-width: 500px) {
     overflow-y: hidden;
   }
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 
-@media (min-width: 768px) {
+  @media (min-width: 768px) {
     max-width: 90vw;
     padding: 3vw;
   }
@@ -405,9 +424,10 @@ const VideoContainer = styled.div`
   }
 `;
 
+
 const CloseButton = styled.button`
   position: absolute;
-  top: -50px;
+  top: -12px;
   padding-bottom: 4px;
   right: 0;
   background: transparent;
@@ -415,6 +435,9 @@ const CloseButton = styled.button`
   border: none;
   font-size: 2rem;
   cursor: pointer;
+  @media (max-width: 768px) {
+   font-size: 1.5rem; 
+  }
 
    &:hover {
       background-color: ${props => props.theme.background};
@@ -506,6 +529,7 @@ const ServerDropdown = styled(Select)`
 
   @media (min-width: 768px) {
     margin-right: 0;
+
   }
 `;
 

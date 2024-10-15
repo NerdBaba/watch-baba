@@ -85,7 +85,7 @@ export const themes = {
     accent: '#4A0E4E',
     secondary: '#1F2041',
     highlight: '#C04CFD',
-    button: '#3E2F5B',
+    button: '#7e30cf',
     link: '#A06CD5',
     border: '#2D3250',
     hover: '#8F7DC6'
@@ -137,21 +137,7 @@ export const themes = {
     border: '#333333',
     hover: '#666666'
   },
-  neonPulse: {
-    name: 'Neon Pulse',
-    primary: '#FE2C55',
-    background: '#000000',
-    text: '#FFFFFF',
-    description: 'Vibrant neon on pure black',
-    category: 'amoled',
-    accent: '#00F2EA',
-    secondary: '#1A1A1A',
-    highlight: '#FFA6C1',
-    button: '#FE2C55',
-    link: '#69C9D0',
-    border: '#333333',
-    hover: '#FF5277'
-  },
+
   outrun: {
     name: 'Outrun',
     primary: '#FF00FF',
@@ -476,21 +462,7 @@ export const themes = {
     border: '#2C4356',
     hover: '#48D1CC'
   },
-  lavenderDreams: {
-    name: 'Lavender Dreams',
-    primary: '#9949D8',
-    background: '#030328',
-    text: '#FFFFFF',
-    description: 'Soothing purple tones',
-    category: 'dark',
-    accent: '#B266FF',
-    secondary: '#1C0B4E',
-    highlight: '#DA70D6',
-    button: '#8A2BE2',
-    link: '#E6E6FA',
-    border: '#4B0082',
-    hover: '#9370DB'
-  },
+
   sunsetOrange: {
     name: 'Sunset Orange',
     primary: '#F47521',
