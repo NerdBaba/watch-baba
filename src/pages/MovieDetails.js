@@ -417,6 +417,7 @@ const VideoContainer = styled.div`
   box-sizing: border-box;
   max-height: 90vh;
   overflow-y: auto;
+  
 
   @media (min-width: 501px) {
     &::-webkit-scrollbar {
@@ -555,6 +556,11 @@ const TamilYogiResultButton = styled.button`
   padding: 10px;
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.primary};
+
+  font-family: 'GeistVF';
+  &:hover{
+    background-color: ${props => props.theme.hover};
+  }
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -590,6 +596,10 @@ const TamilYogiNoResults = styled.p`
   text-align: center;
   margin-top: 20px;
 `;
+
+const TamilYogi2ResultsContainer = styled(TamilYogiResultsContainer)``;
+const TamilYogi2ResultButton = styled(TamilYogiResultButton)``;
+const TamilYogi2NoResults = styled(TamilYogiNoResults)``;
 
 
 const DownloadButton = styled(Button)`
@@ -652,6 +662,12 @@ const DownloadLinkButton = styled.a`
   border-radius: 4px;
   text-decoration: none;
   font-size: 0.9rem;
+`;
+
+const DownloadButtonBelow = styled(DownloadButton)`
+  margin-top: 10px;
+  width: 100%;
+  justify-content: center;
 `;
 
 
@@ -729,7 +745,9 @@ function MovieDetails() {
     const [isDownloadFetching, setIsDownloadFetching] = useState(false);
   const [trailer, setTrailer] = useState(null);
   const [showTorrents, setShowTorrents] = useState(false);
-
+  const [tamilYogi2Results, setTamilYogi2Results] = useState([]);
+  const [isTamilYogi2Loading, setIsTamilYogi2Loading] = useState(false);
+  const [selectedTamilYogi2Link, setSelectedTamilYogi2Link] = useState('');
 
   const fetchMovieData = useCallback(async () => {
     try {
@@ -743,7 +761,6 @@ function MovieDetails() {
       setExternalIds(externalIdsResponse.data);
       setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
 
-      // Find the first trailer in the results
       const trailerVideo = videosResponse.data.results.find(video => video.type === 'Trailer');
       setTrailer(trailerVideo);
 
@@ -754,6 +771,10 @@ function MovieDetails() {
 
       setRecommendations(recommendationsResponse.data.results.slice(0, 20));
       setCast(creditsResponse.data.cast.slice(0, 10));
+
+      // Reset TamilYogi2 state when fetching new movie data
+      setTamilYogi2Results([]);
+      setSelectedTamilYogi2Link('');
 
     } catch (error) {
       console.error('Error fetching movie data:', error);
@@ -811,6 +832,9 @@ function MovieDetails() {
       } catch (error) {
         console.error('Error fetching movie data:', error);
       }
+      if (watchOption === 'tamilyogi2') {
+    fetchTamilYogi2Results(movie.title);
+  }
     };
 
     fetchMovieData();
@@ -842,150 +866,200 @@ function MovieDetails() {
   }
 };
 
+const fetchTamilYogi2Results = useCallback(async (title) => {
+    const searchTerms = title.split(' ').slice(0, 2).join('+');
+    const url = `https://sudo-proxy-latest-cmp7.onrender.com/?destination=https://tamilyogi.fans/?s=${searchTerms}`;
 
-const invokeMoviesdrive = async (title, year) => {
+    setIsTamilYogi2Loading(true);
+    setTamilYogi2Results([]);
+
     try {
-      const MDRIVE_PROXY_URL = "https:/oxy.wafflehacker.io/?destination=";
-      const HUBCLOUD_PROXY_URL = "https://simple-proxy.mda2233.workers.dev/?destination=";
-      const MovieDrive_API = "https://moviesdrive.world";
-      const CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
-      
-      const axiosConfig = {
-        headers: {
-          'User-Agent': CHROME_USER_AGENT,
-          'Origin': 'https://moviesdrive.world',
-          'Referer': 'https://moviesdrive.world/',
-        }
-      };
-
-      const fixTitle = title?.replace(/-/g, ' ').replace(/:/g, ' ').replace(/&/g, ' ');
-      const searchTitle = title?.replace(/-/g, ' ').toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-');
-
-      const cleanTitle = (dirtyTitle) => {
-        return dirtyTitle
-          .replace(/$$Moviesdrives\.com$$-/g, '')
-          .replace(/$$moviesdrives\.com$$/g, '')
-          .replace(/\.mkv$|\.mp4$|\.avi$/i, '')
-          .replace(/\s*-\s*$/, '')
-          .replace(/^\s*-\s*/, '')
-          .replace(/\s+/g, ' ')
-          .trim();
-      };
-
-      const url = year 
-        ? `${MDRIVE_PROXY_URL}${MovieDrive_API}/search/${fixTitle} ${year}`
-        : `${MDRIVE_PROXY_URL}${MovieDrive_API}/search/${fixTitle}`;
-
-      const response = await axios.get(url, axiosConfig);
-      const hrefPattern = new RegExp(`<a\\s+href="([^"]*\\b${searchTitle}\\b[^"]*)"`, 'i');
-      const hrefMatch = response.data.match(hrefPattern);
-      const moviePageUrl = hrefMatch?.[1];
-
-      if (!moviePageUrl) return null;
-
-      const moviePageResponse = await axios.get(`${MDRIVE_PROXY_URL}${moviePageUrl}`, axiosConfig);
+      const response = await axios.get(url);
       const parser = new DOMParser();
-      const movieDoc = parser.parseFromString(moviePageResponse.data, 'text/html');
+      const doc = parser.parseFromString(response.data, 'text/html');
       
-      const links = Array.from(movieDoc.querySelectorAll('h5 > a'));
-      const archiveLinks = links
-        .filter(a => a.href && a.href.includes('mdrive.site/archives'))
-        .map(a => a.href);
-      
-      const directGpdlLinks = links
-        .filter(a => a.href && a.href.includes('gpdl.technorozen.workers.dev'))
-        .map(a => ({
-          href: a.href,
-          text: cleanTitle(a.textContent.trim()),
-          title: cleanTitle(a.textContent.trim()),
-          quality: 'Unknown',
-          size: 'Unknown'
-        }));
-
-      const hubcloudLinks = await Promise.all(archiveLinks.map(async archiveUrl => {
-        try {
-          const archiveResponse = await axios.get(`${MDRIVE_PROXY_URL}${archiveUrl}`, axiosConfig);
-          const archiveDoc = parser.parseFromString(archiveResponse.data, 'text/html');
-          
-          return Array.from(archiveDoc.querySelectorAll('h5 a'))
-            .map(a => a.getAttribute('href'))
-            .filter(href => href && href.includes('hubcloud.art'));
-        } catch (error) {
-          console.error('Error processing archive link:', error);
-          return [];
-        }
+      const results = Array.from(doc.querySelectorAll('.TPostMv')).map(item => ({
+        title: item.querySelector('.Title').textContent,
+        quality: item.querySelector('.Qlty').textContent,
+        link: item.querySelector('a').href
       }));
 
-      const allHubcloudLinks = [...new Set(hubcloudLinks.flat())];
-const directLinks = await Promise.all(allHubcloudLinks.map(async hubcloudUrl => {
-      try {
-        const directConfig = {
-          headers: {
-            'User-Agent': CHROME_USER_AGENT,
-          }
-        };
-
-        const hubDoc = await axios.get(`${HUBCLOUD_PROXY_URL}${hubcloudUrl}`, directConfig);
-        const newLink = hubDoc.data.match(/url=([^"]*)/)?.[1];
-        if (!newLink) return null;
-
-        // Fetch the hubcloud.cloud page
-        const cloudResponse = await axios.get(`${HUBCLOUD_PROXY_URL}${newLink}`, directConfig);
-        const cloudHtml = cloudResponse.data;
-
-        // Extract the title
-        const titleMatch = cloudHtml.match(/<div class="card-header text-white bg-primary mb-3">\s*(.*?)\s*<\/div>/);
-        let extractedTitle = titleMatch ? titleMatch[1] : '';
-        extractedTitle = extractedTitle.replace(/$$$$\s*moviesdrives\.com\s*$$$$\s*/i, '');
-
-        // Extract the gamerxyt link from the entire source
-        const gamerLinkMatch = cloudHtml.match(/https:\/\/gamerxyt\.com\/hubcloud\.php\?[^'"]+/);
-        const gamerLink = gamerLinkMatch ? gamerLinkMatch[0] : null;
-
-        // Extract file size
-        const sizeMatch = cloudHtml.match(/<i id="size">(.*?)<\/i>/);
-        const size = sizeMatch ? sizeMatch[1] : 'Unknown';
-
-        // Extract quality from the title
-        const qualityMatch = extractedTitle.match(/\d+p/);
-        const quality = qualityMatch ? qualityMatch[0] : 'Unknown';
-
-        return {
-          title: cleanTitle(extractedTitle),
-          quality: quality,
-          size: size,
-          gamerLink: gamerLink
-        };
-      } catch (error) {
-        console.error('Error processing HubCloud link:', error);
-        return null;
-      }
-    }));
-
-    return [...directLinks.filter(link => link !== null), ...directGpdlLinks];
-  } catch (error) {
-    console.error('Error in MoviesDrive extractor:', error);
-    return null;
-  } finally {
-    setIsDownloadFetching(false);
-  }
-};
+      setTamilYogi2Results(results);
+    } catch (error) {
+      console.error('Error fetching TamilYogi 2 results:', error);
+      setTamilYogi2Results([]);
+    } finally {
+      setIsTamilYogi2Loading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchMoviesDriveLinks = async () => {
-      if (movie) {
-        setMoviesDriveLinks([]); // Reset links when a new movie is selected
-        setSelectedDownloadOption(null); // Reset selected option
-        const year = new Date(movie.release_date).getFullYear();
-        const links = await invokeMoviesdrive(movie.title, year);
-        setMoviesDriveLinks(links || []);
-      }
-    };
+    if (movie && watchOption === 'tamilyogi2') {
+      fetchTamilYogi2Results(movie.title);
+    }
+  }, [movie, watchOption, fetchTamilYogi2Results]);
 
-    fetchMoviesDriveLinks();
-  }, [movie]);
+  const handleTamilYogi2Selection = async (link) => {
+    try {
+      const response = await axios.get(`https://tamilyogifans.mda2233.workers.dev/?url=${link}`);
+      if (response.data.success && response.data.embedLinks.length > 0) {
+        setSelectedTamilYogi2Link(response.data.embedLinks[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching embed link:', error);
+    }
+  };
+
+const getDownloadLink = (embedLink) => {
+  if (!embedLink) return null;
+  const url = new URL(embedLink);
+  url.pathname = url.pathname.replace('/embed/', '/download/');
+  return url.toString();
+};
+
+// const invokeMoviesdrive = async (title, year) => {
+//     try {
+//       const MDRIVE_PROXY_URL = "https:/oxy.wafflehacker.io/?destination=";
+//       const HUBCLOUD_PROXY_URL = "https://simple-proxy.mda2233.workers.dev/?destination=";
+//       const MovieDrive_API = "https://moviesdrive.world";
+//       const CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+      
+//       const axiosConfig = {
+//         headers: {
+//           'User-Agent': CHROME_USER_AGENT,
+//           'Origin': 'https://moviesdrive.world',
+//           'Referer': 'https://moviesdrive.world/',
+//         }
+//       };
+
+//       const fixTitle = title?.replace(/-/g, ' ').replace(/:/g, ' ').replace(/&/g, ' ');
+//       const searchTitle = title?.replace(/-/g, ' ').toLowerCase()
+//         .replace(/[^\w\s-]/g, '')
+//         .replace(/\s+/g, '-');
+
+//       const cleanTitle = (dirtyTitle) => {
+//         return dirtyTitle
+//           .replace(/$$Moviesdrives\.com$$-/g, '')
+//           .replace(/$$moviesdrives\.com$$/g, '')
+//           .replace(/\.mkv$|\.mp4$|\.avi$/i, '')
+//           .replace(/\s*-\s*$/, '')
+//           .replace(/^\s*-\s*/, '')
+//           .replace(/\s+/g, ' ')
+//           .trim();
+//       };
+
+//       const url = year 
+//         ? `${MDRIVE_PROXY_URL}${MovieDrive_API}/search/${fixTitle} ${year}`
+//         : `${MDRIVE_PROXY_URL}${MovieDrive_API}/search/${fixTitle}`;
+
+//       const response = await axios.get(url, axiosConfig);
+//       const hrefPattern = new RegExp(`<a\\s+href="([^"]*\\b${searchTitle}\\b[^"]*)"`, 'i');
+//       const hrefMatch = response.data.match(hrefPattern);
+//       const moviePageUrl = hrefMatch?.[1];
+
+//       if (!moviePageUrl) return null;
+
+//       const moviePageResponse = await axios.get(`${MDRIVE_PROXY_URL}${moviePageUrl}`, axiosConfig);
+//       const parser = new DOMParser();
+//       const movieDoc = parser.parseFromString(moviePageResponse.data, 'text/html');
+      
+//       const links = Array.from(movieDoc.querySelectorAll('h5 > a'));
+//       const archiveLinks = links
+//         .filter(a => a.href && a.href.includes('mdrive.site/archives'))
+//         .map(a => a.href);
+      
+//       const directGpdlLinks = links
+//         .filter(a => a.href && a.href.includes('gpdl.technorozen.workers.dev'))
+//         .map(a => ({
+//           href: a.href,
+//           text: cleanTitle(a.textContent.trim()),
+//           title: cleanTitle(a.textContent.trim()),
+//           quality: 'Unknown',
+//           size: 'Unknown'
+//         }));
+
+//       const hubcloudLinks = await Promise.all(archiveLinks.map(async archiveUrl => {
+//         try {
+//           const archiveResponse = await axios.get(`${MDRIVE_PROXY_URL}${archiveUrl}`, axiosConfig);
+//           const archiveDoc = parser.parseFromString(archiveResponse.data, 'text/html');
+          
+//           return Array.from(archiveDoc.querySelectorAll('h5 a'))
+//             .map(a => a.getAttribute('href'))
+//             .filter(href => href && href.includes('hubcloud.art'));
+//         } catch (error) {
+//           console.error('Error processing archive link:', error);
+//           return [];
+//         }
+//       }));
+
+//       const allHubcloudLinks = [...new Set(hubcloudLinks.flat())];
+// const directLinks = await Promise.all(allHubcloudLinks.map(async hubcloudUrl => {
+//       try {
+//         const directConfig = {
+//           headers: {
+//             'User-Agent': CHROME_USER_AGENT,
+//           }
+//         };
+
+//         const hubDoc = await axios.get(`${HUBCLOUD_PROXY_URL}${hubcloudUrl}`, directConfig);
+//         const newLink = hubDoc.data.match(/url=([^"]*)/)?.[1];
+//         if (!newLink) return null;
+
+//         // Fetch the hubcloud.cloud page
+//         const cloudResponse = await axios.get(`${HUBCLOUD_PROXY_URL}${newLink}`, directConfig);
+//         const cloudHtml = cloudResponse.data;
+
+//         // Extract the title
+//         const titleMatch = cloudHtml.match(/<div class="card-header text-white bg-primary mb-3">\s*(.*?)\s*<\/div>/);
+//         let extractedTitle = titleMatch ? titleMatch[1] : '';
+//         extractedTitle = extractedTitle.replace(/$$$$\s*moviesdrives\.com\s*$$$$\s*/i, '');
+
+//         // Extract the gamerxyt link from the entire source
+//         const gamerLinkMatch = cloudHtml.match(/https:\/\/gamerxyt\.com\/hubcloud\.php\?[^'"]+/);
+//         const gamerLink = gamerLinkMatch ? gamerLinkMatch[0] : null;
+
+//         // Extract file size
+//         const sizeMatch = cloudHtml.match(/<i id="size">(.*?)<\/i>/);
+//         const size = sizeMatch ? sizeMatch[1] : 'Unknown';
+
+//         // Extract quality from the title
+//         const qualityMatch = extractedTitle.match(/\d+p/);
+//         const quality = qualityMatch ? qualityMatch[0] : 'Unknown';
+
+//         return {
+//           title: cleanTitle(extractedTitle),
+//           quality: quality,
+//           size: size,
+//           gamerLink: gamerLink
+//         };
+//       } catch (error) {
+//         console.error('Error processing HubCloud link:', error);
+//         return null;
+//       }
+//     }));
+
+//     return [...directLinks.filter(link => link !== null), ...directGpdlLinks];
+//   } catch (error) {
+//     console.error('Error in MoviesDrive extractor:', error);
+//     return null;
+//   } finally {
+//     setIsDownloadFetching(false);
+//   }
+// };
+
+//   useEffect(() => {
+//     const fetchMoviesDriveLinks = async () => {
+//       if (movie) {
+//         setMoviesDriveLinks([]); // Reset links when a new movie is selected
+//         setSelectedDownloadOption(null); // Reset selected option
+//         const year = new Date(movie.release_date).getFullYear();
+//         const links = await invokeMoviesdrive(movie.title, year);
+//         setMoviesDriveLinks(links || []);
+//       }
+//     };
+
+//     fetchMoviesDriveLinks();
+//   }, [movie]);
 
 
 
@@ -1286,6 +1360,7 @@ useEffect(() => {
                   <option value="server7">Server 7 (Ads)</option>
                   <option value="server8">Server 8</option>
                   <option value="tamilyogi">TamilYogi</option>
+                  <option value="tamilyogi2">TamilYogi 2</option>
                   <option value="server9">Server 9</option>
                   <option value="server10">Server 10 (Ads)</option>
                   <option value="server11">Server 11</option>
@@ -1428,6 +1503,38 @@ useEffect(() => {
         <TamilYogiNoResults>No results found</TamilYogiNoResults>
       )}
     </TamilYogiResultsContainer>
+  )
+)}
+
+{watchOption === 'tamilyogi2' && (
+      selectedTamilYogi2Link ? (
+        <>
+        <EmbedPlayer 
+          src={selectedTamilYogi2Link}
+          allowFullScreen
+          sandbox="allow-scripts allow-presentation allow-orientation-lock allow-presentation allow-same-origin allow-downloads" 
+        />
+        <DownloadButtonBelow onClick={() => window.open(getDownloadLink(selectedTamilYogi2Link), '_blank')}>
+        <FaDownload /> Download
+      </DownloadButtonBelow>
+      </>
+      ) : (
+        <TamilYogi2ResultsContainer>
+          {isTamilYogi2Loading ? (
+            <LoadingRing />
+          ) : tamilYogi2Results.length > 0 ? (
+            tamilYogi2Results.map((result, index) => (
+              <TamilYogi2ResultButton 
+                key={index} 
+                onClick={() => handleTamilYogi2Selection(result.link)}
+              >
+                {result.title} - {result.quality}
+              </TamilYogi2ResultButton>
+            ))
+          ) : (
+            <TamilYogi2NoResults>No results found</TamilYogi2NoResults>
+          )}
+        </TamilYogi2ResultsContainer>
   )
 )}
             </VideoContainer>
