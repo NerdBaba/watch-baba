@@ -127,6 +127,10 @@ const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
         <IconWrapper isOpen={isOpen}><FaBook /></IconWrapper>
         {isOpen && 'Books'}
       </NavItem>
+      <NavItem to="/comics">
+      <IconWrapper isOpen={isOpen}><CustomIcon className="icon-comic" /></IconWrapper>
+      {isOpen && 'Comics'}
+      </NavItem>
       <NavItem to="/themes">
         <IconWrapper isOpen={isOpen}><FaPalette /></IconWrapper>
         {isOpen && 'Themes'}

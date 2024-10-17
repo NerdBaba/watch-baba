@@ -93,6 +93,7 @@ const navItems = [
   { icon: () => <CustomIcon className="icon-manga" />, label: 'K-Drama', path: '/kdrama' },
   { icon: FaBaseballBall, label: 'Live Sports', path: '/sports' },
   { icon: FaBook, label: 'Books', path: '/books' },
+  { icon: () => <CustomIcon className="icon-comic" />, label: 'Comics', path: '/comics' },
   { icon: FaPalette, label: 'Themes', path: '/themes' },
 ];
 
