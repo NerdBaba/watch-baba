@@ -273,7 +273,11 @@ const handleLogoClick = () => {
             } 
             else if (path.startsWith('/anime')) {
                 navigate('/anime');
-            } else if (path.startsWith('/watch')) {
+            } 
+            else if (path.startsWith('/comics')) {
+                navigate('/comics');
+              }
+            else if (path.startsWith('/watch')) {
                 navigate('/sports');
             } else {
                 navigate('/');
@@ -302,6 +306,7 @@ const handleLogoClick = () => {
   const isOnSportsPage = location.pathname.includes('/sports');
   const isOnKDramaPage = location.pathname.includes('/kdrama');
   const isOnBooksPage = location.pathname.includes('/books');
+  const isOnComicsPage = location.pathname.includes('/comics');
 
   const getIcon = () => {
     if (isOnMangaPage) return "icon-mangaka";
@@ -313,6 +318,7 @@ const handleLogoClick = () => {
     if (isOnSportsPage) return FaBaseballBall;
     if (isOnKDramaPage) return "icon-manga";
     if (isOnBooksPage) return FaBook;
+    if (isOnComicsPage) return "icon-comic";
     return FaPlayCircle;
   };
 

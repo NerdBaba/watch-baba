@@ -6,6 +6,8 @@ import { getPopularMovies, getPopularTvShowsInIndia, getMovieGenres, getTvShowGe
 import { fetchAnimeHome } from '../services/aniWatchApi';
 import KDramaCard from '../components/KDramaCard';
 import { getPopularKDramas } from '../services/kDramaApi';
+import LoadingBar from '../components/LoadingBar';
+
 
 const HomeContainer = styled.div`
   padding: 20px;
@@ -98,6 +100,7 @@ function Home() {
   const [popularKDramas, setPopularKDramas] = useState([]);
   const [loadingPrimary, setLoadingPrimary] = useState(true);
   const [loadingNetworks, setLoadingNetworks] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchPrimaryData = async () => {
@@ -121,7 +124,7 @@ function Home() {
           setPopularKDramas(kdramaRes.data.results);
         }
 
-        setLoadingPrimary(false); // Primary data has finished loading
+        setLoadingPrimary(false);
       } catch (error) {
         console.error('Error fetching primary data:', error);
       }
@@ -152,7 +155,7 @@ function Home() {
 
           const networkContentResults = await Promise.all(networkContentPromises);
           setNetworkContent(Object.assign({}, ...networkContentResults));
-          setLoadingNetworks(false); // Network data has finished loading
+          setLoadingNetworks(false);
         } catch (error) {
           console.error('Error fetching network data:', error);
         }
@@ -161,6 +164,10 @@ function Home() {
       fetchNetworkData();
     }
   }, [loadingPrimary]);
+
+  useEffect(() => {
+    setIsLoading(loadingPrimary || loadingNetworks);
+  }, [loadingPrimary, loadingNetworks]);
 
   const renderScrollableSection = (title, content, CardComponent) => (
     <>
@@ -186,24 +193,27 @@ function Home() {
   );
 
   return (
-    <HomeContainer>
-      {!loadingPrimary && (
-        <>
-          {renderScrollableSection('Popular Movies', popularMovies, MovieCard)}
-          {renderScrollableSection('Popular TV Shows', popularTvShows, MovieCard)}
-          {renderScrollableSection('Popular Anime', popularAnime, AnimeCard)}
-          {popularKDramas && popularKDramas.length > 0 &&
-            renderScrollableSection('Popular K-Dramas', popularKDramas, KDramaCard)}
-        </>
-      )}
+    <>
+      <LoadingBar isLoading={isLoading} />
+      <HomeContainer>
+        {!loadingPrimary && (
+          <>
+            {renderScrollableSection('Popular Movies', popularMovies, MovieCard)}
+            {renderScrollableSection('Popular TV Shows', popularTvShows, MovieCard)}
+            {renderScrollableSection('Popular Anime', popularAnime, AnimeCard)}
+            {popularKDramas && popularKDramas.length > 0 &&
+              renderScrollableSection('Popular K-Dramas', popularKDramas, KDramaCard)}
+          </>
+        )}
 
-      {!loadingNetworks && networks.map((network) => (
-        <React.Fragment key={network.id}>
-          {networkContent[network.name] && networkContent[network.name].length > 0 &&
-            renderScrollableSection(network.name, networkContent[network.name], MovieCard)}
-        </React.Fragment>
-      ))}
-    </HomeContainer>
+        {!loadingNetworks && networks.map((network) => (
+          <React.Fragment key={network.id}>
+            {networkContent[network.name] && networkContent[network.name].length > 0 &&
+              renderScrollableSection(network.name, networkContent[network.name], MovieCard)}
+          </React.Fragment>
+        ))}
+      </HomeContainer>
+    </>
   );
 }
 
