@@ -17,7 +17,7 @@ const SidebarContainer = styled.nav`
   height: 100%;
   overflow-y: hidden;
   overflow-x: hidden;
-  z-index: 1000;
+  z-index: 0;
   top: 0;
   left: 0;
 `;

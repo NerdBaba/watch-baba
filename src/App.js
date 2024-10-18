@@ -30,6 +30,8 @@ import Books from './pages/Books';
 import Comics from './pages/Comics';
 import ComicReader from './pages/ComicReader';
 import SeriesDetails from './pages/SeriesDetails';
+import Games from './pages/Games';
+import GameDetails from './pages/GameDetails';
 
 
 
@@ -199,6 +201,8 @@ useEffect(() => {
                 <Route path="/comics/chapter/:slug" element={<ComicReader />} />
                 // In your Routes component, add these new routes:
 <Route path="/books" element={<Books />} />
+<Route path="/games" element={<Games />} />
+<Route path="/game/:id" element={<GameDetails />} />
               </Routes>
             </ContentWrapper>
             <Footer />
