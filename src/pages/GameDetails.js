@@ -349,9 +349,10 @@ const GameDetails = () => {
     const [sidebarWidth, setSidebarWidth] = useState(60); // default closed sidebar width
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
- 
-  const ACCESS_TOKEN = process.env.REACT_APP_IGDB_ACCESS_TOKEN;
-  const CLIENT_ID = process.env.REACT_APP_IGDB_CLIENT_ID;
+  const ACCESS_TOKEN = '08k05zaphy6z3k9665iy6mwja0yfle';
+  const CLIENT_ID = '7jdop41xqlof2xs3796p8g1u41o87r';
+  // const ACCESS_TOKEN = process.env.REACT_APP_IGDB_ACCESS_TOKEN;
+  // const CLIENT_ID = process.env.REACT_APP_IGDB_CLIENT_ID;
   const extractTitleFromSlug = (slug) => {
     return slug
       .replace(/-/g, ' ')

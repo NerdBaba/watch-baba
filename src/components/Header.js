@@ -1,7 +1,7 @@
 import React, { useState} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {styled,useTheme} from 'styled-components';
-import { FaSearch, FaDice, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaCompass, FaPlayCircle,FaBaseballBall} from 'react-icons/fa';
+import { FaSearch, FaDice, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaCompass, FaPlayCircle,FaBaseballBall, FaGamepad} from 'react-icons/fa';
 import { getPopularMovies, getPopularTvShows } from '../services/tmdbApi';
 import { FaBarsStaggered } from 'react-icons/fa6';
 import Topbar from './Topbar';
@@ -266,7 +266,12 @@ const handleLogoClick = () => {
             } else if (path.startsWith('/kdrama')) {
                 navigate('/kdrama');
 
-            } else if (path.startsWith('/discovery')) {
+            } else if (path.startsWith('/game')) {
+                navigate('/games');
+              
+            }
+
+            else if (path.startsWith('/discovery')) {
                 navigate('/discovery');
             } else if (path.startsWith('/books')) {
                 navigate('/books');
@@ -307,6 +312,7 @@ const handleLogoClick = () => {
   const isOnKDramaPage = location.pathname.includes('/kdrama');
   const isOnBooksPage = location.pathname.includes('/books');
   const isOnComicsPage = location.pathname.includes('/comics');
+  const isOnGamesPage = location.pathname.includes('/game');
 
   const getIcon = () => {
     if (isOnMangaPage) return "icon-mangaka";
@@ -318,6 +324,7 @@ const handleLogoClick = () => {
     if (isOnSportsPage) return FaBaseballBall;
     if (isOnKDramaPage) return "icon-manga";
     if (isOnBooksPage) return FaBook;
+    if (isOnGamesPage) return FaGamepad;
     if (isOnComicsPage) return "icon-comic";
     return FaPlayCircle;
   };
@@ -345,7 +352,7 @@ const handleLogoClick = () => {
           )}
         </GradientIcon>
         <span className="logo-text">
-          {isOnMangaPage || isOnBooksPage ? 'readbaba' : 'watchbaba'}
+          {isOnMangaPage || isOnBooksPage || isOnComicsPage ? 'readbaba' : isOnGamesPage ? 'playbaba' :'watchbaba'}
         </span>
       </Logo>
 
