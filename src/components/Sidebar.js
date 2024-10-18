@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaPalette, FaBaseballBall, FaBook } from 'react-icons/fa';
+import { FaHome, FaCompass, FaFilm, FaTv, FaTimes, FaPalette, FaBaseballBall, FaBook, FaGamepad } from 'react-icons/fa';
 import { Sidebar as FeatherSidebar } from 'react-feather';
 
 const SidebarContainer = styled.nav`
@@ -17,7 +17,7 @@ const SidebarContainer = styled.nav`
   height: 100%;
   overflow-y: hidden;
   overflow-x: hidden;
-  z-index: 1000;
+  z-index: 0;
   top: 0;
   left: 0;
 `;
@@ -103,9 +103,9 @@ const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
         <IconWrapper isOpen={isOpen}><FaTv /></IconWrapper>
         {isOpen && 'Series'}
       </NavItem>
-      <NavItem to="/actors">
-        <IconWrapper isOpen={isOpen}><FaUser /></IconWrapper>
-        {isOpen && 'Actors'}
+      <NavItem to="/games">
+        <IconWrapper isOpen={isOpen}><FaGamepad /></IconWrapper>
+        {isOpen && 'Games'}
       </NavItem>
       <NavItem to="/anime">
         <IconWrapper isOpen={isOpen}><CustomIcon className="icon-anime" /></IconWrapper>

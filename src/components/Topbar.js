@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FaHome, FaCompass, FaFilm, FaTv, FaUser, FaTimes, FaPalette, FaBaseballBall, FaBook } from 'react-icons/fa';
+import { FaHome, FaCompass, FaFilm, FaTv, FaGamepad, FaTimes, FaPalette, FaBaseballBall, FaBook } from 'react-icons/fa';
 import { Sidebar as FeatherSidebar } from 'react-feather';
 
 const TopbarOverlay = styled.div`
@@ -87,7 +87,7 @@ const navItems = [
   { icon: FaCompass, label: 'Discovery', path: '/discovery' },
   { icon: FaFilm, label: 'Movies', path: '/movies' },
   { icon: FaTv, label: 'Series', path: '/tv' },
-  { icon: FaUser, label: 'Actors', path: '/actors' },
+  { icon: FaGamepad, label: 'Games', path: '/games' },
   { icon: () => <CustomIcon className="icon-anime" />, label: 'Anime', path: '/anime' },
   { icon: () => <CustomIcon className="icon-mangaka" />, label: 'Manga', path: '/manga' },
   { icon: () => <CustomIcon className="icon-manga" />, label: 'K-Drama', path: '/kdrama' },

@@ -7,16 +7,33 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { fetchComicChapter } from '../services/comicApi';
 import { getFullUrl, getSlugFromUrl } from '../utils/urlHelpers';
 import LoadingBar from '../components/LoadingBar';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+
+
 
 const ComicReaderContainer = styled(motion.div)`
   padding: 20px;
   max-width: 1000px;
   margin: 0 auto;
+  font-family: 'GeistVF';
+
+  @media (max-width: 768px) {
+   padding: 0;
+   max-width: 100vw; 
+  margin: 0;
+  }
 `;
 
 const ComicImage = styled(motion.img)`
   width: 100%;
   max-width: 800px;
+ @media (max-width: 768px) {
+    max-width: 100%;
+    width: 100vw;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
   height: auto;
   margin: 10px auto;
   display: block;
@@ -86,6 +103,7 @@ const ChapterHeader = styled(motion.div)`
   text-align: center;
   margin-bottom: 20px;
   padding: 20px;
+
   background: ${props => props.theme.background};
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -103,6 +121,11 @@ const ImageContainer = styled(motion.div)`
   position: relative;
   margin: 20px 0;
   
+  @media (max-width: 768px) {
+    margin: 0;
+    touch-action: ${props => props.isZomed ? 'none' : 'pan-y'};
+  }
+
   &:hover {
     .image-number {
       opacity: 1;
@@ -148,6 +171,7 @@ const GoToTopButton = styled(motion.button)`
   bottom: 80px;
   right: 20px;
   background: ${props => props.theme.primary};
+
   color: ${props => props.theme.background};
   border: none;
   border-radius: 50%;
@@ -162,6 +186,7 @@ const GoToTopButton = styled(motion.button)`
 
   @media (max-width: 768px) {
     display: ${props => props.show ? 'flex' : 'none'};
+    background-color: ${props => props.theme.primary}4d;
   }
 `;
 
@@ -224,6 +249,7 @@ const StyledDropdownMenuItem = styled(DropdownMenu.Item)`
   }
 `;
 
+
 function ComicReader() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -233,10 +259,15 @@ function ComicReader() {
   const [imagesLoaded, setImagesLoaded] = useState([]);
   const [showGoToTop, setShowGoToTop] = useState(false);
   const containerRef = useRef(null);
+  const [scale, setScale] = useState(1);
+  const [zoomedImages, setZoomedImages] = useState({});
 
     const removeHtmlEntities = (text) => {
     return text.replace(/&#\d+;/g, '');
   };
+
+
+;
 
   const fetchChapter = useCallback(async () => {
     setLoading(true);
@@ -301,6 +332,14 @@ function ComicReader() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const filteredChapters = (comicChapter?.metadata?.chapters || []).reduce((acc, chapter) => {
+    const chapterSlug = getSlugFromUrl(chapter.url);
+    if (!acc.some(chap => chap.url === chapter.url) && !chapter.title.toLowerCase().includes('duplicate')) {
+      acc.push(chapter);
+    }
+    return acc;
+  }, []);
+
   if (!comicChapter && !loading) {
     return <div>No comic chapter available.</div>;
   }
@@ -316,57 +355,79 @@ function ComicReader() {
         transition={{ duration: 0.5 }}
       >
         {comicChapter && (
-          <ChapterHeader
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <ChapterTitle>{removeHtmlEntities(comicChapter.metadata.title)}</ChapterTitle>
-              <DropdownMenu.Root>
-              <StyledDropdownMenuTrigger>
-                Select Chapter
-              </StyledDropdownMenuTrigger>
-              <StyledDropdownMenuContent>
-                {comicChapter.metadata.chapters.map((chapter) => (
-                  <StyledDropdownMenuItem
-                    key={chapter.url}
-                    onSelect={() => handleChapterChange(getSlugFromUrl(chapter.url))}
-                  >
-                    {chapter.title}
-                  </StyledDropdownMenuItem>
-                ))}
-              </StyledDropdownMenuContent>
-            </DropdownMenu.Root>
-          </ChapterHeader>
-        )}
-
-        <AnimatePresence>
-          {comicChapter && comicChapter.images.map((image, index) => (
-            <ImageContainer
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: imagesLoaded[index] ? 1 : 0, y: imagesLoaded[index] ? 0 : 20 }}
-              exit={{ opacity: 0, y: -20 }}
+            <ChapterHeader
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {!imagesLoaded[index] && <LoadingPlaceholder />}
-              <ComicImage
-                src={image}
-                alt={`Page ${index + 1}`}
-                style={{
-                  display: imagesLoaded[index] ? 'block' : 'none',
-                }}
-              />
-              <ImageNumber
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                Page {index + 1} of {comicChapter.images.length}
-              </ImageNumber>
-            </ImageContainer>
-          ))}
-        </AnimatePresence>
+              <ChapterTitle>{removeHtmlEntities(comicChapter.metadata.title)}</ChapterTitle>
+              <DropdownMenu.Root>
+                <StyledDropdownMenuTrigger>
+                  Select Chapter
+                </StyledDropdownMenuTrigger>
+                <StyledDropdownMenuContent>
+                  {filteredChapters.map((chapter) => (
+                    <StyledDropdownMenuItem
+                      key={chapter.url}
+                      onSelect={() => handleChapterChange(getSlugFromUrl(chapter.url))}
+                    >
+                      {chapter.title}
+                    </StyledDropdownMenuItem>
+                  ))}
+                </StyledDropdownMenuContent>
+              </DropdownMenu.Root>
+            </ChapterHeader>
+          )}
+
+          <AnimatePresence>
+  {comicChapter && comicChapter.images.map((image, index) => (
+    <ImageContainer
+      key={index}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: imagesLoaded[index] ? 1 : 0, y: imagesLoaded[index] ? 0 : 20 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+      isZoomed={zoomedImages[index]}
+    >
+      {!imagesLoaded[index] && <LoadingPlaceholder />}
+      <TransformWrapper
+        initialScale={1}
+        minScale={1}
+        maxScale={3}
+        centerOnInit={true}
+        panning={{
+          disabled: !zoomedImages[index],
+          velocityDisabled: true
+        }}
+        doubleClick={{
+          disabled: false,
+          mode: "toggle"
+        }}
+        onZoomChange={(ref) => {
+          setZoomedImages(prev => ({...prev, [index]: ref.state.scale !== 1}));
+        }}
+      >
+        <TransformComponent>
+          <ComicImage
+            src={image}
+            alt={`Page ${index + 1}`}
+            style={{
+              display: imagesLoaded[index] ? 'block' : 'none',
+            }}
+          />
+        </TransformComponent>
+      </TransformWrapper>
+      <ImageNumber
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        Page {index + 1} of {comicChapter.images.length}
+      </ImageNumber>
+    </ImageContainer>
+  ))}
+</AnimatePresence>
+
 
         <NavigationBar
           initial={{ opacity: 0, y: 20 }}
