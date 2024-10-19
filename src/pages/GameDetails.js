@@ -404,74 +404,101 @@ const GameDetails = () => {
       .trim();
   };
 
-  const fetchIGDBData = async (searchTerms) => {
-    try {
+ const fetchIGDBData = async (searchTerms) => {
+  try {
+    // Special cases mapping with direct IGDB IDs
+    const specialCases = {
+      'tomb-raider-i-iii-remastered-starring-lara-croft-free-download': '/games/tomb-raider',
+      'tomb-raider-goty-free-download': '/games/tomb-raider--2',
+      'tomb-raider-definitive-edition-free-download': '/games/tomb-raider--2',
+      'returnal-download-free-v2': '/games/returnal',
+      'silent-hill-2-directors-cut-free-download': '/games/silent-hill-2',
+      'silent-hill-2-free-download': '/games/silent-hill-2--1'
+    };
+
+    const currentSlug = window.location.pathname.split('/').pop();
+    let body;
+    
+    // If it's a special case, use the ID directly
+    if (specialCases[currentSlug]) {
+      const gameSlug = specialCases[currentSlug].split('/games/')[1];
+      body = `where slug = "${gameSlug}";
+        fields name,summary,rating,rating_count,first_release_date,genres.name,
+        platforms.name,screenshots.url,artworks.url,cover.url,
+        involved_companies.company.name,aggregated_rating,videos.*,
+        similar_games.name,similar_games.cover.url,websites.*;
+        limit 1;`;
+    } else {
+      // For other games, use the search query as before
       const searchQuery = searchTerms.join(' | ');
-      const response = await fetch('https://sudo-proxy-latest-cmp7.onrender.com/?destination=https://api.igdb.com/v4/games', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${ACCESS_TOKEN}`,
-          'Client-ID': CLIENT_ID,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: `search "${searchQuery}";
-          fields name,summary,rating,rating_count,first_release_date,genres.name,
-          platforms.name,screenshots.url,artworks.url,cover.url,
-          involved_companies.company.name,aggregated_rating,videos.*,
-          similar_games.name,similar_games.cover.url,websites.*;
-          where platforms = (6,7,8,9,12,13,14,169);
-          limit 1;`
-      });
-
-      const [gameData] = await response.json();
-      
-      if (gameData) {
-        // Process media
-        const allMedia = [];
-        
-        // Process cover
-        if (gameData.cover) {
-          gameData.cover.url = `https:${gameData.cover.url.replace('t_thumb', 't_cover_big')}`;
-        }
-
-        // Process screenshots
-        if (gameData.screenshots) {
-          gameData.screenshots.forEach(screenshot => {
-            allMedia.push({
-              type: 'image',
-              url: `https:${screenshot.url.replace('t_thumb', 't_1080p')}`
-            });
-          });
-        }
-
-        // Process artworks
-        if (gameData.artworks) {
-          gameData.artworks.forEach(artwork => {
-            allMedia.push({
-              type: 'image',
-              url: `https:${artwork.url.replace('t_thumb', 't_1080p')}`
-            });
-          });
-        }
-
-        // Process videos
-        if (gameData.videos) {
-          gameData.videos.forEach(video => {
-            allMedia.push({
-              type: 'video',
-              videoId: video.video_id
-            });
-          });
-        }
-
-        setMedia(allMedia);
-        setIgdbData(gameData);
-      }
-    } catch (error) {
-      console.error('Error fetching IGDB data:', error);
+      body = `search "${searchQuery}";
+        fields name,summary,rating,rating_count,first_release_date,genres.name,
+        platforms.name,screenshots.url,artworks.url,cover.url,
+        involved_companies.company.name,aggregated_rating,videos.*,
+        similar_games.name,similar_games.cover.url,websites.*;
+        where platforms = (6,7,8,9,12,13,14,169);
+        limit 1;`;
     }
-  };
+
+    const response = await fetch('https://sudo-proxy-latest-cmp7.onrender.com/?destination=https://api.igdb.com/v4/games', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ACCESS_TOKEN}`,
+        'Client-ID': CLIENT_ID,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body
+    });
+
+    const [gameData] = await response.json();
+    
+    if (gameData) {
+      // Process media
+      const allMedia = [];
+      
+      // Process cover
+      if (gameData.cover) {
+        gameData.cover.url = `https:${gameData.cover.url.replace('t_thumb', 't_cover_big')}`;
+      }
+
+      // Process screenshots
+      if (gameData.screenshots) {
+        gameData.screenshots.forEach(screenshot => {
+          allMedia.push({
+            type: 'image',
+            url: `https:${screenshot.url.replace('t_thumb', 't_1080p')}`
+          });
+        });
+      }
+
+      // Process artworks
+      if (gameData.artworks) {
+        gameData.artworks.forEach(artwork => {
+          allMedia.push({
+            type: 'image',
+            url: `https:${artwork.url.replace('t_thumb', 't_1080p')}`
+          });
+        });
+      }
+
+      // Process videos
+      if (gameData.videos) {
+        gameData.videos.forEach(video => {
+          allMedia.push({
+            type: 'video',
+            videoId: video.video_id
+          });
+        });
+      }
+
+      setMedia(allMedia);
+      setIgdbData(gameData);
+    }
+  } catch (error) {
+    console.error('Error fetching IGDB data:', error);
+  }
+};
 
   const fetchData = async () => {
     setIsLoading(true);
