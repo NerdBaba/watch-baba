@@ -5,10 +5,12 @@ import GameCard from '../components/GameCard';
 import SearchGameCard from '../components/SearchGameCard';
 import Pagination from '../components/Pagination';
 import LoadingBar from '../components/LoadingBar';
+import { MdSearch } from 'react-icons/md';
 
 const Container = styled.div`
   padding: 20px;
 `;
+
 
 const Grid = styled(motion.div)`
   display: grid;
@@ -20,27 +22,76 @@ const SearchContainer = styled.div`
   margin-bottom: 20px;
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  background: ${props => props.theme.secondary};
+  border-radius: 8px;
+  padding: 8px;
+  align-items: center;
+`;
+
+const SearchWrapper = styled.div`
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
 `;
 
 const SearchInput = styled.input`
-  padding: 10px;
   width: 100%;
-  max-width: 300px;
-  border: 1px solid ${props => props.theme.border};
-  border-radius: 4px;
-  background: ${props => props.theme.secondary};
+  padding: 8px 35px 8px 12px;
+  background: transparent;
+  border: none;
   color: ${props => props.theme.text};
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: ${props => props.theme.text}80;
+  }
+`;
+
+const SearchIcon = styled.button`
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: ${props => props.theme.text};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+
+  &:hover {
+    color: ${props => props.theme.background};
+    background-color: ${props => props.theme.hover};
+
+  }
+
+  svg {
+    font-size: 20px;
+  }
 `;
 
 const CategoryDropdown = styled.select`
-  padding: 10px;
-  background: ${props => props.theme.secondary};
+  background: transparent;
   color: ${props => props.theme.text};
-  border: 1px solid ${props => props.theme.border};
-  border-radius: 4px;
-  min-width: 150px;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  min-width: 120px;
+
+  &:focus {
+    outline: none;
+  }
+
+  option {
+    background: ${props => props.theme.secondary};
+    color: ${props => props.theme.text};
+  }
 `;
+
 
 const useProgressiveLoading = (items, batchSize = 6) => {
   const [visibleItems, setVisibleItems] = useState([]);
@@ -150,28 +201,33 @@ const Games = () => {
       <LoadingBar isLoading={isLoading} />
       
       <SearchContainer>
-        <SearchInput
-        type="text"
-        placeholder="Search games..."
-        value={searchQuery}
-        onChange={handleInputChange}
-        onKeyPress={handleKeyPress}
-      />
-        <CategoryDropdown
-          value={selectedCategory}
-          onChange={(e) => {
-            setSelectedCategory(e.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          <option value="">All Categories</option>
-          {categories.map(category => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </CategoryDropdown>
-      </SearchContainer>
+  <SearchWrapper>
+    <SearchInput
+      type="text"
+      placeholder="Search games..."
+      value={searchQuery}
+      onChange={handleInputChange}
+      onKeyPress={handleKeyPress}
+    />
+    <SearchIcon onClick={() => handleSearch(searchQuery)}>
+      <MdSearch />
+    </SearchIcon>
+  </SearchWrapper>
+  <CategoryDropdown
+    value={selectedCategory}
+    onChange={(e) => {
+      setSelectedCategory(e.target.value);
+      setCurrentPage(1);
+    }}
+  >
+    <option value="">All Categories</option>
+    {categories.map(category => (
+      <option key={category} value={category}>
+        {category}
+      </option>
+    ))}
+  </CategoryDropdown>
+</SearchContainer>
 
       {searchQuery && searchResults.length > 0 ? (
         <motion.div
