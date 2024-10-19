@@ -150,6 +150,10 @@ const MediaSwiper = styled(Swiper)`
     .swiper-slide {
       height: 300px;
     }
+    .swiper-button-next,
+    .swiper-button-prev {
+     scale: 0.5; 
+    }
   }
 `;
 const InfoGrid = styled(motion.div)`
@@ -304,9 +308,6 @@ const FullscreenImage = styled.img`
 
 const NavigationButton = styled.button`
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  ${props => props.direction === 'prev' ? 'left: 20px;' : 'right: 20px;'}
   background: none;
   border: none;
   color: white;
@@ -315,11 +316,35 @@ const NavigationButton = styled.button`
   opacity: 0.7;
   transition: opacity 0.2s;
   z-index: 10;
+  
+  // Desktop positioning (default)
+  top: 50%;
+  transform: translateY(-50%);
+  ${props => props.direction === 'prev' ? 'left: 20px;' : 'right: 20px;'}
+
+  @media (max-width: 768px) {
+    // Mobile positioning
+    top: 150px; // Position at top
+    margin-right: -25px;
+    transform: none; // Remove vertical centering
+    ${props => props.direction === 'prev' ? 'left: 10px;' : 'right: 45px;'} // Adjust horizontal spacing
+    font-size: 30px;
+    padding: 5px 5px;
+    color: ${props => props.theme.primary};
+    
+    &:hover {
+      background-color: transparent; 
+      color: ${props => props.theme.hover};
+    }
+  }
 
   &:hover {
     opacity: 1;
+     background-color: transparent; 
+      color: ${props => props.theme.hover};
   }
 `;
+
 
 const CloseButton = styled.button`
   position: absolute;
@@ -328,6 +353,9 @@ const CloseButton = styled.button`
   background: none;
   border: none;
   color: white;
+  @media (max-width: 768px) {
+   font-size: 24px; 
+  }
   font-size: 40px;
   cursor: pointer;
   z-index: 10;
@@ -336,6 +364,8 @@ const CloseButton = styled.button`
 
   &:hover {
     opacity: 1;
+     background-color: transparent; 
+      color: ${props => props.theme.hover};
   }
 `;
 

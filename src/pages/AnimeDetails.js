@@ -10,6 +10,7 @@ import Pagination from '../components/Pagination';
 const AnimeDetailsContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
+  font-family: 'GeistVF';
   padding: 1rem;
   background-color: ${props => props.theme.backgroundSecondary};
   border-radius: 16px;
