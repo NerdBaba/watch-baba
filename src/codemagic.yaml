@@ -1,16 +1,12 @@
 workflows:
-  react-native-android-ios:
-    name: React Native Android & iOS
-    max_build_duration: 120
+  react-web-and-mobile:
+    name: React Web and Mobile Build
+    max_build_duration: 60
     environment:
       node: latest
-      xcode: latest
-      cocoapods: default
     cache:
       cache_paths:
-        - $HOME/.gradle/caches
-        - $HOME/.cache/pip
-        - $FLUTTER_ROOT/.pub-cache
+        - $CM_BUILD_DIR/node_modules
     triggering:
       events:
         - push
@@ -20,26 +16,31 @@ workflows:
       - name: Install dependencies
         script: |
           npm install
-          npx react-native-asset
-      - name: Set up keystore
+      - name: Build Web
         script: |
-          echo $CM_KEYSTORE | base64 --decode > $CM_KEYSTORE_PATH
-      - name: Set up local properties
+          npm run build
+      - name: Install Capacitor
         script: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
-      - name: Build Android release
+          npm install @capacitor/core @capacitor/cli
+          npx cap init MyApp com.example.myapp --web-dir=build
+          npm install @capacitor/android @capacitor/ios
+          npx cap add android
+          npx cap add ios
+      - name: Build Android
         script: |
+          npx cap sync android
           cd android
           ./gradlew assembleRelease
-      - name: Build iOS release
+      - name: Build iOS
         script: |
+          npx cap sync ios
           cd ios
-          pod install
-          xcodebuild -workspace MyApp.xcworkspace -scheme MyApp -configuration Release -archivePath MyApp.xcarchive archive
-          xcodebuild -exportArchive -archivePath MyApp.xcarchive -exportPath . -exportOptionsPlist exportOptions.plist
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath App.xcarchive archive
+          xcodebuild -exportArchive -archivePath App.xcarchive -exportPath . -exportOptionsPlist exportOptions.plist
     artifacts:
+      - build/**
       - android/app/build/outputs/**/*.apk
-      - ios/build/MyApp.ipa
+      - ios/App.ipa
     publishing:
       email:
         recipients:
