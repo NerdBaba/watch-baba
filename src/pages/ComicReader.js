@@ -2,12 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronUpIcon } from '@radix-ui/react-icons';
+import { ChevronUpIcon, DownloadIcon } from '@radix-ui/react-icons';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { fetchComicChapter } from '../services/comicApi';
 import { getFullUrl, getSlugFromUrl } from '../utils/urlHelpers';
 import LoadingBar from '../components/LoadingBar';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import BookReader from '../components/BookReader';
+import { jsPDF } from 'jspdf';
+
 
 
 
@@ -24,6 +27,23 @@ const ComicReaderContainer = styled(motion.div)`
   }
 `;
 
+const DownloadButton = styled.button`
+  padding: 10px 15px;
+  background: ${props => props.theme.primary};
+  color: ${props => props.theme.background};
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  &:hover {
+    background: ${props => props.theme.primaryDark};
+  }
+`;
 const ComicImage = styled(motion.img)`
   width: 100%;
   max-width: 800px;
@@ -48,6 +68,7 @@ const NavigationBar = styled(motion.div)`
   transform: translateX(-50%);
   display: flex;
   gap: 10px;
+  display: none;
   padding: 15px;
   background: ${props => props.theme.background}ee;
   backdrop-filter: blur(10px);
@@ -59,6 +80,7 @@ const NavigationBar = styled(motion.div)`
 const NavButton = styled(motion(Link))`
   padding: 10px 20px;
   border: none;
+  display: none;
   border-radius: 20px;
   background: ${props => props.theme.primary};
   color: ${props => props.theme.background};
@@ -168,6 +190,7 @@ const LoadingPlaceholder = styled(motion.div)`
 
 const GoToTopButton = styled(motion.button)`
   position: fixed;
+  display: none;
   bottom: 80px;
   right: 20px;
   background: ${props => props.theme.primary};
@@ -185,7 +208,7 @@ const GoToTopButton = styled(motion.button)`
   z-index: 1000;
 
   @media (max-width: 768px) {
-    display: ${props => props.show ? 'flex' : 'none'};
+    display: none;
     background-color: ${props => props.theme.primary}4d;
   }
 `;
@@ -259,15 +282,78 @@ function ComicReader() {
   const [imagesLoaded, setImagesLoaded] = useState([]);
   const [showGoToTop, setShowGoToTop] = useState(false);
   const containerRef = useRef(null);
-  const [scale, setScale] = useState(1);
-  const [zoomedImages, setZoomedImages] = useState({});
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
-    const removeHtmlEntities = (text) => {
+  const removeHtmlEntities = (text) => {
     return text.replace(/&#\d+;/g, '');
   };
 
+  const downloadAsPDF = async () => {
+    if (!comicChapter?.images?.length) return;
 
-;
+    setLoading(true);
+    try {
+      const pdf = new jsPDF('p', 'px', 'a4');
+      const totalImages = comicChapter.images.length;
+      
+      for (let i = 0; i < totalImages; i++) {
+        // Update progress
+        setDownloadProgress(((i + 1) / totalImages) * 100);
+        
+        // Create a temporary image element
+        const img = await new Promise((resolve, reject) => {
+          const image = new Image();
+          image.src = comicChapter.images[i];
+          image.onload = () => resolve(image);
+          image.onerror = reject;
+        });
+
+        // Calculate dimensions to fit the page
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgRatio = img.height / img.width;
+        let imgWidth = pageWidth - 40; // 20px margin on each side
+        let imgHeight = imgWidth * imgRatio;
+
+        // If image is taller than page, scale it down
+        if (imgHeight > pageHeight - 40) {
+          imgHeight = pageHeight - 40;
+          imgWidth = imgHeight / imgRatio;
+        }
+
+        // Add new page for each image except the first one
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Center the image on the page
+        const x = (pageWidth - imgWidth) / 2;
+        const y = (pageHeight - imgHeight) / 2;
+
+        // Add the image to PDF
+        pdf.addImage(
+          img, 
+          'JPEG',
+          x,
+          y,
+          imgWidth,
+          imgHeight,
+          `image-${i}`,
+          'FAST'
+        );
+      }
+
+      // Save the PDF
+      pdf.save(`${removeHtmlEntities(comicChapter.metadata.title)}.pdf`);
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setLoading(false);
+      setDownloadProgress(0);
+    }
+  };
 
   const fetchChapter = useCallback(async () => {
     setLoading(true);
@@ -346,7 +432,7 @@ function ComicReader() {
 
   return (
     <>
-      <LoadingBar isLoading={loading} />
+      <LoadingBar isLoading={loading} progress={downloadProgress} />
       <ReadingProgress progress={readingProgress} />
       <ComicReaderContainer
         ref={containerRef}
@@ -355,12 +441,13 @@ function ComicReader() {
         transition={{ duration: 0.5 }}
       >
         {comicChapter && (
-            <ChapterHeader
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <ChapterTitle>{removeHtmlEntities(comicChapter.metadata.title)}</ChapterTitle>
+          <ChapterHeader
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <ChapterTitle>{removeHtmlEntities(comicChapter.metadata.title)}</ChapterTitle>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <DropdownMenu.Root>
                 <StyledDropdownMenuTrigger>
                   Select Chapter
@@ -376,58 +463,22 @@ function ComicReader() {
                   ))}
                 </StyledDropdownMenuContent>
               </DropdownMenu.Root>
-            </ChapterHeader>
-          )}
+              <DownloadButton 
+                onClick={downloadAsPDF}
+                disabled={loading}
+              >
+                <DownloadIcon /> {loading ? `${Math.round(downloadProgress)}%` : 'Download PDF'}
+              </DownloadButton>
+            </div>
+          </ChapterHeader>
+        )}
 
-          <AnimatePresence>
-  {comicChapter && comicChapter.images.map((image, index) => (
-    <ImageContainer
-      key={index}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: imagesLoaded[index] ? 1 : 0, y: imagesLoaded[index] ? 0 : 20 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
-      isZoomed={zoomedImages[index]}
-    >
-      {!imagesLoaded[index] && <LoadingPlaceholder />}
-      <TransformWrapper
-        initialScale={1}
-        minScale={1}
-        maxScale={3}
-        centerOnInit={true}
-        panning={{
-          disabled: !zoomedImages[index],
-          velocityDisabled: true
-        }}
-        doubleClick={{
-          disabled: false,
-          mode: "toggle"
-        }}
-        onZoomChange={(ref) => {
-          setZoomedImages(prev => ({...prev, [index]: ref.state.scale !== 1}));
-        }}
-      >
-        <TransformComponent>
-          <ComicImage
-            src={image}
-            alt={`Page ${index + 1}`}
-            style={{
-              display: imagesLoaded[index] ? 'block' : 'none',
-            }}
+        {comicChapter && (
+          <BookReader 
+            images={comicChapter.images}
+            title={removeHtmlEntities(comicChapter.metadata.title)}
           />
-        </TransformComponent>
-      </TransformWrapper>
-      <ImageNumber
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        Page {index + 1} of {comicChapter.images.length}
-      </ImageNumber>
-    </ImageContainer>
-  ))}
-</AnimatePresence>
-
+        )}
 
         <NavigationBar
           initial={{ opacity: 0, y: 20 }}
