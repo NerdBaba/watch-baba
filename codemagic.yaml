@@ -1,0 +1,46 @@
+workflows:
+  react-native-android-ios:
+    name: React Native Android & iOS
+    max_build_duration: 120
+    environment:
+      node: latest
+      xcode: latest
+      cocoapods: default
+    cache:
+      cache_paths:
+        - $HOME/.gradle/caches
+        - $HOME/.cache/pip
+        - $FLUTTER_ROOT/.pub-cache
+    triggering:
+      events:
+        - push
+        - tag
+        - pull_request
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+          npx react-native-asset
+      - name: Set up keystore
+        script: |
+          echo $CM_KEYSTORE | base64 --decode > $CM_KEYSTORE_PATH
+      - name: Set up local properties
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Build Android release
+        script: |
+          cd android
+          ./gradlew assembleRelease
+      - name: Build iOS release
+        script: |
+          cd ios
+          pod install
+          xcodebuild -workspace MyApp.xcworkspace -scheme MyApp -configuration Release -archivePath MyApp.xcarchive archive
+          xcodebuild -exportArchive -archivePath MyApp.xcarchive -exportPath . -exportOptionsPlist exportOptions.plist
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+      - ios/build/MyApp.ipa
+    publishing:
+      email:
+        recipients:
+          - user@example.com

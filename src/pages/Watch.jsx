@@ -217,7 +217,6 @@ function Watch() {
           frameBorder="0"
           allowFullScreen
           allow="fullscreen; encrypted-media"
-          sandbox="allow-scripts allow-same-origin allow-presentation"
           title="Stream Player"
         />
       </PlayerContainer>
