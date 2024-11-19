@@ -6,10 +6,10 @@ import { ChevronUpIcon, DownloadIcon } from '@radix-ui/react-icons';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { fetchComicChapter } from '../services/comicApi';
 import { getFullUrl, getSlugFromUrl } from '../utils/urlHelpers';
-import LoadingBar from '../components/LoadingBar';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import BookReader from '../components/BookReader';
 import { jsPDF } from 'jspdf';
+import LoadingBar from '../components/LoadingBar';
 
 
 
@@ -200,7 +200,6 @@ const GoToTopButton = styled(motion.button)`
   border-radius: 50%;
   width: 50px;
   height: 50px;
-  display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;

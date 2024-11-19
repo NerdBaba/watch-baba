@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -35,6 +35,32 @@ const ViewerCanvas = styled.div`
   align-items: center;
   justify-content: ${props => props.mode === 'vertical' ? 'flex-start' : 'center'};
   overflow: auto;
+
+  /* Chrome, Safari, Edge scrollbar styles */
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${props => props.theme.background};
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${props => props.theme.border};
+    border-radius: 4px;
+    
+    &:hover {
+      background: ${props => props.theme.text}40;
+    }
+  }
+
+  /* Firefox scrollbar styles */
+  scrollbar-width: thick;
+  @media (max-width: 768px) {
+   scrollbar-width: none; 
+  }
+  scrollbar-color: ${props => `${props.theme.border} ${props.theme.background}`};
 `;
 
 const PageWrapper = styled.div`
@@ -159,6 +185,18 @@ const UnlockButton = styled(ControlButton)`
   padding: 10px;
   border-radius: 50%;
 `;
+const SwipeOverlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
 const BookReader = ({ images }) => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -167,9 +205,34 @@ const BookReader = ({ images }) => {
   const [fitToHeight, setFitToHeight] = useState(true);
   const [fitToWidth, setFitToWidth] = useState(false);
   const [isImmersive, setIsImmersive] = useState(false);
+  const [showSwipeOverlay, setShowSwipeOverlay] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState(null);
+  const [isMounted, setIsMounted] = useState(false);
+  
   const containerRef = useRef(null);
   const viewerRef = useRef(null);
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
 
+    const navigatePage = React.useCallback((direction) => {
+  if (mode !== 'vertical') {
+    const newPage = currentPage + (mode === 'double' ? direction * 2 : direction);
+    if (newPage >= 0 && newPage < images.length) {
+      setCurrentPage(newPage);
+      if (viewerRef.current) {
+        viewerRef.current.scrollTo(0, 0);
+      }
+    }
+  }
+}, [currentPage, mode, images.length]);
+
+
+   useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
+   
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -184,6 +247,164 @@ const BookReader = ({ images }) => {
     }
   }, [isFullscreen]);
 
+ useEffect(() => {
+    if (!isMounted) return;
+
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+
+    const handleKeyDown = (e) => {
+      if (!isMounted) return;
+      
+      if (mode === 'vertical' && viewer) {
+        const scrollAmount = 400;
+        
+        switch (e.key) {
+          case 'ArrowUp':
+          case 'k':
+            viewer.scrollBy({
+              top: -scrollAmount,
+              behavior: 'smooth'
+            });
+            break;
+          case 'ArrowDown':
+          case 'j':
+            viewer.scrollBy({
+              top: scrollAmount,
+              behavior: 'smooth'
+            });
+            break;
+          case 'PageUp':
+            viewer.scrollBy({
+              top: -viewer.clientHeight,
+              behavior: 'smooth'
+            });
+            break;
+          case 'PageDown':
+          case ' ':
+            viewer.scrollBy({
+              top: viewer.clientHeight,
+              behavior: 'smooth'
+            });
+            break;
+          case 'Home':
+            viewer.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+            break;
+          case 'End':
+            viewer.scrollTo({
+              top: viewer.scrollHeight,
+              behavior: 'smooth'
+            });
+            break;
+          default:
+            break;
+        }
+      } else {
+        switch (e.key) {
+          case 'ArrowLeft':
+          case 'h':
+            navigatePage(-1);
+            break;
+          case 'ArrowRight':
+          case 'l':
+            navigatePage(1);
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    const handleTouchStart = (e) => {
+      if (!isMounted) return;
+      touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchMove = (e) => {
+      if (!isMounted) return;
+      touchEndX.current = e.touches[0].clientX;
+      
+      if (touchStartX.current && Math.abs(touchStartX.current - touchEndX.current) > 20) {
+        setShowSwipeOverlay(true);
+        setSwipeDirection(touchStartX.current - touchEndX.current > 0 ? 'left' : 'right');
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!isMounted) return;
+      if (!touchStartX.current || !touchEndX.current) return;
+
+      const diffX = touchStartX.current - touchEndX.current;
+      const threshold = 50;
+
+      if (mode !== 'vertical') {
+        if (Math.abs(diffX) > threshold) {
+          if (diffX > 0) {
+            navigatePage(1);
+          } else {
+            navigatePage(-1);
+          }
+        }
+      }
+
+      touchStartX.current = null;
+      touchEndX.current = null;
+      setShowSwipeOverlay(false);
+      setSwipeDirection(null);
+    };
+
+    const cleanup = () => {
+      if (viewer) {
+        viewer.removeEventListener('touchstart', handleTouchStart);
+        viewer.removeEventListener('touchmove', handleTouchMove);
+        viewer.removeEventListener('touchend', handleTouchEnd);
+      }
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+
+    viewer.addEventListener('touchstart', handleTouchStart);
+    viewer.addEventListener('touchmove', handleTouchMove);
+    viewer.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return cleanup;
+  }, [mode, currentPage, navigatePage, isMounted]);
+
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const viewer = viewerRef.current;
+    if (!viewer || mode !== 'vertical') return;
+
+    const handleScroll = () => {
+      if (!isMounted) return;
+      
+      const scrollPosition = viewer.scrollTop;
+      const pages = viewer.children;
+      let currentPageIndex = 0;
+
+      for (let i = 0; i < pages.length; i++) {
+        if (pages[i].offsetTop > scrollPosition) {
+          break;
+        }
+        currentPageIndex = i;
+      }
+
+      setCurrentPage(currentPageIndex);
+    };
+
+    viewer.addEventListener('scroll', handleScroll);
+    return () => {
+      if (viewer) {
+        viewer.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [mode, isMounted]);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       containerRef.current.requestFullscreen();
@@ -192,17 +413,8 @@ const BookReader = ({ images }) => {
     }
   };
 
-  const navigatePage = (direction) => {
-    if (mode !== 'vertical') {
-      const newPage = currentPage + (mode === 'double' ? direction * 2 : direction);
-      if (newPage >= 0 && newPage < images.length) {
-        setCurrentPage(newPage);
-        if (viewerRef.current) {
-          viewerRef.current.scrollTo(0, 0);
-        }
-      }
-    }
-  };
+
+
 
   const handlePageInput = (e) => {
     const page = parseInt(e.target.value) - 1;
@@ -379,6 +591,28 @@ const BookReader = ({ images }) => {
           <LockOpen1Icon />
         </UnlockButton>
       )}
+      <AnimatePresence>
+        {showSwipeOverlay && (
+          <SwipeOverlay
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <ArrowLeftIcon 
+              style={{ 
+                opacity: swipeDirection === 'right' ? 1 : 0,
+                transform: 'scale(2)'
+              }} 
+            />
+            <ArrowRightIcon 
+              style={{ 
+                opacity: swipeDirection === 'left' ? 1 : 0,
+                transform: 'scale(2)'
+              }} 
+            />
+          </SwipeOverlay>
+        )}
+      </AnimatePresence>
     </ReaderContainer>
   );
 };

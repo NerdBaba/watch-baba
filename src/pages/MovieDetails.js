@@ -868,7 +868,7 @@ function MovieDetails() {
 
 const fetchTamilYogi2Results = useCallback(async (title) => {
     const searchTerms = title.split(' ').slice(0, 2).join('+');
-    const url = `https://sudo-proxy-latest-cmp7.onrender.com/?destination=https://tamilyogi.fans/?s=${searchTerms}`;
+    const url = `https://sudo-proxy-latest-cmp7.onrender.com/?destination=https://tamilyogi.ing/?s=${searchTerms}`;
 
     setIsTamilYogi2Loading(true);
     setTamilYogi2Results([]);
@@ -1382,8 +1382,8 @@ useEffect(() => {
                 />
               )}
               {watchOption === 'server4' && (
-                <AdBlockedIframe
-                src={`https://vidbinge.dev/embed/movie/${movie.id}`}
+                <EmbedPlayer
+                src={`https://vidsrc.dev/embed/movie/${movie.id}`}
               allowFullScreen
               />
               )}
@@ -1422,7 +1422,7 @@ useEffect(() => {
               )}
               {watchOption === 'server9' && (
               <EmbedPlayer
-                  src={`https://filmex.to/#/media/tmdb-movie-${movie.id}`}
+                  src={`https://moviee.tv/embed/movie/${movie.id}`}
                   allowFullScreen
                   scrolling="no"
                 />
@@ -1440,9 +1440,9 @@ useEffect(() => {
                 allowFullScreen
                 />
               )}
-            {watchOption === 'server11' && megacloudHash && (
+            {watchOption === 'server11' && (
   <AdBlockedIframe
-    src={`${megacloudHash}`}
+    src={`https://autoembed.cc/embed/player.php?id=${movie.id}`}
     allowFullScreen
   />
 )}
@@ -1461,7 +1461,7 @@ useEffect(() => {
               )}
               {watchOption === 'server14' && (
               <EmbedPlayer
-                  src={`https://embed-arh.pages.dev/media/tmdb-movie-${movie.id}`}
+                  src={`https://flicky.host/embed/movie/?id=${movie.id}`}
                   allowFullScreen
                   scrolling="no"
                 />

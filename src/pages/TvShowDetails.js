@@ -1073,8 +1073,8 @@ useEffect(() => {
                 />
               )} 
               {watchOption === 'server4' && (
-                <AdBlockedIframe
-                src={`https://vidbinge.dev/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
+                <EmbedPlayer
+                src={`https://vidsrc.dev/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
               allowFullScreen
               />
               )}
@@ -1099,7 +1099,7 @@ useEffect(() => {
               )}
               {watchOption === 'server9' && ( // New server embed
                 <EmbedPlayer
-                  src={`https://filmex.to/#/media/tmdb-tv-${tvShow.id}/${tvShow.seasons.find(season => season.season_number === selectedSeason)?.id}/${episodeId}`}
+                  src={`https://moviee.tv/embed/tv/${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                   allowFullScreen
                   scrolling="no"
                 />
@@ -1112,7 +1112,7 @@ useEffect(() => {
               )}
               {watchOption === 'server11' && megacloudHash && (
   <EmbedPlayer
-    src={`${megacloudHash}`}
+    src={`https://autoembed.cc/embed/player.php?id=${tvShow.id}&s=${selectedSeason}&e=${selectedEpisode}`}
     allowFullScreen
   />
 )}
@@ -1130,7 +1130,7 @@ useEffect(() => {
               )}
               {watchOption === 'server14' && ( // New server embed
                 <EmbedPlayer
-                  src={`https://embed-arh.pages.dev/media/tmdb-tv-${tvShow.id}/${tvShow.seasons.find(season => season.season_number === selectedSeason)?.id}/${episodeId}`}
+                  src={`https://flicky.host/embed/tv/?id=${tvShow.id}/${selectedSeason}/${selectedEpisode}`}
                   allowFullScreen
                   scrolling="no"
                 />
