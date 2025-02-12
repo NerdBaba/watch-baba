@@ -1,3 +1,38 @@
+# Watch Baba - Entertainment Hub
+
+A comprehensive entertainment platform built with React that provides access to movies, TV shows, anime, manga, books, comics, and sports content.
+
+## Features
+
+- 🎬 Movies and TV Shows browsing
+- 📺 Anime streaming and manga reading
+- 📚 Books and comics reader
+- ⚽ Sports content
+- 🎨 Multiple theme options
+- 📱 Responsive design
+- 🔍 Advanced search functionality
+
+## Tech Stack
+
+- React 18
+- React Router v6
+- Styled Components
+- Tailwind CSS
+- Various media players and readers (HLS.js, EPUBjs, PDF viewer)
+- Swiper for carousels
+- Framer Motion for animations
+
+## Project Structure
+
+```
+src/
+├── components/      # Reusable UI components
+├── pages/          # Main application pages
+├── services/       # API and external service integrations
+├── utils/          # Helper functions and utilities
+└── theme.js        # Theme configuration
+```
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

@@ -90,7 +90,6 @@ const navItems = [
   { icon: FaGamepad, label: 'Games', path: '/games' },
   { icon: () => <CustomIcon className="icon-anime" />, label: 'Anime', path: '/anime' },
   { icon: () => <CustomIcon className="icon-mangaka" />, label: 'Manga', path: '/manga' },
-  { icon: () => <CustomIcon className="icon-manga" />, label: 'K-Drama', path: '/kdrama' },
   { icon: FaBaseballBall, label: 'Live Sports', path: '/sports' },
   { icon: FaBook, label: 'Books', path: '/books' },
   { icon: () => <CustomIcon className="icon-comic" />, label: 'Comics', path: '/comics' },

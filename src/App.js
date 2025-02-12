@@ -22,8 +22,6 @@ import Anime from './pages/Anime';
 import Manga from './pages/Manga';
 import MangaDetails from './pages/MangaDetails';
 import MangaReader from './pages/MangaReader';
-import KDrama from './pages/KDrama';
-import KDramaDetails from './pages/KDramaDetails';
 import Sports from './pages/Sports';
 import Watch from './pages/Watch';
 import Books from './pages/Books';
@@ -190,19 +188,15 @@ useEffect(() => {
                 <Route path="/manga" element={<Manga />} />
                 <Route path="/manga/:id" element={<MangaDetails />} />
                 <Route path="/manga/:id/:chapterId" element={<MangaReader />} />
-                <Route path="/kdrama" element={<KDrama />} />
-                <Route path="/kdrama/:id/*" element={<KDramaDetails />} />
                 <Route path="/themes" element={<Themes setTheme={changeTheme} />} />
-                // In your App.js, add this to your Routes
                 <Route path="/sports" element={<Sports />} />
                 <Route path="/watch/:id" element={<Watch />} />
                 <Route path="/comics" element={<Comics />} />
                 <Route path="/comics/category/:slug" element={<SeriesDetails />} />
                 <Route path="/comics/chapter/:slug" element={<ComicReader />} />
-                // In your Routes component, add these new routes:
-<Route path="/books" element={<Books />} />
-<Route path="/games" element={<Games />} />
-<Route path="/game/:id" element={<GameDetails />} />
+                <Route path="/books" element={<Books />} />
+                <Route path="/games" element={<Games />} />
+                <Route path="/game/:id" element={<GameDetails />} />
               </Routes>
             </ContentWrapper>
             <Footer />

@@ -4,8 +4,6 @@ import MovieCard from '../components/MovieCard';
 import AnimeCard from '../components/AnimeCard';
 import { getPopularMovies, getPopularTvShowsInIndia, getMovieGenres, getTvShowGenres, discoverMoviesHome, discoverTvShowsHome } from '../services/tmdbApi';
 import { fetchAnimeHome } from '../services/aniWatchApi';
-import KDramaCard from '../components/KDramaCard';
-import { getPopularKDramas } from '../services/kDramaApi';
 import LoadingBar from '../components/LoadingBar';
 
 
@@ -97,10 +95,9 @@ function Home() {
   const [movieGenres, setMovieGenres] = useState([]);
   const [tvGenres, setTvGenres] = useState([]);
   const [networkContent, setNetworkContent] = useState({});
-  const [popularKDramas, setPopularKDramas] = useState([]);
   const [loadingPrimary, setLoadingPrimary] = useState(true);
   const [loadingNetworks, setLoadingNetworks] = useState(true);
-    const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchPrimaryData = async () => {
@@ -118,11 +115,6 @@ function Home() {
         setPopularAnime(animeRes.results || []);
         setMovieGenres(movieGenresRes.data.genres);
         setTvGenres(tvGenresRes.data.genres);
-
-        const kdramaRes = await getPopularKDramas();
-        if (kdramaRes.data && Array.isArray(kdramaRes.data.results)) {
-          setPopularKDramas(kdramaRes.data.results);
-        }
 
         setLoadingPrimary(false);
       } catch (error) {
@@ -176,7 +168,6 @@ function Home() {
         {content.map((item) => (
           <CardWrapper key={item.id}>
             <CardComponent
-              drama={CardComponent === KDramaCard ? item : null}
               movie={CardComponent === MovieCard ? {
                 ...item,
                 title: item.title || item.name,
@@ -201,8 +192,6 @@ function Home() {
             {renderScrollableSection('Popular Movies', popularMovies, MovieCard)}
             {renderScrollableSection('Popular TV Shows', popularTvShows, MovieCard)}
             {renderScrollableSection('Popular Anime', popularAnime, AnimeCard)}
-            {popularKDramas && popularKDramas.length > 0 &&
-              renderScrollableSection('Popular K-Dramas', popularKDramas, KDramaCard)}
           </>
         )}
 

@@ -115,10 +115,6 @@ const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
         <IconWrapper isOpen={isOpen}><CustomIcon className="icon-mangaka" /></IconWrapper>
         {isOpen && 'Manga'}
       </NavItem>
-      <NavItem to="/kdrama">
-        <IconWrapper isOpen={isOpen}><CustomIcon className="icon-manga" /></IconWrapper>
-        {isOpen && 'K-Drama'}
-      </NavItem>
       <NavItem to="/sports">
         <IconWrapper isOpen={isOpen}><FaBaseballBall /></IconWrapper>
         {isOpen && 'Live Sports'}
