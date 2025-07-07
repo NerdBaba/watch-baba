@@ -2,6 +2,10 @@
 
 A comprehensive entertainment platform built with React that provides access to movies, TV shows, anime, manga, books, comics, and sports content.
 
+![watchbaba-1](https://github.com/user-attachments/assets/bf24ad43-3f30-4e70-b111-38abb6cfef5c)
+![watchbaba-2](https://github.com/user-attachments/assets/00e842a2-42c7-401f-a75a-bee07bd24416)
+![watchbaba-3](https://github.com/user-attachments/assets/7e8585ec-dc09-4c3c-99ce-91d8929ff55e)
+
 ## Features
 
 - 🎬 Movies and TV Shows browsing
