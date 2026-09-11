@@ -4,6 +4,7 @@ import {
   openExternalUrl,
   openMagnetUrl,
 } from './externalLinks';
+import { expect, test, vi } from 'vitest';
 
 test('rejects executable and malformed external URL schemes', () => {
   expect(getSafeHttpUrl('javascript:alert(1)')).toBe('');
@@ -16,7 +17,7 @@ test('decodes entities without writing attacker input to innerHTML', () => {
 });
 
 test('opens only safe HTTP URLs with opener isolation', () => {
-  window.open = jest.fn(() => ({ opener: {} }));
+  window.open = vi.fn(() => ({ opener: {} }));
 
   expect(openExternalUrl('https://example.com/path')).toBe(true);
   expect(window.open).toHaveBeenCalledWith(
@@ -27,7 +28,7 @@ test('opens only safe HTTP URLs with opener isolation', () => {
 });
 
 test('opens only validated magnet info hashes', () => {
-  window.open = jest.fn();
+  window.open = vi.fn();
 
   expect(openMagnetUrl('not-a-hash')).toBe(false);
   expect(window.open).not.toHaveBeenCalled();

@@ -1,7 +1,6 @@
 {
   "name": "watch-baba",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
@@ -9,13 +8,11 @@
     "@radix-ui/react-dropdown-menu": "^2.1.24",
     "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/react-select": "^2.3.7",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "@vidstack/react": "^1.15.6",
     "axios": "^1.20.0",
     "clsx": "^2.1.1",
     "dompurify": "^3.4.15",
+    "fflate": "^0.8.3",
     "framer-motion": "^11.18.2",
     "hls.js": "^1.7.2",
     "jspdf": "^4.2.1",
@@ -23,37 +20,30 @@
     "react-dom": "^18.3.1",
     "react-feather": "^2.0.10",
     "react-icons": "^5.7.0",
-    "react-router-dom": "^6.30.6",
-    "react-scripts": "5.0.1",
+    "react-router-dom": "^7.18.3",
     "styled-components": "^6.5.3",
     "swiper": "^12.2.0",
     "web-vitals": "^2.1.4"
   },
+  "private": true,
+  "packageManager": "bun@1.3.6",
+  "overrides": {
+    "fflate": "^0.8.3"
+  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "7.21.0-placeholder-for-preset-env.2"
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "happy-dom": "^20.14.3",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
   }
 }

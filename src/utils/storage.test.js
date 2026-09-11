@@ -2,6 +2,7 @@ import { getWatchedServer } from './localStorage';
 import { isInMyList } from './myList';
 import { getWishlist } from './WishlistBooks';
 import { getComicWishlist } from './wishlistHelpers';
+import { beforeEach, expect, test } from 'vitest';
 
 beforeEach(() => {
   localStorage.clear();
