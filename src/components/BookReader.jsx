@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -491,10 +491,11 @@ const BookReader = ({ images }) => {
   };
 
   useEffect(() => {
-    if (mode === 'vertical' && viewerRef.current) {
+    const viewer = viewerRef.current;
+    if (mode === 'vertical' && viewer) {
       const handleScroll = () => {
-        const scrollPosition = viewerRef.current.scrollTop;
-        const pages = viewerRef.current.children;
+        const scrollPosition = viewer.scrollTop;
+        const pages = viewer.children;
         let currentPageIndex = 0;
 
         for (let i = 0; i < pages.length; i++) {
@@ -507,8 +508,8 @@ const BookReader = ({ images }) => {
         setCurrentPage(currentPageIndex);
       };
 
-      viewerRef.current.addEventListener('scroll', handleScroll);
-      return () => viewerRef.current.removeEventListener('scroll', handleScroll);
+      viewer.addEventListener('scroll', handleScroll);
+      return () => viewer.removeEventListener('scroll', handleScroll);
     }
   }, [mode]);
 

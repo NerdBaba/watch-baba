@@ -6,7 +6,6 @@ import { ChevronUpIcon, DownloadIcon } from '@radix-ui/react-icons';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { fetchComicChapter } from '../services/comicApi';
 import { getFullUrl, getSlugFromUrl } from '../utils/urlHelpers';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import BookReader from '../components/BookReader';
 import { jsPDF } from 'jspdf';
 import LoadingBar from '../components/LoadingBar';
@@ -44,23 +43,6 @@ const DownloadButton = styled.button`
     background: ${props => props.theme.primaryDark};
   }
 `;
-const ComicImage = styled(motion.img)`
-  width: 100%;
-  max-width: 800px;
- @media (max-width: 768px) {
-    max-width: 100%;
-    width: 100vw;
-    margin: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-  height: auto;
-  margin: 10px auto;
-  display: block;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-`;
-
 const NavigationBar = styled(motion.div)`
   position: fixed;
   bottom: 20px;
@@ -137,55 +119,6 @@ const ChapterTitle = styled(motion.h1)`
   font-size: 1.8em;
   color: ${props => props.theme.text};
   margin-bottom: 10px;
-`;
-
-const ImageContainer = styled(motion.div)`
-  position: relative;
-  margin: 20px 0;
-  
-  @media (max-width: 768px) {
-    margin: 0;
-    touch-action: ${props => props.isZomed ? 'none' : 'pan-y'};
-  }
-
-  &:hover {
-    .image-number {
-      opacity: 1;
-    }
-  }
-`;
-
-const ImageNumber = styled(motion.div)`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: ${props => props.theme.background}cc;
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-size: 14px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  backdrop-filter: blur(5px);
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
-const LoadingPlaceholder = styled(motion.div)`
-  width: 100%;
-  height: 800px;
-  background: ${props => props.theme.background};
-  border-radius: 10px;
-  margin: 10px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  &::after {
-    content: 'Loading...';
-    color: ${props => props.theme.text};
-  }
 `;
 
 const GoToTopButton = styled(motion.button)`
@@ -278,7 +211,7 @@ function ComicReader() {
   const [comicChapter, setComicChapter] = useState(null);
   const [loading, setLoading] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
-  const [imagesLoaded, setImagesLoaded] = useState([]);
+  const [, setImagesLoaded] = useState([]);
   const [showGoToTop, setShowGoToTop] = useState(false);
   const containerRef = useRef(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -354,6 +287,28 @@ function ComicReader() {
     }
   };
 
+  const loadImage = useCallback((src, index) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        setImagesLoaded(prev => {
+          const newState = [...prev];
+          newState[index] = true;
+          return newState;
+        });
+        resolve();
+      };
+      img.onerror = resolve;
+    });
+  }, []);
+
+  const loadImagesAsync = useCallback(async (images) => {
+    for (let i = 0; i < images.length; i++) {
+      await loadImage(images[i], i);
+    }
+  }, [loadImage]);
+
   const fetchChapter = useCallback(async () => {
     setLoading(true);
     try {
@@ -367,33 +322,12 @@ function ComicReader() {
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [loadImagesAsync, slug]);
 
   useEffect(() => {
     fetchChapter();
     window.scrollTo(0, 0);
   }, [fetchChapter]);
-
-  const loadImagesAsync = async (images) => {
-    for (let i = 0; i < images.length; i++) {
-      await loadImage(images[i], i);
-    }
-  };
-
-  const loadImage = (src, index) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = src;
-      img.onload = () => {
-        setImagesLoaded(prev => {
-          const newState = [...prev];
-          newState[index] = true;
-          return newState;
-        });
-        resolve();
-      };
-    });
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -418,7 +352,6 @@ function ComicReader() {
   };
 
   const filteredChapters = (comicChapter?.metadata?.chapters || []).reduce((acc, chapter) => {
-    const chapterSlug = getSlugFromUrl(chapter.url);
     if (!acc.some(chap => chap.url === chapter.url) && !chapter.title.toLowerCase().includes('duplicate')) {
       acc.push(chapter);
     }

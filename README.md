@@ -21,8 +21,7 @@ A comprehensive entertainment platform built with React that provides access to 
 - React 18
 - React Router v6
 - Styled Components
-- Tailwind CSS
-- Various media players and readers (HLS.js, EPUBjs, PDF viewer)
+- HLS.js and custom media readers
 - Swiper for carousels
 - Framer Motion for animations
 
@@ -40,6 +39,10 @@ src/
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+### Environment variables
+
+Copy `.env.example` to `.env.local` and provide the provider credentials needed by the pages you use. These values are embedded into a browser build by Create React App, so use provider keys restricted to the app’s allowed origins and rotate any credentials that were previously committed.
 
 ## Available Scripts
 

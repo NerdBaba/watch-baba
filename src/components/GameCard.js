@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FaGamepad } from 'react-icons/fa';
+import { decodeHtmlEntities } from '../utils/externalLinks';
 
 const Card = styled(motion.div)`
   background: ${props => props.theme.secondary};
@@ -69,10 +70,7 @@ const cleanImageUrl = (url) => {
 };
 
 const cleanTitle = (title) => {
-  if (!title) return '';
-  const txt = document.createElement('textarea');
-  txt.innerHTML = title;
-  return txt.value;
+  return decodeHtmlEntities(title);
 };
 
 const GameCard = ({ title, image, link }) => {

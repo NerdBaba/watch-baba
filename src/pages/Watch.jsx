@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -132,12 +132,6 @@ function Watch() {
   const streamNumbers = [1, 2, 3, 4, 5, 6];
 
   useEffect(() => {
-    if (!matchData) {
-      fetchMatchData();
-    }
-  }, []);
-
-  useEffect(() => {
     const handleFullscreenChange = () => {
       if (document.fullscreenElement) {
         try {
@@ -157,7 +151,7 @@ function Watch() {
     };
   }, []);
 
-  const fetchMatchData = async () => {
+  const fetchMatchData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -187,7 +181,13 @@ function Watch() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (!matchData) {
+      fetchMatchData();
+    }
+  }, [fetchMatchData, matchData]);
 
   const getEmbedUrl = (source, streamNo) => {
     if (!source) return '';

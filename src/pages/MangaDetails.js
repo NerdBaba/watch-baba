@@ -65,11 +65,6 @@ const Status = styled.div`
   color: ${props => props.theme.text}CC;
 `;
 
-const Description = styled.p`
-  line-height: 1.6;
-  color: ${props => props.theme.text};
-`;
-
 const ChapterList = styled.div`
   margin-top: 30px;
 `;

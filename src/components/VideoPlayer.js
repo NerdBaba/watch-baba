@@ -41,8 +41,12 @@ const blockedDomains = [
 ];
 
 function isDomainBlocked(url) {
-  const hostname = new URL(url).hostname;
-  return blockedDomains.some(domain => hostname.includes(domain));
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return blockedDomains.some(domain => hostname === domain || hostname.endsWith(`.${domain}`));
+  } catch {
+    return true;
+  }
 }
 
 function VideoPlayer({ tmdbId, season, episode, malId, audio }) {
@@ -110,6 +114,7 @@ function VideoPlayer({ tmdbId, season, episode, malId, audio }) {
       <Iframe 
         ref={iframeRef}
         src={embedUrl} 
+        title="Video player"
         allowFullScreen 
       />
     </PlayerContainer>

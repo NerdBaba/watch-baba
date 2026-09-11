@@ -1,5 +1,5 @@
 // src/pages/Manga.js
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -145,18 +145,7 @@ function Manga() {
   const [popularManga, setPopularManga] = useState([]);
   const location = useLocation();
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const initialSearch = params.get('search');
-    if (initialSearch) {
-      setSearchQuery(initialSearch);
-      handleSearch(null, initialSearch);
-    } else {
-      fetchPopularManga();
-    }
-  }, [location]);
-
-  const fetchPopularManga = async () => {
+  const fetchPopularManga = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await axios.get('https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/mangaList?category=Adventure&type=topview&state=all');
@@ -166,26 +155,38 @@ function Manga() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleSearch = async (e, query = searchQuery) => {
+  const handleSearch = useCallback(async (e, query) => {
     if (e) e.preventDefault();
-    if (!query.trim()) return;
+    const normalizedQuery = query?.trim() || '';
+    if (!normalizedQuery) return;
 
     setIsLoading(true);
     try {
-      const response = await axios.get(`https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/search/${encodeURIComponent(query)}`);
+      const response = await axios.get(`https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/search/${encodeURIComponent(normalizedQuery)}`);
       setSearchResults(response.data.mangaList || []);
     } catch (error) {
       console.error('Error searching manga:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const initialSearch = params.get('search');
+    if (initialSearch) {
+      setSearchQuery(initialSearch);
+      handleSearch(null, initialSearch);
+    } else {
+      fetchPopularManga();
+    }
+  }, [fetchPopularManga, handleSearch, location]);
 
   return (
     <MangaContainer>
-      <SearchContainer onSubmit={handleSearch}>
+      <SearchContainer onSubmit={(event) => handleSearch(event, searchQuery)}>
         <SearchInput
           type="text"
           placeholder="Search for manga..."

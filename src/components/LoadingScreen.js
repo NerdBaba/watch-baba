@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styled, { keyframes } from 'styled-components';
 
 const rotateA = keyframes`
@@ -52,22 +52,6 @@ const Kinetic = styled.div`
 `;
 
 function LoadingScreen() {
-  const [loaderSize, setLoaderSize] = useState(60);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 480) setLoaderSize(25);
-      else if (window.innerWidth <= 768) setLoaderSize(35);
-      else if (window.innerWidth <= 1024) setLoaderSize(45);
-      else setLoaderSize(60);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
     <LoadingContainer>
       <Kinetic />

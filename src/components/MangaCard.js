@@ -55,24 +55,6 @@ const Poster = styled.img`
   border-radius: inherit;
 `;
 
-const HoverOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.4) 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 16px;
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-  ${Card}:hover & {
-    opacity: 1;
-  }
-`;
-
 const Title = styled.h3`
   margin: 12px 0 6px;
   font-size: 14px;
@@ -116,12 +98,6 @@ const Title = styled.h3`
     margin: 24px 0 12px;
     padding: 0 20px;
   }
-`;
-
-const DetailItem = styled.div`
-  color: #fff;
-  font-size: 12px;
-  margin-bottom: 4px;
 `;
 
 // src/components/MangaCard.js

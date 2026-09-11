@@ -1,6 +1,9 @@
 
 /node_modules
 /node_modules
+.env
+.env.*
+!.env.example
 node_modules/.cache/default-development/12.pack
 node_modules/.cache/default-development/13.pack
 node_modules/.cache/default-development/14.pack

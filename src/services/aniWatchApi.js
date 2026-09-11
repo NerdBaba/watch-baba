@@ -1,10 +1,17 @@
 // aniWatchApi.js
 const BASE_URL = 'https://api-consumet-ten-delta.vercel.app';
 
+const fetchJson = async (url) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Anime API request failed with status ${response.status}`);
+  }
+  return response.json();
+};
+
 export const fetchAnimeHome = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/meta/anilist/trending`);
-    return await response.json();
+    return await fetchJson(`${BASE_URL}/meta/anilist/trending`);
   } catch (error) {
     console.error('Error fetching anime home:', error);
     throw error;
@@ -15,8 +22,8 @@ export const fetchAnimeHome = async () => {
 
 export const fetchAnimeByCategory = async (category = 'POPULARITY_DESC', page = 1) => {
   try {
-    const response = await fetch(`${BASE_URL}/meta/anilist/advanced-search?sort="${category}"&page=${page}`);
-    const data = await response.json();
+    const params = new URLSearchParams({ sort: category, page: String(page) });
+    const data = await fetchJson(`${BASE_URL}/meta/anilist/advanced-search?${params}`);
     return {
       animes: data.results,
       currentPage: page,
@@ -30,8 +37,7 @@ export const fetchAnimeByCategory = async (category = 'POPULARITY_DESC', page = 
 
 export const searchAnime = async (query, page = 1) => {
   try {
-    const response = await fetch(`${BASE_URL}/meta/anilist/${query}?page=${page}`);
-    return await response.json();
+    return await fetchJson(`${BASE_URL}/meta/anilist/${encodeURIComponent(query)}?page=${page}`);
   } catch (error) {
     console.error('Error searching anime:', error);
     throw error;
@@ -39,8 +45,7 @@ export const searchAnime = async (query, page = 1) => {
 };
 export const fetchAnimeDetails = async (malId) => {
   try {
-    const response = await fetch(`${BASE_URL}/meta/anilist/info/${malId}`);
-    return await response.json();
+    return await fetchJson(`${BASE_URL}/meta/anilist/info/${encodeURIComponent(malId)}`);
   } catch (error) {
     console.error('Error fetching anime details:', error);
     throw error;
@@ -48,14 +53,12 @@ export const fetchAnimeDetails = async (malId) => {
 };
 
 export const fetchAnimeEpisodes = async (id) => {
-  const response = await fetch(`${BASE_URL}/info/${id}?provider=gogoanime`);
-  return response.json();
+  return fetchJson(`${BASE_URL}/info/${encodeURIComponent(id)}?provider=gogoanime`);
 };
 
 export const fetchEpisodeSources = async (episodeId) => {
   try {
-    const response = await fetch(`https://api-consumet-ten-delta.vercel.app/meta/anilist/watch/${episodeId}`);
-    return await response.json();
+    return await fetchJson(`${BASE_URL}/meta/anilist/watch/${encodeURIComponent(episodeId)}`);
   } catch (error) {
     console.error('Error fetching episode sources:', error);
     throw error;

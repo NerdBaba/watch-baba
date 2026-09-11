@@ -2,6 +2,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { getSafeHttpUrl } from '../utils/externalLinks';
 
 const DownloadContainer = styled.div`
   margin-top: 20px;
@@ -35,15 +36,22 @@ const DownloadOption = ({ sources, title }) => {
     <DownloadContainer>
       <h3>Download {title}</h3>
       {sources.map((source, index) => (
-        <DownloadButton 
-          key={index} 
-          href={source.src}
-          download={`${title}_${source.quality}.mp4`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {source.quality}
-        </DownloadButton>
+        (() => {
+          const safeUrl = getSafeHttpUrl(source?.src);
+          if (!safeUrl) return null;
+
+          return (
+            <DownloadButton
+              key={index}
+              href={safeUrl}
+              download={`${title}_${source.quality}.mp4`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {source.quality}
+            </DownloadButton>
+          );
+        })()
       ))}
     </DownloadContainer>
   );

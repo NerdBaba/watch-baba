@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
+import { getSafeHttpUrl, openExternalUrl } from '../utils/externalLinks';
 import { getMovieDetails, getMovieCredits, getMovieRecommendations, getMovieExternalIds, getMovieVideos } from '../services/tmdbApi';
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
@@ -9,6 +10,16 @@ import TorrentComponent from '../components/TorrentComponent';
 // import DownloadOption from '../components/DownloadOption';
 import { FaPlay, FaInfoCircle, FaTimes, FaDownload, FaUser } from 'react-icons/fa';
 
+const getGpdLDownloadUrl = (value) => {
+  const safeUrl = getSafeHttpUrl(value);
+  if (!safeUrl) return '';
+
+  try {
+    return new URL(safeUrl).hostname === 'gpdl.technorozen.workers.dev' ? safeUrl : '';
+  } catch {
+    return '';
+  }
+};
 
 
 const MobileView = styled.div`
@@ -681,8 +692,14 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
         'example-ad-domain.com',
         'another-ad-domain.com',
       ];
-      const url = new URL(src);
-      if (blockedDomains.some(domain => url.hostname.includes(domain))) {
+      let hostname;
+      try {
+        hostname = new URL(src).hostname.toLowerCase();
+      } catch {
+        setIsBlocked(true);
+        return;
+      }
+      if (blockedDomains.some(domain => hostname === domain || hostname.endsWith(`.${domain}`))) {
         setIsBlocked(true);
       } else {
         setIsBlocked(false);
@@ -712,6 +729,7 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
     <iframe
       ref={iframeRef}
       src={src}
+      title="Movie embed player"
       allowFullScreen={allowFullScreen}
       sandbox="allow-same-origin allow-scripts allow-forms allow-presentation allow-orientation-lock"
       style={{ width: '100%', height: '100%', border: 'none' }}
@@ -729,7 +747,6 @@ function MovieDetails() {
   const [externalIds, setExternalIds] = useState(null);
   const [isWatching, setIsWatching] = useState(false);
   const [watchOption, setWatchOption] = useState('server1');
-  const [videoSources, setVideoSources] = useState([]);
   const [tamilYogiResults, setTamilYogiResults] = useState([]);
   const [isTamilYogiLoading, setIsTamilYogiLoading] = useState(false);
   const [selectedTamilYogiLink, setSelectedTamilYogiLink] = useState('');
@@ -737,12 +754,10 @@ function MovieDetails() {
   const videoContainerRef = useRef(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [logoUrl, setLogoUrl] = useState('');
-  const [megacloudHash, setMegacloudHash] = useState(null);
-  const [moviesDriveLinks, setMoviesDriveLinks] = useState([]);
-  const [moviesDriveOptions, setMoviesDriveOptions] = useState([]);
+  const [, setMegacloudHash] = useState(null);
+  const [moviesDriveLinks] = useState([]);
    const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [selectedDownloadOption, setSelectedDownloadOption] = useState(null);
-    const [isDownloadFetching, setIsDownloadFetching] = useState(false);
   const [trailer, setTrailer] = useState(null);
   const [showTorrents, setShowTorrents] = useState(false);
   const [tamilYogi2Results, setTamilYogi2Results] = useState([]);
@@ -785,60 +800,10 @@ function MovieDetails() {
     fetchMovieData();
   }, [fetchMovieData]);
 
-  const fetchVideoSources = useCallback(async (embedUrl) => {
-    try {
-      const response = await axios.get(embedUrl);
-      const html = response.data;
-      const sourceMatch = html.match(/src: (\[[^\]]+\])/);
-      if (sourceMatch) {
-        const sourcesArray = JSON.parse(sourceMatch[1]);
-        const formattedSources = sourcesArray.map(source => ({
-          src: source.src,
-          quality: `${source.height}p`,
-        }));
-        setVideoSources(formattedSources);
-      } else {
-        setVideoSources([]);
-      }
-    } catch (error) {
-      console.error('Error fetching video sources:', error);
-      setVideoSources([]);
-    }
-  }, []);
-
   const calculateEndTime = (startTime, runtime) => {
     const endTime = new Date(startTime.getTime() + runtime * 60000);
     return endTime.toLocaleTimeString();
   };
-
- useEffect(() => {
-    const fetchMovieData = async () => {
-      try {
-        const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse] = await Promise.all([
-          getMovieDetails(id),
-          getMovieRecommendations(id),
-          getMovieCredits(id),
-          getMovieExternalIds(id),
-        ]);
-
-        setMovie(detailsResponse.data);
-        setRecommendations(recommendationsResponse.data.results.slice(0, 20));
-        setCast(creditsResponse.data.cast.slice(0, 10));
-        setExternalIds(externalIdsResponse.data);
-
-        if (watchOption === 'tamilyogi') {
-          fetchTamilYogiResults(detailsResponse.data.title);
-        }
-      } catch (error) {
-        console.error('Error fetching movie data:', error);
-      }
-      if (watchOption === 'tamilyogi2') {
-    fetchTamilYogi2Results(movie.title);
-  }
-    };
-
-    fetchMovieData();
-  }, [id, watchOption, fetchVideoSources]);
 
   const fetchTamilYogiResults = async (title) => {
   const searchTerm = title.split(' ').slice(0, 2).join('+');
@@ -1514,7 +1479,7 @@ useEffect(() => {
           allowFullScreen
           sandbox="allow-scripts allow-presentation allow-orientation-lock allow-presentation allow-same-origin allow-downloads" 
         />
-        <DownloadButtonBelow onClick={() => window.open(getDownloadLink(selectedTamilYogi2Link), '_blank')}>
+        <DownloadButtonBelow onClick={() => openExternalUrl(getDownloadLink(selectedTamilYogi2Link))}>
         <FaDownload /> Download
       </DownloadButtonBelow>
       </>
@@ -1558,13 +1523,13 @@ useEffect(() => {
     </DownloadSelect>
     {selectedDownloadOption && (
       <div>
-        {selectedDownloadOption.gamerLink && (
-          <DownloadLinkButton href={selectedDownloadOption.gamerLink} target="_blank" rel="noopener noreferrer">
+        {getSafeHttpUrl(selectedDownloadOption.gamerLink) && (
+          <DownloadLinkButton href={getSafeHttpUrl(selectedDownloadOption.gamerLink)} target="_blank" rel="noopener noreferrer">
             Download
           </DownloadLinkButton>
         )}
-        {selectedDownloadOption.href && selectedDownloadOption.href.includes('gpdl.technorozen.workers.dev') && (
-          <DownloadLinkButton href={selectedDownloadOption.href} target="_blank" rel="noopener noreferrer">
+        {getGpdLDownloadUrl(selectedDownloadOption.href) && (
+          <DownloadLinkButton href={getGpdLDownloadUrl(selectedDownloadOption.href)} target="_blank" rel="noopener noreferrer">
             Direct GPDL
           </DownloadLinkButton>
         )}

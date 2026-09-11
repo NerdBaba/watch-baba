@@ -1,12 +1,13 @@
 
+import { readJsonStorage } from './localStorage';
 
 export const saveWishlist = (books) => {
   localStorage.setItem('wishlist', JSON.stringify(books));
 };
 
 export const getWishlist = () => {
-  const wishlist = localStorage.getItem('wishlist');
-  return wishlist ? JSON.parse(wishlist) : [];
+  const wishlist = readJsonStorage('wishlist', []);
+  return Array.isArray(wishlist) ? wishlist : [];
 };
 
 export const isBookWishlisted = (book, wishlist) => {

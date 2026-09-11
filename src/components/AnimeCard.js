@@ -241,18 +241,6 @@ const Title = styled.h3`
 
 `;
 
-const Genre = styled.p`
-  font-size 13px;
-  color:${props => props.theme.text};
-  margin: 0 0 12px;
-  padding: 0 12px;
-
-  @media (max-width: 480px) {
-    font-size: 10px;
-  }
-`;
-
-
 function AnimeCard({ anime }) {
   const navigate = useNavigate();
   const link = `/anime/${anime.id}`;

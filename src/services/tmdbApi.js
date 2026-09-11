@@ -1,14 +1,13 @@
 import axios from 'axios';
 
-const API_KEY = '374ed57246cdd0d51e7f9c7eb9e682f0';
-// const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
+const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const BASE_URL = 'https://proxy-api-server-woz1.onrender.com/v1/tmdb/3';
+
+const defaultParams = API_KEY ? { api_key: API_KEY } : {};
 
 const tmdbApi = axios.create({
   baseURL: BASE_URL,
-  params: {
-    api_key: API_KEY,
-  },
+  params: defaultParams,
 });
 
 export const getTopRatedMovies = (page = 1) => {
@@ -121,12 +120,12 @@ export const getTvShowGenres = () => {
 };
 
 export const getMovieVideos = (movieId) => {
-  return axios.get(`${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}`);
+  return tmdbApi.get(`/movie/${movieId}/videos`);
 };
 
 export const getTvShowVideos = (tvShowId) => {
- return axios.get(`${BASE_URL}/tv/${tvShowId}/videos?api_key=${API_KEY}`); 
-}
+  return tmdbApi.get(`/tv/${tvShowId}/videos`);
+};
 
 export const getTvShowExternalIds = (id) => tmdbApi.get(`/tv/${id}/external_ids`);
 export const getMovieExternalIds = (id) => tmdbApi.get(`/movie/${id}/external_ids`);
@@ -160,9 +159,8 @@ export const getTvShowEpisodeDetails = (tvShowId, seasonNumber, episodeNumber) =
 
 export const searchTMDBShow = async (title) => {
   try {
-    const response = await axios.get(`${BASE_URL}/search/tv`, {
+    const response = await tmdbApi.get('/search/tv', {
       params: {
-        api_key: API_KEY,
         query: title,
         language: 'en-US'
       }

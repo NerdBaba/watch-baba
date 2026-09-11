@@ -2,13 +2,12 @@ import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FaHome, FaCompass, FaFilm, FaTv, FaGamepad, FaTimes, FaPalette, FaBaseballBall, FaBook } from 'react-icons/fa';
-import { Sidebar as FeatherSidebar } from 'react-feather';
 
 const TopbarOverlay = styled.div`
   display: none;
   
   @media (max-width: 768px) {
-    display: ${props => props.isOpen ? 'flex' : 'none'};
+    display: ${props => props.$isOpen ? 'flex' : 'none'};
     position: fixed;
     transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
     top: 0;
@@ -98,7 +97,7 @@ const navItems = [
 
 function Topbar({ isOpen, onClose }) {
   return (
-    <TopbarOverlay isOpen={isOpen}>
+    <TopbarOverlay $isOpen={isOpen}>
       <CloseButton onClick={onClose}>
         <FaTimes />
       </CloseButton>

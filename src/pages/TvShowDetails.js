@@ -558,8 +558,14 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
         'example-ad-domain.com',
         'another-ad-domain.com',
       ];
-      const url = new URL(src);
-      if (blockedDomains.some(domain => url.hostname.includes(domain))) {
+      let hostname;
+      try {
+        hostname = new URL(src).hostname.toLowerCase();
+      } catch {
+        setIsBlocked(true);
+        return;
+      }
+      if (blockedDomains.some(domain => hostname === domain || hostname.endsWith(`.${domain}`))) {
         setIsBlocked(true);
       } else {
         setIsBlocked(false);
@@ -589,6 +595,7 @@ const AdBlockedIframe = ({ src, allowFullScreen }) => {
     <iframe
       ref={iframeRef}
       src={src}
+      title="TV show embed player"
       allowFullScreen={allowFullScreen}
       sandbox="allow-same-origin allow-scripts allow-forms allow-presentation allow-orientation-lock"
       style={{ width: '100%', height: '100%', border: 'none' }}
@@ -607,8 +614,8 @@ function TvShowDetails() {
   const [externalIds, setExternalIds] = useState(null);
   const [isWatching, setIsWatching] = useState(false);
   const [watchOption, setWatchOption] = useState('server1');
-  const [videoSources, setVideoSources] = useState([]);
-  const [episodeId, setEpisodeId] = useState(null);
+  const [, setVideoSources] = useState([]);
+  const [, setEpisodeId] = useState(null);
     const [logoUrl, setLogoUrl] = useState('');
   // const playerRef = useRef(null);
   const [trailer, setTrailer] = useState(null);

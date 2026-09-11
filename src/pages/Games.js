@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import GameCard from '../components/GameCard';
@@ -138,11 +138,7 @@ const Games = () => {
     'SURVIVAL', 'VR'
   ];
 
-  useEffect(() => {
-    fetchGames();
-  }, [selectedCategory, currentPage]);
-
-  const fetchGames = async () => {
+  const fetchGames = useCallback(async () => {
     setIsLoading(true);
     try {
       let url = 'https://games.mda2233.workers.dev/';
@@ -161,13 +157,17 @@ const Games = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, selectedCategory]);
+
+  useEffect(() => {
+    fetchGames();
+  }, [fetchGames]);
 
   const handleSearch = async (query) => {
     if (query.length > 2) {
       setIsLoading(true);
       try {
-        const response = await fetch(`https://games.mda2233.workers.dev/?s=${query}`);
+        const response = await fetch(`https://games.mda2233.workers.dev/?s=${encodeURIComponent(query)}`);
         const data = await response.json();
         setSearchResults(data.results);
       } catch (error) {

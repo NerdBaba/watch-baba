@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import { X as CloseIcon, Download as DownloadIcon } from 'react-feather';
+import { openMagnetUrl } from '../utils/externalLinks';
 
 const TorrentOverlay = styled.div`
   position: fixed;
@@ -102,16 +103,16 @@ const DownloadButton = styled.button`
 `;
 const TorrentComponent = ({ tmdbId, onClose }) => {
   const [torrents, setTorrents] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [hasCompletedBothRequests, setHasCompletedBothRequests] = useState(false);
   const [showNoTorrents, setShowNoTorrents] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
     let requestsCompleted = 0;
+    let hasTorrents = false;
+    let noTorrentsTimeout;
 
     const fetchTorrents = async () => {
-      setIsLoading(true);
       setHasCompletedBothRequests(false);
       setShowNoTorrents(false);
       
@@ -123,6 +124,7 @@ const TorrentComponent = ({ tmdbId, onClose }) => {
         );
         
         if (torrentioResponse.data.streams && torrentioResponse.data.streams.length > 0) {
+          hasTorrents = true;
           setTorrents(torrentioResponse.data.streams);
         }
       } catch (torrentioError) {
@@ -140,6 +142,7 @@ const TorrentComponent = ({ tmdbId, onClose }) => {
         );
         
         if (mediaFusionResponse.data.streams && mediaFusionResponse.data.streams.length > 0) {
+          hasTorrents = true;
           setTorrents(prevTorrents => [...prevTorrents, ...mediaFusionResponse.data.streams]);
         }
       } catch (mediaFusionError) {
@@ -149,11 +152,10 @@ const TorrentComponent = ({ tmdbId, onClose }) => {
         requestsCompleted++;
         if (requestsCompleted === 2) {
           setHasCompletedBothRequests(true);
-          setIsLoading(false);
           
           // If no torrents found, wait 3 seconds before showing the message
-          if (torrents.length === 0) {
-            setTimeout(() => {
+          if (!hasTorrents) {
+            noTorrentsTimeout = setTimeout(() => {
               setShowNoTorrents(true);
             }, 3000);
           }
@@ -165,12 +167,12 @@ const TorrentComponent = ({ tmdbId, onClose }) => {
 
     return () => {
       controller.abort();
+      if (noTorrentsTimeout) clearTimeout(noTorrentsTimeout);
     };
   }, [tmdbId]);
 
   const handleDownload = (infoHash) => {
-    const magnetLink = `magnet:?xt=urn:btih:${infoHash}`;
-    window.open(magnetLink, '_blank');
+    openMagnetUrl(infoHash);
   };
 
   const handleClose = () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import MovieCard from '../components/MovieCard';
@@ -83,21 +83,7 @@ function SearchResults() {
   const searchQuery = new URLSearchParams(location.search).get('q');
 
   
-  useEffect(() => {
-    if (searchQuery) {
-      setMovieResults([]);
-      setAnimeResults([]);
-      setKDramaResults([]);
-      setCurrentMoviePage(1);
-      setCurrentAnimePage(1);
-      setCurrentKDramaPage(1);
-      loadMovieResults(1);
-      loadAnimeResults(1);
-      loadKDramaResults(1);
-    }
-  }, [searchQuery]);
-
-  const loadMovieResults = (page) => {
+  const loadMovieResults = useCallback((page) => {
     searchMulti(searchQuery, page).then((response) => {
       setMovieResults(prevResults => {
         const newResults = response.data.results.filter(
@@ -110,9 +96,9 @@ function SearchResults() {
     }).catch(error => {
       console.error('Error fetching movie search results:', error);
     });
-  };
+  }, [searchQuery]);
 
-  const loadAnimeResults = (page) => {
+  const loadAnimeResults = useCallback((page) => {
     searchAnime(searchQuery, page).then((response) => {
       setAnimeResults(prevResults => {
         const newResults = response.results.filter(
@@ -120,14 +106,14 @@ function SearchResults() {
         );
         return [...prevResults, ...newResults];
       });
-      setTotalAnimePages(Math.ceil(response.totalResults / 20)); // Assuming 20 results per page
+      setTotalAnimePages(Math.ceil(response.totalResults / 20));
       setCurrentAnimePage(page);
     }).catch(error => {
       console.error('Error fetching anime search results:', error);
     });
-  };
+  }, [searchQuery]);
 
-const loadKDramaResults = (page) => {
+  const loadKDramaResults = useCallback((page) => {
     searchKDramas(searchQuery, page).then((response) => {
       setKDramaResults(prevResults => {
         const newResults = response.data.results.filter(
@@ -140,7 +126,21 @@ const loadKDramaResults = (page) => {
     }).catch(error => {
       console.error('Error fetching KDrama search results:', error);
     });
-  };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      setMovieResults([]);
+      setAnimeResults([]);
+      setKDramaResults([]);
+      setCurrentMoviePage(1);
+      setCurrentAnimePage(1);
+      setCurrentKDramaPage(1);
+      loadMovieResults(1);
+      loadAnimeResults(1);
+      loadKDramaResults(1);
+    }
+  }, [loadAnimeResults, loadKDramaResults, loadMovieResults, searchQuery]);
 
   const handleLoadMoreMovies = () => {
     loadMovieResults(currentMoviePage + 1);

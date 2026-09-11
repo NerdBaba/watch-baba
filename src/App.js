@@ -120,11 +120,7 @@ function App() {
     }
 
     const handleResize = () => {
-      if (window.innerWidth <= 768) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(false);
-      }
+      setIsSidebarOpen(false);
     };
 
     window.addEventListener('resize', handleResize);

@@ -24,7 +24,7 @@ export const getKDramaEpisode = async (episodeId, mediaId) => {
 };
 
 export const searchKDramas = async (query, page = 1) => {
-  return axios.get(`${BASE_URL}/${query}`, {
+  return axios.get(`${BASE_URL}/${encodeURIComponent(query)}`, {
     params: { page }
   });
 };

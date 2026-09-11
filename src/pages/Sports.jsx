@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { 
@@ -205,38 +205,6 @@ const SportTitle = styled.h3`
   color: ${props => props.theme.text};
 `;
 
-const TeamsContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
-`;
-
-const TeamInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 45%;
-`;
-
-const TeamBadge = styled.img`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-`;
-
-const TeamBadgePlaceholder = styled.div`
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: ${props => props.theme.primary};
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 0.7rem;
-  color: ${props => props.theme.background};
-`;
-
 const PlaceholderContent = styled.div`
   position: absolute;
   top: 50%;
@@ -260,30 +228,6 @@ const PlaceholderContent = styled.div`
   
   .sport-name {
     font-size: 1rem;
-  }
-`;
-
-const TeamName = styled.span`
-  display: none;
-  position: absolute;
-  background: ${props => props.theme.background};
-  color: ${props => props.theme.text};
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  z-index: 1;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-`;
-
-const TeamInfoContainer = styled.div`
-  position: relative;
-  
-  &:hover ${TeamName} {
-    display: block;
   }
 `;
 
@@ -351,12 +295,7 @@ function Sports() {
   const sportCardsRef = useRef(null);
   const matchesGridRef = useRef(null);
 
-  useEffect(() => {
-    fetchSports();
-    fetchMatches();
-  }, [selectedSport]);
-
-  const fetchSports = async () => {
+  const fetchSports = useCallback(async () => {
     try {
       const response = await fetch('https://sports.mda2233.workers.dev/api/sports');
       const data = await response.json();
@@ -364,9 +303,9 @@ function Sports() {
     } catch (error) {
       console.error('Error fetching sports:', error);
     }
-  };
+  }, []);
 
-  const fetchMatches = async () => {
+  const fetchMatches = useCallback(async () => {
     setLoading(true);
     try {
       const endpoint = selectedSport
@@ -382,7 +321,12 @@ function Sports() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedSport]);
+
+  useEffect(() => {
+    fetchSports();
+    fetchMatches();
+  }, [fetchMatches, fetchSports]);
   const formatCategoryName = (category) => {
   return category
     .split('-')
@@ -401,31 +345,6 @@ function Sports() {
     const now = Date.now();
     return match.date <= now && now - match.date < 3 * 60 * 60 * 1000;
   };
-
- const renderTeamInfo = (team) => (
-  <TeamInfo>
-    {team ? (
-      <TeamInfoContainer>
-        {team.badge ? (
-          <TeamBadge 
-            src={`https://sports.mda2233.workers.dev/api/images/badge/${team.badge}.webp`} 
-            alt={team.name} 
-          />
-        ) : (
-          <TeamBadgePlaceholder>
-            {team.name.charAt(0)}
-          </TeamBadgePlaceholder>
-        )}
-        <TeamName>{team.name}</TeamName>
-      </TeamInfoContainer>
-    ) : (
-      <TeamInfoContainer>
-        <TeamBadgePlaceholder>?</TeamBadgePlaceholder>
-        <TeamName>TBA</TeamName>
-      </TeamInfoContainer>
-    )}
-  </TeamInfo>
-);
 
   const scrollSports = (direction) => {
     if (sportCardsRef.current) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,8 +8,9 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { MdGamepad, MdCalendarToday, MdStar, MdLink, MdClose } from 'react-icons/md';
+import { MdGamepad, MdCalendarToday, MdStar, MdLink } from 'react-icons/md';
 import DOMPurify from 'dompurify';
+import { getSafeHttpUrl } from '../utils/externalLinks';
 
 
 const Container = styled(motion.div)`
@@ -376,35 +377,37 @@ const GameDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [media, setMedia] = useState([]);
   const [fullscreenMedia, setFullscreenMedia] = useState(null);
-    const [sidebarWidth, setSidebarWidth] = useState(60); // default closed sidebar width
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
-  const ACCESS_TOKEN = '08k05zaphy6z3k9665iy6mwja0yfle';
-  const CLIENT_ID = '7jdop41xqlof2xs3796p8g1u41o87r';
-  // const ACCESS_TOKEN = process.env.REACT_APP_IGDB_ACCESS_TOKEN;
-  // const CLIENT_ID = process.env.REACT_APP_IGDB_CLIENT_ID;
-  const extractTitleFromSlug = (slug) => {
+  const ACCESS_TOKEN = process.env.REACT_APP_IGDB_ACCESS_TOKEN;
+  const CLIENT_ID = process.env.REACT_APP_IGDB_CLIENT_ID;
+  const extractTitleFromSlug = useCallback((slug) => {
     return slug
       .replace(/-/g, ' ')
       .replace(/free|download/gi, '')
       .trim()
       .split(' ')
       .filter(word => word.length > 0);
-  };
+  }, []);
 
-  const cleanTitle = (title) => {
+  const cleanTitle = useCallback((title) => {
     if (!title) return '';
     return title.replace(/\b(free|download)\b/gi, '').trim();
-  };
+  }, []);
 
-  const cleanHtml = (html) => {
+  const cleanHtml = useCallback((html) => {
     if (!html) return '';
     return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] })
       .replace(/<\/?(?:strong|li)>/g, '')
       .trim();
-  };
+  }, []);
 
- const fetchIGDBData = async (searchTerms) => {
+ const fetchIGDBData = useCallback(async (searchTerms) => {
+  if (!ACCESS_TOKEN || !CLIENT_ID) {
+    console.error('IGDB credentials are not configured. Set REACT_APP_IGDB_ACCESS_TOKEN and REACT_APP_IGDB_CLIENT_ID.');
+    return;
+  }
+
   try {
     // Special cases mapping with direct IGDB IDs
     const specialCases = {
@@ -498,9 +501,9 @@ const GameDetails = () => {
   } catch (error) {
     console.error('Error fetching IGDB data:', error);
   }
-};
+}, [ACCESS_TOKEN, CLIENT_ID]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`https://games.mda2233.workers.dev/game/${id}`);
@@ -533,12 +536,11 @@ const GameDetails = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [cleanHtml, cleanTitle, extractTitleFromSlug, fetchIGDBData, id]);
 
   useEffect(() => {
     fetchData();
-
-  }, [id]);
+  }, [fetchData]);
 
   useEffect(() => {
     if (fullscreenMedia) {
@@ -664,6 +666,7 @@ const GameDetails = () => {
         />
         <iframe
           src={`https://www.youtube.com/embed/${item.videoId}?enablejsapi=1`}
+          title={`Game video ${index + 1}`}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -702,17 +705,23 @@ const GameDetails = () => {
       >
         <ExtraLinks>
           {igdbData.websites.map((website, index) => (
-            <ExtraLink
-              key={index}
-              href={website.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span>{getWebsiteIcon(website.category)}</span>
-              {website.url.split('/')[2]}
-            </ExtraLink>
+            (() => {
+              const safeUrl = getSafeHttpUrl(website.url);
+              if (!safeUrl) return null;
+              return (
+                <ExtraLink
+                  key={index}
+                  href={safeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <span>{getWebsiteIcon(website.category)}</span>
+                  {new URL(safeUrl).hostname}
+                </ExtraLink>
+              );
+            })()
           ))}
         </ExtraLinks>
       </motion.div>
@@ -725,17 +734,23 @@ const GameDetails = () => {
       <h2>Download Links</h2>
       <div>
         {gameDetails.downloadLinks.map((link, index) => (
-          <DownloadButton
-            key={index}
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <MdLink />
-            Download from {link.name}
-          </DownloadButton>
+          (() => {
+            const safeUrl = getSafeHttpUrl(link.url);
+            if (!safeUrl) return null;
+            return (
+              <DownloadButton
+                key={index}
+                href={safeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <MdLink />
+                Download from {link.name}
+              </DownloadButton>
+            );
+          })()
         ))}
       </div>
     </DownloadSection>

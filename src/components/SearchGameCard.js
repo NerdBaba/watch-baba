@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { decodeHtmlEntities } from '../utils/externalLinks';
 
 const Card = styled.div`
   background: ${props => props.theme.secondary};
@@ -20,10 +21,7 @@ const Title = styled.h3`
 `;
 
 const cleanTitle = (title) => {
-  if (!title) return '';
-  const txt = document.createElement('textarea');
-  txt.innerHTML = title;
-  return txt.value;
+  return decodeHtmlEntities(title);
 };
 
 const getSlugFromLink = (link) => {

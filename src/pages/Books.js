@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import {  Download, Globe, FileText, HardDrive, Search, Bookmark, Plus } from 'react-feather';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -372,22 +372,7 @@ function Books() {
   const [wishlist, setWishlist] = useState([]);
   const [downloadingBooks, setDownloadingBooks] = useState({});
 
-  useEffect(() => {
-    const savedWishlist = getWishlist();
-    setWishlist(savedWishlist);
-
-    if (savedWishlist.length > 0) {
-      setBooks(savedWishlist);
-      setCurrentQuery('Wishlist');
-      setLoading(false);
-    } else if (searchQuery) {
-      fetchBooks(searchQuery);
-    } else {
-      fetchRandomDefaultBooks();
-    }
-  }, []);
-
-  const fetchBooks = async (query) => {
+  const fetchBooks = useCallback(async (query) => {
     setLoading(true);
     try {
       const response = await fetch(`https://backend.bookracy.ru/api/books?query=${encodeURIComponent(query)}`);
@@ -399,12 +384,25 @@ function Books() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchRandomDefaultBooks = () => {
+  const fetchRandomDefaultBooks = useCallback(() => {
     const randomQuery = defaultQueries[Math.floor(Math.random() * defaultQueries.length)];
     fetchBooks(randomQuery);
-  };
+  }, [fetchBooks]);
+
+  useEffect(() => {
+    const savedWishlist = getWishlist();
+    setWishlist(savedWishlist);
+
+    if (savedWishlist.length > 0) {
+      setBooks(savedWishlist);
+      setCurrentQuery('Wishlist');
+      setLoading(false);
+    } else {
+      fetchRandomDefaultBooks();
+    }
+  }, [fetchBooks, fetchRandomDefaultBooks]);
 
     const handleDownload = async (book) => {
     setDownloadingBooks(prev => ({ ...prev, [book.md5]: true }));

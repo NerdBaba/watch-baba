@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchAnimeDetails, fetchEpisodeSources } from '../services/aniWatchApi';
-import { FaPlay, FaBook, FaInfoCircle, FaStar, FaCalendar, FaClock, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaPlay, FaBook, FaStar, FaCalendar, FaClock } from 'react-icons/fa';
 import AnimePlayer from '../components/AnimePlayer';
 import AnimeCard from '../components/AnimeCard';
 import LoadingScreen from '../components/LoadingScreen';
@@ -144,25 +144,6 @@ const SongItem = styled.li`
   color: ${props => props.theme.text};
 `;
 
-const AudioToggle = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-`;
-
-const AudioButton = styled.button`
-  padding: 0.5rem 1rem;
-  background-color: ${props => props.active ? props.theme.primary : 'transparent'};
-  color: ${props => props.active ? props.theme.background : props.theme.text};
-  border: 1px solid ${props => props.theme.primary};
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: ${props => props.active ? props.theme.primaryDark : props.theme.backgroundTertiary};
-  }
-`;
 const ButtonContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -276,47 +257,12 @@ const AnimeGrid = styled.div`
     gap: 30px;
   }
 `;
-const LoadingContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  font-size: 1.2rem;
-  color: ${props => props.theme.primary};
-`;
-
 const ErrorContainer = styled.div`
   color: ${props => props.theme.error};
   text-align: center;
   padding: 1rem;
 `;
 
-const PaginationContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 1rem;
-`;
-
-const PaginationButton = styled.button`
-  background-color: ${props => props.theme.primary};
-  color: ${props => props.theme.background};
-  border: none;
-  padding: 0.5rem 1rem;
-  margin: 0 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: ${props => props.theme.primaryDark};
-  }
-
-  &:disabled {
-    background-color: ${props => props.theme.backgroundTertiary};
-    cursor: not-allowed;
-  }
-`;
 
 const TrailerContainer = styled.div`
   margin-top: 2rem;
@@ -452,6 +398,7 @@ const cleanHtmlTags = (text) => {
   try {
     setIsLoading(true);
     setError(null);
+    let malId;
     
     if (id === "21") {
       // Only fetch GoGoAnime data for One Piece
@@ -480,6 +427,7 @@ const cleanHtmlTags = (text) => {
     } else {
       // Handle other anime normally with AniList
       const anilistData = await fetchAnimeDetails(id);
+      malId = anilistData.malId;
   setAnime({
     ...anilistData,
     description: cleanHtmlTags(anilistData.description) // Clean description
@@ -498,8 +446,8 @@ const cleanHtmlTags = (text) => {
     }
     
     // Fetch MAL data if not One Piece and if malId is available
-    if (id !== "21" && anime?.malId) {
-      const malResponse = await fetch(`https://api-consumet-ten-delta.vercel.app/meta/mal/info/${anime.malId}`);
+    if (id !== "21" && malId) {
+      const malResponse = await fetch(`https://api-consumet-ten-delta.vercel.app/meta/mal/info/${encodeURIComponent(malId)}`);
       const malInfo = await malResponse.json();
       
       // Remove episodes from malInfo to avoid overwriting episodes
