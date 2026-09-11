@@ -25,7 +25,7 @@ This project uses [Vite](https://vite.dev/) for development and production build
 
 ### Environment variables
 
-Copy `.env.example` to `.env.local` and provide the provider credentials needed by the pages you use. Vite embeds `VITE_*` values into the browser build, so use provider keys restricted to the app’s allowed origins and rotate any credentials that were previously committed.
+Copy `.env.example` to `.env.local` and provide the public TMDB key needed by the pages you use. `VITE_*` values are embedded into the browser build. Configure `IGDB_ACCESS_TOKEN` and `IGDB_CLIENT_ID` as Cloudflare Pages secrets (or local Wrangler secrets) because they are consumed only by the `/api/igdb` Pages Function.
 
 ### Commands
 

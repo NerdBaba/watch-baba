@@ -164,7 +164,6 @@ const StyledMediaPlayer = styled(MediaPlayer)`
 
 function KDramaPlayer({
   title,
-  posterSrc,
   streamingData,
   onClose,
   onNextEpisode,

@@ -77,57 +77,63 @@ const CustomIcon = styled.i`
   -moz-osx-font-smoothing: grayscale;
 `;
 
-const Sidebar = forwardRef(({ setTheme, isOpen, setIsOpen }, ref) => {
+const Sidebar = forwardRef(({ isOpen, setIsOpen }, ref) => {
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
   return (
     <SidebarContainer ref={ref} isOpen={isOpen}>
-      <ToggleButton onClick={toggleSidebar} isOpen={isOpen}>
+      <ToggleButton
+        type="button"
+        onClick={toggleSidebar}
+        isOpen={isOpen}
+        aria-label={isOpen ? 'Collapse navigation' : 'Expand navigation'}
+        aria-expanded={isOpen}
+      >
         {isOpen ? <FaTimes /> : <FeatherSidebar />}
       </ToggleButton>
-      <NavItem to="/">
+      <NavItem to="/" aria-label="Home">
         <IconWrapper isOpen={isOpen}><FaHome /></IconWrapper>
         {isOpen && 'Home'}
       </NavItem>
-      <NavItem to="/discovery">
+      <NavItem to="/discovery" aria-label="Discovery">
         <IconWrapper isOpen={isOpen}><FaCompass /></IconWrapper>
         {isOpen && 'Discovery'}
       </NavItem>
-      <NavItem to="/movies">
+      <NavItem to="/movies" aria-label="Movies">
         <IconWrapper isOpen={isOpen}><FaFilm /></IconWrapper>
         {isOpen && 'Movies'}
       </NavItem>
-      <NavItem to="/tv">
+      <NavItem to="/tv" aria-label="Series">
         <IconWrapper isOpen={isOpen}><FaTv /></IconWrapper>
         {isOpen && 'Series'}
       </NavItem>
-      <NavItem to="/games">
+      <NavItem to="/games" aria-label="Games">
         <IconWrapper isOpen={isOpen}><FaGamepad /></IconWrapper>
         {isOpen && 'Games'}
       </NavItem>
-      <NavItem to="/anime">
+      <NavItem to="/anime" aria-label="Anime">
         <IconWrapper isOpen={isOpen}><CustomIcon className="icon-anime" /></IconWrapper>
         {isOpen && 'Anime'}
       </NavItem>
-      <NavItem to="/manga">
+      <NavItem to="/manga" aria-label="Manga">
         <IconWrapper isOpen={isOpen}><CustomIcon className="icon-mangaka" /></IconWrapper>
         {isOpen && 'Manga'}
       </NavItem>
-      <NavItem to="/sports">
+      <NavItem to="/sports" aria-label="Live Sports">
         <IconWrapper isOpen={isOpen}><FaBaseballBall /></IconWrapper>
         {isOpen && 'Live Sports'}
       </NavItem>
-      <NavItem to="/books">
+      <NavItem to="/books" aria-label="Books">
         <IconWrapper isOpen={isOpen}><FaBook /></IconWrapper>
         {isOpen && 'Books'}
       </NavItem>
-      <NavItem to="/comics">
+      <NavItem to="/comics" aria-label="Comics">
       <IconWrapper isOpen={isOpen}><CustomIcon className="icon-comic" /></IconWrapper>
       {isOpen && 'Comics'}
       </NavItem>
-      <NavItem to="/themes">
+      <NavItem to="/themes" aria-label="Themes">
         <IconWrapper isOpen={isOpen}><FaPalette /></IconWrapper>
         {isOpen && 'Themes'}
       </NavItem>

@@ -97,30 +97,42 @@ function SeriesDetails() {
   const { slug } = useParams();
   const [seriesDetails, setSeriesDetails] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const removeHtmlEntities = (text) => {
-    return text.replace(/&#\d+;/g, '');
+    return String(text ?? '').replace(/&#\d+;/g, '');
   };
 
   const capitalizeFirstLetter = (string) => {
-    return string.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    return String(string ?? '').replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
   };
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
     const fetchDetails = async () => {
       setLoading(true);
+      setError('');
       try {
         const fullUrl = getFullUrl(slug, 'category');
-        const response = await fetchCategoryDetails(fullUrl);
-        setSeriesDetails(response);
-      } catch (error) {
-        console.error('Error fetching series details:', error);
+        const response = await fetchCategoryDetails(fullUrl, { signal: controller.signal });
+        if (active) setSeriesDetails(response);
+      } catch (requestError) {
+        if (active && requestError?.name !== 'AbortError') {
+          console.error('Error fetching series details:', requestError);
+          setError('Unable to load this series right now.');
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     fetchDetails();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [slug]);
 
   if (!seriesDetails && !loading) {
@@ -129,6 +141,7 @@ function SeriesDetails() {
 
   return (
     <>
+      {error && <p role="alert">{error}</p>}
       <LoadingBar isLoading={loading} />
       <SeriesDetailsContainer>
         {seriesDetails && (

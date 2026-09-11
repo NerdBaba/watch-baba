@@ -80,7 +80,7 @@ const Themes = ({ setTheme }) => {
   const [filter, setFilter] = useState('all');
   const currentTheme = useContext(ThemeContext);
 
-  const filteredThemes = Object.entries(themes).filter(([_, theme]) => 
+  const filteredThemes = Object.entries(themes).filter(([, theme]) =>
     filter === 'all' || theme.category === filter
   );
 
@@ -124,4 +124,3 @@ const Themes = ({ setTheme }) => {
 };
 
 export default Themes;
-

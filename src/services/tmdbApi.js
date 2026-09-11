@@ -4,6 +4,7 @@ const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const BASE_URL = 'https://proxy-api-server-woz1.onrender.com/v1/tmdb/3';
 
 const defaultParams = API_KEY ? { api_key: API_KEY } : {};
+const withSignal = (signal) => (signal ? { signal } : {});
 
 const tmdbApi = axios.create({
   baseURL: BASE_URL,
@@ -65,7 +66,7 @@ export const discoverTvShowsHome = (page = 1, genreId = '', watchProviderId = ''
     }
   });
 };
-export const discoverMovies = (page = 1, options = {}) => {
+export const discoverMovies = (page = 1, options = {}, { signal } = {}) => {
   return tmdbApi.get('/discover/movie', {
     params: {
       page,
@@ -73,12 +74,13 @@ export const discoverMovies = (page = 1, options = {}) => {
       region: 'IN',
       include_adult: false, // Exclude adult content
       ...options,
-    }
+    },
+    ...withSignal(signal),
   });
 };
 
 // Modify the discoverTvShows function
-export const discoverTvShows = (page = 1, options = {}) => {
+export const discoverTvShows = (page = 1, options = {}, { signal } = {}) => {
   return tmdbApi.get('/discover/tv', {
     params: {
       page,
@@ -86,12 +88,14 @@ export const discoverTvShows = (page = 1, options = {}) => {
       region: 'IN',
       include_adult: false, // Exclude adult content
       ...options,
-    }
+    },
+    ...withSignal(signal),
   });
 };
-export const getPopularTvShows = (page = 1) => {
+export const getPopularTvShows = (page = 1, { signal } = {}) => {
   return tmdbApi.get('/tv/popular', {
-    params: { page }
+    params: { page },
+    ...withSignal(signal),
   });
 };
 
@@ -115,45 +119,48 @@ export const discoverTrendingTvShowsInIndia = (page = 1, genreId = '') => {
   });
 };
 
-export const getTvShowGenres = () => {
-  return tmdbApi.get('/genre/tv/list');
+export const getTvShowGenres = ({ signal } = {}) => {
+  return tmdbApi.get('/genre/tv/list', withSignal(signal));
 };
 
-export const getMovieVideos = (movieId) => {
-  return tmdbApi.get(`/movie/${movieId}/videos`);
+export const getMovieVideos = (movieId, { signal } = {}) => {
+  return tmdbApi.get(`/movie/${movieId}/videos`, withSignal(signal));
 };
 
-export const getTvShowVideos = (tvShowId) => {
-  return tmdbApi.get(`/tv/${tvShowId}/videos`);
+export const getTvShowVideos = (tvShowId, { signal } = {}) => {
+  return tmdbApi.get(`/tv/${tvShowId}/videos`, withSignal(signal));
 };
 
-export const getTvShowExternalIds = (id) => tmdbApi.get(`/tv/${id}/external_ids`);
-export const getMovieExternalIds = (id) => tmdbApi.get(`/movie/${id}/external_ids`);
+export const getTvShowExternalIds = (id, { signal } = {}) => tmdbApi.get(`/tv/${id}/external_ids`, withSignal(signal));
+export const getMovieExternalIds = (id, { signal } = {}) => tmdbApi.get(`/movie/${id}/external_ids`, withSignal(signal));
 
 
-export const getMovieDetails = (id) => tmdbApi.get(`/movie/${id}`);
+export const getMovieDetails = (id, { signal } = {}) => tmdbApi.get(`/movie/${id}`, withSignal(signal));
 
-export const getTvShowDetails = (id) => tmdbApi.get(`/tv/${id}`);
+export const getTvShowDetails = (id, { signal } = {}) => tmdbApi.get(`/tv/${id}`, withSignal(signal));
 
-export const searchMulti = (query, page = 1) => tmdbApi.get('/search/multi', { params: { query, page } });
+export const searchMulti = (query, page = 1, { signal } = {}) => tmdbApi.get('/search/multi', {
+  params: { query, page },
+  ...(signal ? { signal } : {}),
+});
 
-export const getMovieRecommendations = (id) => tmdbApi.get(`/movie/${id}/recommendations`);
+export const getMovieRecommendations = (id, { signal } = {}) => tmdbApi.get(`/movie/${id}/recommendations`, withSignal(signal));
 
-export const getTvShowRecommendations = (id) => tmdbApi.get(`/tv/${id}/recommendations`);
+export const getTvShowRecommendations = (id, { signal } = {}) => tmdbApi.get(`/tv/${id}/recommendations`, withSignal(signal));
 
-export const getMovieCredits = (id) => tmdbApi.get(`/movie/${id}/credits`);
+export const getMovieCredits = (id, { signal } = {}) => tmdbApi.get(`/movie/${id}/credits`, withSignal(signal));
 
-export const getMovieGenres = () => tmdbApi.get('/genre/movie/list');
+export const getMovieGenres = ({ signal } = {}) => tmdbApi.get('/genre/movie/list', withSignal(signal));
 
-export const getTvShowCredits = (id) => tmdbApi.get(`/tv/${id}/credits`);
+export const getTvShowCredits = (id, { signal } = {}) => tmdbApi.get(`/tv/${id}/credits`, withSignal(signal));
 
 // New function for fetching TV season details
-export const getTvShowSeasonEpisodes = (tvShowId, seasonNumber) => {
-  return tmdbApi.get(`/tv/${tvShowId}/season/${seasonNumber}`);
+export const getTvShowSeasonEpisodes = (tvShowId, seasonNumber, { signal } = {}) => {
+  return tmdbApi.get(`/tv/${tvShowId}/season/${seasonNumber}`, withSignal(signal));
 };
 
-export const getTvShowEpisodeDetails = (tvShowId, seasonNumber, episodeNumber) => {
-  return tmdbApi.get(`/tv/${tvShowId}/season/${seasonNumber}/episode/${episodeNumber}`);
+export const getTvShowEpisodeDetails = (tvShowId, seasonNumber, episodeNumber, { signal } = {}) => {
+  return tmdbApi.get(`/tv/${tvShowId}/season/${seasonNumber}/episode/${episodeNumber}`, withSignal(signal));
 };
 
 

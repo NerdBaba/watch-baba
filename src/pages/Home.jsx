@@ -98,8 +98,10 @@ function Home() {
   const [loadingPrimary, setLoadingPrimary] = useState(true);
   const [loadingNetworks, setLoadingNetworks] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    let active = true;
     const fetchPrimaryData = async () => {
       try {
         const [moviesRes, tvShowsRes, animeRes, movieGenresRes, tvGenresRes] = await Promise.all([
@@ -110,23 +112,31 @@ function Home() {
           getTvShowGenres()
         ]);
 
-        setPopularMovies(moviesRes.data.results);
-        setPopularTvShows(tvShowsRes.data.results);
+        if (!active) return;
+        setPopularMovies(moviesRes.data.results || []);
+        setPopularTvShows(tvShowsRes.data.results || []);
         setPopularAnime(animeRes.results || []);
-        setMovieGenres(movieGenresRes.data.genres);
-        setTvGenres(tvGenresRes.data.genres);
-
-        setLoadingPrimary(false);
+        setMovieGenres(movieGenresRes.data.genres || []);
+        setTvGenres(tvGenresRes.data.genres || []);
       } catch (error) {
-        console.error('Error fetching primary data:', error);
+        if (active) {
+          console.error('Error fetching primary data:', error);
+          setError('Unable to load the home page. Please try again later.');
+        }
+      } finally {
+        if (active) setLoadingPrimary(false);
       }
     };
 
     fetchPrimaryData();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!loadingPrimary) {
+    if (!loadingPrimary && !error) {
+      let active = true;
       const fetchNetworkData = async () => {
         try {
           const networkContentPromises = networks.map(async (network) => {
@@ -146,16 +156,24 @@ function Home() {
           });
 
           const networkContentResults = await Promise.all(networkContentPromises);
-          setNetworkContent(Object.assign({}, ...networkContentResults));
-          setLoadingNetworks(false);
+          if (active) setNetworkContent(Object.assign({}, ...networkContentResults));
         } catch (error) {
-          console.error('Error fetching network data:', error);
+          if (active) {
+            console.error('Error fetching network data:', error);
+            setError('Some network sections could not be loaded.');
+          }
+        } finally {
+          if (active) setLoadingNetworks(false);
         }
       };
 
       fetchNetworkData();
+      return () => {
+        active = false;
+      };
     }
-  }, [loadingPrimary]);
+    setLoadingNetworks(false);
+  }, [loadingPrimary, error]);
 
   useEffect(() => {
     setIsLoading(loadingPrimary || loadingNetworks);
@@ -187,6 +205,7 @@ function Home() {
     <>
       <LoadingBar isLoading={isLoading} />
       <HomeContainer>
+        {error && <div role="alert">{error}</div>}
         {!loadingPrimary && (
           <>
             {renderScrollableSection('Popular Movies', popularMovies, MovieCard)}

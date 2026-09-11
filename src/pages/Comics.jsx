@@ -1,5 +1,5 @@
 // pages/Comics.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -8,6 +8,7 @@ import { fetchComics, searchComics } from '../services/comicApi';
 import { getSlugFromUrl } from '../utils/urlHelpers';
 import LoadingBar from '../components/LoadingBar';
 import Pagination from '../components/Pagination';
+import { decodeHtmlEntities } from '../utils/externalLinks';
 
 const ComicsContainer = styled.div`
   display: grid;
@@ -128,47 +129,65 @@ function Comics() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isSearchResult, setIsSearchResult] = useState(false);
+  const [error, setError] = useState('');
+  const searchControllerRef = useRef(null);
   const cleanTextFromHtmlEntities = (text) => {
-  return text.replace(/&#\d+;/g, '');
-};
+    return decodeHtmlEntities(String(text ?? ''));
+  };
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchComicsList = async () => {
       setLoading(true);
+      setError('');
       try {
-        const response = await fetchComics(currentPage);
+        const response = await fetchComics(currentPage, { signal: controller.signal });
         setComics(response.comics);
         setTotalPages(response.totalPages);
         setIsSearchResult(false);
       } catch (error) {
-        console.error('Error fetching comics:', error);
+        if (error.name !== 'AbortError') {
+          console.error('Error fetching comics:', error);
+          setComics([]);
+          setError('Unable to load comics. Please try again later.');
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     if (!isSearchResult) {
       fetchComicsList();
     }
+    return () => controller.abort();
   }, [currentPage, isSearchResult]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    
+    searchControllerRef.current?.abort();
+    const controller = new AbortController();
+    searchControllerRef.current = controller;
     setLoading(true);
+    setError('');
     try {
-      const response = await searchComics(searchQuery);
-      setComics(response.results);
+      const response = await searchComics(searchQuery.trim(), { signal: controller.signal });
+      setComics(Array.isArray(response.results) ? response.results : []);
       setTotalPages(1);
       setCurrentPage(1);
       setIsSearchResult(true);
     } catch (error) {
-      console.error('Error searching comics:', error);
+      if (error.name !== 'AbortError') {
+        console.error('Error searching comics:', error);
+        setComics([]);
+        setError('Unable to search comics. Please try again later.');
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   };
+
+  useEffect(() => () => searchControllerRef.current?.abort(), []);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -198,6 +217,7 @@ function Comics() {
   return (
     <>
       <LoadingBar isLoading={loading} />
+      {error && <p role="alert">{error}</p>}
       <form onSubmit={handleSearch}>
         <SearchContainer>
           <SearchInput

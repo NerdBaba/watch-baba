@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import { requestJson } from '../services/requestJson';
 
 const WatchContainer = styled.div`
   padding: 20px;
@@ -122,8 +123,10 @@ const SPORTS = [
 function Watch() {
   const { id } = useParams();
   const location = useLocation();
-  const [matchData, setMatchData] = useState(location.state?.matchData);
-  const [loading, setLoading] = useState(!location.state?.matchData);
+  const initialMatch = location.state?.matchData?.id === id ? location.state.matchData : null;
+  const [matchData, setMatchData] = useState(initialMatch);
+  const [loading, setLoading] = useState(!initialMatch);
+  const [error, setError] = useState('');
   const [selectedSource, setSelectedSource] = useState(
     matchData?.sources && matchData.sources.length > 0 ? matchData.sources[0] : null
   );
@@ -151,21 +154,26 @@ function Watch() {
     };
   }, []);
 
-  const fetchMatchData = useCallback(async () => {
+  const fetchMatchData = useCallback(async (signal) => {
     try {
       setLoading(true);
+      setError('');
       
       // First try live/popular
-      let response = await fetch('https://sports.mda2233.workers.dev/api/matches/live/popular');
-      let matches = await response.json();
-      let match = matches.find(m => m.id === id);
+      let matches = await requestJson(
+        'https://sports.mda2233.workers.dev/api/matches/live/popular',
+        { signal },
+      );
+      let match = (Array.isArray(matches) ? matches : []).find(m => m.id === id);
       
       // If not found, try each sport
       if (!match) {
         for (const sport of SPORTS) {
-          response = await fetch(`https://sports.mda2233.workers.dev/api/matches/${sport}`);
-          matches = await response.json();
-          match = matches.find(m => m.id === id);
+          matches = await requestJson(
+            `https://sports.mda2233.workers.dev/api/matches/${sport}`,
+            { signal },
+          );
+          match = (Array.isArray(matches) ? matches : []).find(m => m.id === id);
           if (match) break;
         }
       }
@@ -177,17 +185,30 @@ function Watch() {
         }
       }
     } catch (err) {
-      console.error('Error fetching match data:', err);
+      if (err?.name !== 'AbortError') {
+        console.error('Error fetching match data:', err);
+        setError('Unable to load this match right now.');
+      }
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
   }, [id]);
 
   useEffect(() => {
-    if (!matchData) {
-      fetchMatchData();
+    const controller = new AbortController();
+    const routeMatch = location.state?.matchData?.id === id ? location.state.matchData : null;
+    setMatchData(routeMatch);
+    setSelectedSource(routeMatch?.sources?.[0] || null);
+    setError('');
+
+    if (routeMatch) {
+      setLoading(false);
+    } else {
+      fetchMatchData(controller.signal);
     }
-  }, [fetchMatchData, matchData]);
+
+    return () => controller.abort();
+  }, [fetchMatchData, id, location.state]);
 
   const getEmbedUrl = (source, streamNo) => {
     if (!source) return '';
@@ -199,7 +220,7 @@ function Watch() {
   }
 
   if (!matchData) {
-    return <WatchContainer>Match not found</WatchContainer>;
+    return <WatchContainer>{error ? <p role="alert">{error}</p> : 'Match not found'}</WatchContainer>;
   }
 
   return (

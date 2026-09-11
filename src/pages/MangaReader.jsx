@@ -139,6 +139,7 @@ function MangaReader() {
   const [isImmersive, setIsImmersive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [error, setError] = useState('');
   const [progress, setProgress] = useState(0);
   const [controlsHidden, setControlsHidden] = useState(false);
   const containerRef = useRef(null);
@@ -149,18 +150,34 @@ function MangaReader() {
   }, [viewMode]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
+    setIsLoading(true);
+    setError('');
     const fetchChapter = async () => {
       try {
-        const response = await axios.get(`https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/manga/${id}/${chapterId}`);
-        setChapter(response.data);
-      } catch (error) {
-        console.error('Error fetching chapter:', error);
+        const response = await axios.get(
+          `https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/manga/${encodeURIComponent(id)}/${encodeURIComponent(chapterId)}`,
+          { signal: controller.signal },
+        );
+        if (active) setChapter(response.data);
+      } catch (requestError) {
+        if (active && requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+          console.error('Error fetching chapter:', requestError);
+          setError('Unable to load this chapter right now.');
+        }
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
 
     fetchChapter();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [id, chapterId]);
 
   const handleScroll = useCallback(() => {
@@ -195,6 +212,7 @@ function MangaReader() {
   };
 
   if (isLoading) return <LoadingScreen />;
+  if (error) return <div role="alert">{error}</div>;
   if (!chapter) return <div>Chapter not found</div>;
 
   return (

@@ -1,17 +1,11 @@
+import { requestJson } from './requestJson';
+
 // aniWatchApi.js
 const BASE_URL = 'https://api-consumet-ten-delta.vercel.app';
 
-const fetchJson = async (url) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Anime API request failed with status ${response.status}`);
-  }
-  return response.json();
-};
-
-export const fetchAnimeHome = async () => {
+export const fetchAnimeHome = async ({ signal } = {}) => {
   try {
-    return await fetchJson(`${BASE_URL}/meta/anilist/trending`);
+    return await requestJson(`${BASE_URL}/meta/anilist/trending`, { signal });
   } catch (error) {
     console.error('Error fetching anime home:', error);
     throw error;
@@ -20,10 +14,10 @@ export const fetchAnimeHome = async () => {
 
 
 
-export const fetchAnimeByCategory = async (category = 'POPULARITY_DESC', page = 1) => {
+export const fetchAnimeByCategory = async (category = 'POPULARITY_DESC', page = 1, { signal } = {}) => {
   try {
     const params = new URLSearchParams({ sort: category, page: String(page) });
-    const data = await fetchJson(`${BASE_URL}/meta/anilist/advanced-search?${params}`);
+    const data = await requestJson(`${BASE_URL}/meta/anilist/advanced-search?${params}`, { signal });
     return {
       animes: data.results,
       currentPage: page,
@@ -35,30 +29,30 @@ export const fetchAnimeByCategory = async (category = 'POPULARITY_DESC', page = 
   }
 };
 
-export const searchAnime = async (query, page = 1) => {
+export const searchAnime = async (query, page = 1, { signal } = {}) => {
   try {
-    return await fetchJson(`${BASE_URL}/meta/anilist/${encodeURIComponent(query)}?page=${page}`);
+    return await requestJson(`${BASE_URL}/meta/anilist/${encodeURIComponent(query)}?page=${page}`, { signal });
   } catch (error) {
     console.error('Error searching anime:', error);
     throw error;
   }
 };
-export const fetchAnimeDetails = async (malId) => {
+export const fetchAnimeDetails = async (malId, { signal } = {}) => {
   try {
-    return await fetchJson(`${BASE_URL}/meta/anilist/info/${encodeURIComponent(malId)}`);
+    return await requestJson(`${BASE_URL}/meta/anilist/info/${encodeURIComponent(malId)}`, { signal });
   } catch (error) {
     console.error('Error fetching anime details:', error);
     throw error;
   }
 };
 
-export const fetchAnimeEpisodes = async (id) => {
-  return fetchJson(`${BASE_URL}/info/${encodeURIComponent(id)}?provider=gogoanime`);
+export const fetchAnimeEpisodes = async (id, { signal } = {}) => {
+  return requestJson(`${BASE_URL}/info/${encodeURIComponent(id)}?provider=gogoanime`, { signal });
 };
 
-export const fetchEpisodeSources = async (episodeId) => {
+export const fetchEpisodeSources = async (episodeId, { signal } = {}) => {
   try {
-    return await fetchJson(`${BASE_URL}/meta/anilist/watch/${encodeURIComponent(episodeId)}`);
+    return await requestJson(`${BASE_URL}/meta/anilist/watch/${encodeURIComponent(episodeId)}`, { signal });
   } catch (error) {
     console.error('Error fetching episode sources:', error);
     throw error;

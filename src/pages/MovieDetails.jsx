@@ -759,45 +759,58 @@ function MovieDetails() {
    const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [selectedDownloadOption, setSelectedDownloadOption] = useState(null);
   const [trailer, setTrailer] = useState(null);
+  const [error, setError] = useState('');
   const [showTorrents, setShowTorrents] = useState(false);
   const [tamilYogi2Results, setTamilYogi2Results] = useState([]);
   const [isTamilYogi2Loading, setIsTamilYogi2Loading] = useState(false);
   const [selectedTamilYogi2Link, setSelectedTamilYogi2Link] = useState('');
 
-  const fetchMovieData = useCallback(async () => {
+  const fetchMovieData = useCallback(async (signal) => {
     try {
+      setError('');
       const [detailsResponse, externalIdsResponse, videosResponse] = await Promise.all([
-        getMovieDetails(id),
-        getMovieExternalIds(id),
-        getMovieVideos(id)
+        getMovieDetails(id, { signal }),
+        getMovieExternalIds(id, { signal }),
+        getMovieVideos(id, { signal }),
       ]);
 
+      if (signal.aborted) return;
       setMovie(detailsResponse.data);
       setExternalIds(externalIdsResponse.data);
-      setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
+      setLogoUrl(externalIdsResponse.data.imdb_id
+        ? `https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`
+        : '');
 
-      const trailerVideo = videosResponse.data.results.find(video => video.type === 'Trailer');
+      const trailerVideo = (videosResponse.data.results || []).find(video => video.type === 'Trailer');
       setTrailer(trailerVideo);
 
       const [recommendationsResponse, creditsResponse] = await Promise.all([
-        getMovieRecommendations(id),
-        getMovieCredits(id)
+        getMovieRecommendations(id, { signal }),
+        getMovieCredits(id, { signal }),
       ]);
 
-      setRecommendations(recommendationsResponse.data.results.slice(0, 20));
-      setCast(creditsResponse.data.cast.slice(0, 10));
+      if (signal.aborted) return;
+      setRecommendations((recommendationsResponse.data.results || []).slice(0, 20));
+      setCast((creditsResponse.data.cast || []).slice(0, 10));
 
       // Reset TamilYogi2 state when fetching new movie data
       setTamilYogi2Results([]);
       setSelectedTamilYogi2Link('');
 
-    } catch (error) {
-      console.error('Error fetching movie data:', error);
+    } catch (requestError) {
+      if (requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+        console.error('Error fetching movie data:', requestError);
+        setError('Unable to load this movie right now.');
+      }
     }
   }, [id]);
 
   useEffect(() => {
-    fetchMovieData();
+    const controller = new AbortController();
+    setMovie(null);
+    setExternalIds(null);
+    fetchMovieData(controller.signal);
+    return () => controller.abort();
   }, [fetchMovieData]);
 
   const calculateEndTime = (startTime, runtime) => {
@@ -877,9 +890,15 @@ const fetchTamilYogi2Results = useCallback(async (title) => {
 
 const getDownloadLink = (embedLink) => {
   if (!embedLink) return null;
-  const url = new URL(embedLink);
-  url.pathname = url.pathname.replace('/embed/', '/download/');
-  return url.toString();
+  try {
+    const safeUrl = getSafeHttpUrl(embedLink);
+    if (!safeUrl) return null;
+    const url = new URL(safeUrl);
+    url.pathname = url.pathname.replace('/embed/', '/download/');
+    return url.toString();
+  } catch {
+    return null;
+  }
 };
 
 // const invokeMoviesdrive = async (title, year) => {
@@ -1028,14 +1047,16 @@ const getDownloadLink = (embedLink) => {
 
 
 
-const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
+const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1, signal) => {
   try {
     const encodedTitle = encodeURIComponent(title);
     const url = `https://api.braflix.gd/megacloud/sources-with-title?title=${encodedTitle}&year=${year}&mediaType=${mediaType}&episodeId=${episodeId}&seasonId=${seasonId}&tmdbId=${tmdbId}`;
-    const response = await axios.get(url);
+    const response = await axios.get(url, signal ? { signal } : undefined);
     return response.data;
-  } catch (error) {
-    console.error('Error fetching Megacloud hash:', error);
+  } catch (requestError) {
+    if (requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+      console.error('Error fetching Megacloud hash:', requestError);
+    }
     return null;
   }
 };
@@ -1044,19 +1065,26 @@ const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, 
 
 
 useEffect(() => {
+  const controller = new AbortController();
+  setMegacloudHash(null);
+
   const fetchHash = async () => {
     if (watchOption === 'server11' && movie) {
       const year = new Date(movie.release_date).getFullYear();
-      const hash = await fetchMegacloudHash(movie.title, year, movie.id, 'movie');
+      const hash = await fetchMegacloudHash(movie.title, year, movie.id, 'movie', 1, 1, controller.signal);
       setMegacloudHash(hash);
     }
   };
   
   fetchHash();
+
+  return () => controller.abort();
 }, [watchOption, movie]);
 
 
   useEffect(() => {
+    const previousZoom = document.body.style.zoom;
+    const previousWidth = document.body.style.width;
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         document.body.style.zoom = 1;
@@ -1074,6 +1102,8 @@ useEffect(() => {
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.body.style.zoom = previousZoom;
+      document.body.style.width = previousWidth;
     };
   }, []);
 
@@ -1120,6 +1150,7 @@ useEffect(() => {
 
  
 
+  if (error) return <div role="alert">{error}</div>;
   if (!movie || !externalIds) return <div>Loading...</div>;
 
   

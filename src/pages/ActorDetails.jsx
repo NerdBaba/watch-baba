@@ -50,24 +50,52 @@ function ActorDetails() {
   const { id } = useParams();
   const [actor, setActor] = useState(null);
   const [knownFor, setKnownFor] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    tmdbApi.get(`/person/${id}`).then((response) => setActor(response.data));
-    tmdbApi.get(`/person/${id}/combined_credits`).then((response) => {
-      const filteredCredits = response.data.cast
-        .filter(credit => credit.media_type !== 'tv' || credit.genre_ids.indexOf(10767) === -1) // 10767 is the genre ID for talk shows
-        .sort((a, b) => b.popularity - a.popularity)
+    const controller = new AbortController();
+    let active = true;
+
+    setActor(null);
+    setKnownFor([]);
+    setError('');
+
+    Promise.all([
+      tmdbApi.get(`/person/${encodeURIComponent(id)}`, { signal: controller.signal }),
+      tmdbApi.get(`/person/${encodeURIComponent(id)}/combined_credits`, { signal: controller.signal }),
+    ]).then(([actorResponse, creditsResponse]) => {
+      if (!active) return;
+
+      const cast = Array.isArray(creditsResponse.data?.cast) ? creditsResponse.data.cast : [];
+      const filteredCredits = cast
+        .filter(credit => credit.media_type !== 'tv' || !credit.genre_ids?.includes(10767))
+        .sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
         .slice(0, 30);
+
+      setActor(actorResponse.data);
       setKnownFor(filteredCredits);
+    }).catch((requestError) => {
+      if (active && requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+        console.error('Error fetching actor details:', requestError);
+        setError('Unable to load this actor right now.');
+      }
     });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [id]);
 
+  if (error) return <div role="alert">{error}</div>;
   if (!actor) return <div>Loading...</div>;
 
   return (
     <ActorContainer>
       <ActorInfo>
-        <ProfilePic src={`https://image.tmdb.org/t/p/w500${actor.profile_path}`} alt={actor.name} />
+        {actor.profile_path ? (
+          <ProfilePic src={`https://image.tmdb.org/t/p/w500${actor.profile_path}`} alt={actor.name} />
+        ) : null}
         <Info>
           <h2>{actor.name}</h2>
           <p>Born: {actor.birthday}</p>

@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import axios from 'axios';
 import { FaBookmark } from 'react-icons/fa';
 import LoadingScreen from '../components/LoadingScreen';
+import { getMangaWishlist, isMangaWishlisted, saveMangaWishlist } from '../utils/mangaWishlist';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -103,25 +104,70 @@ function MangaDetails() {
   const { id } = useParams();
   const [manga, setManga] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [wishlist, setWishlist] = useState([]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
+    setIsLoading(true);
+    setManga(null);
+    setError('');
+
     const fetchMangaDetails = async () => {
       try {
-        const response = await axios.get(`https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/manga/${id}`);
-        setManga(response.data);
-      } catch (error) {
-        console.error('Error fetching manga details:', error);
+        const response = await axios.get(
+          `https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/manga/${encodeURIComponent(id)}`,
+          { signal: controller.signal },
+        );
+        if (!active) return;
+        setManga({
+          ...response.data,
+          genres: Array.isArray(response.data?.genres) ? response.data.genres : [],
+          chapterList: Array.isArray(response.data?.chapterList) ? response.data.chapterList : [],
+        });
+      } catch (requestError) {
+        if (active && requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+          console.error('Error fetching manga details:', requestError);
+          setError('Unable to load this manga right now.');
+        }
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
 
     fetchMangaDetails();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [id]);
+
+  useEffect(() => {
+    setWishlist(getMangaWishlist());
+  }, []);
+
+  const isWishlisted = manga
+    ? isMangaWishlisted(manga, wishlist)
+    : false;
+
+  const handleBookmark = () => {
+    if (!manga) return;
+
+    const nextWishlist = isWishlisted
+      ? wishlist.filter(item => String(item.id) !== String(manga.id))
+      : [...wishlist, manga];
+
+    setWishlist(nextWishlist);
+    saveMangaWishlist(nextWishlist);
+  };
 
  if (isLoading) {
   return <LoadingScreen />;
 }
+  if (error) return <div role="alert">{error}</div>;
   if (!manga) return <div>Manga not found</div>;
 
   return (
@@ -137,9 +183,9 @@ function MangaDetails() {
             ))}
           </GenreList>
           <Status>Status: {manga.status}</Status>
-          <BookmarkButton>
+          <BookmarkButton type="button" onClick={handleBookmark} aria-pressed={isWishlisted}>
           <FaBookmark />
-          Bookmark</BookmarkButton>
+          {isWishlisted ? 'Bookmarked' : 'Bookmark'}</BookmarkButton>
         </MangaInfo>
       </MangaHeader>
       

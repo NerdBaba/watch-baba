@@ -70,8 +70,13 @@ function Movies() {
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
+    setError('');
     const fetchMovies = async () => {
       try {
         const response = await discoverMovies(currentPage, {
@@ -79,28 +84,47 @@ function Movies() {
           sort_by: selectedSort,
           primary_release_year: selectedYear !== 'all' ? selectedYear : '',
           with_original_language: selectedLanguage !== 'all' ? selectedLanguage : '',
-        });
-        setMovies(response.data.results);
-        setTotalPages(response.data.total_pages);
-      } catch (error) {
-        console.error('Error fetching movies:', error);
+        }, { signal: controller.signal });
+        if (!active) return;
+        setMovies(Array.isArray(response.data.results) ? response.data.results : []);
+        setTotalPages(response.data.total_pages || 0);
+      } catch (requestError) {
+        if (active && requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+          console.error('Error fetching movies:', requestError);
+          setMovies([]);
+          setError('Unable to load movies right now.');
+        }
       }
     };
 
     fetchMovies();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [currentPage, selectedGenre, selectedSort, selectedYear, selectedLanguage]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
     const fetchGenres = async () => {
       try {
-        const response = await getMovieGenres();
-        setGenres(response.data.genres);
-      } catch (error) {
-        console.error('Error fetching genres:', error);
+        const response = await getMovieGenres({ signal: controller.signal });
+        if (active) setGenres(Array.isArray(response.data.genres) ? response.data.genres : []);
+      } catch (requestError) {
+        if (active && requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+          console.error('Error fetching genres:', requestError);
+        }
       }
     };
 
     fetchGenres();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, []);
 
   const handlePageChange = (pageNumber) => {
@@ -133,6 +157,7 @@ function Movies() {
 
   return (
     <div>
+      {error && <p role="alert">{error}</p>}
       <SectionTitle>Popular Movies</SectionTitle>
       <FilterWrapper>
         <GenreFilter

@@ -78,9 +78,12 @@ function VideoPlayer({ tmdbId, season, episode, malId, audio }) {
       return;
     }
 
+    setIsBlocked(false);
+    let observer;
+
     const checkIframeRequests = () => {
       if (iframeRef.current) {
-        const observer = new MutationObserver(() => {
+        observer = new MutationObserver(() => {
           const iframeSrc = iframeRef.current.src;
           if (isDomainBlocked(iframeSrc)) {
             setIsBlocked(true);
@@ -95,7 +98,7 @@ function VideoPlayer({ tmdbId, season, episode, malId, audio }) {
     checkIframeRequests();
 
     return () => {
-      // Clean up any observers or listeners if needed
+      observer?.disconnect();
     };
   }, [embedUrl]);
 

@@ -70,8 +70,13 @@ function TvShows() {
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
+    setError('');
     const fetchTvShows = async () => {
       try {
         const response = await discoverTvShows(currentPage, {
@@ -79,28 +84,45 @@ function TvShows() {
           sort_by: selectedSort,
           first_air_date_year: selectedYear !== 'all' ? selectedYear : '',
           with_original_language: selectedLanguage !== 'all' ? selectedLanguage : '',
-        });
-        setTvShows(response.data.results);
-        setTotalPages(response.data.total_pages);
-      } catch (error) {
-        console.error('Error fetching TV shows:', error);
+        }, { signal: controller.signal });
+        if (!active) return;
+        setTvShows(Array.isArray(response.data.results) ? response.data.results : []);
+        setTotalPages(response.data.total_pages || 0);
+      } catch (requestError) {
+        if (active && requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+          console.error('Error fetching TV shows:', requestError);
+          setTvShows([]);
+          setError('Unable to load TV shows right now.');
+        }
       }
     };
 
     fetchTvShows();
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [currentPage, selectedGenre, selectedSort, selectedYear, selectedLanguage]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
     const fetchGenres = async () => {
       try {
-        const response = await getTvShowGenres();
-        setGenres(response.data.genres);
-      } catch (error) {
-        console.error('Error fetching TV show genres:', error);
+        const response = await getTvShowGenres({ signal: controller.signal });
+        if (active) setGenres(Array.isArray(response.data.genres) ? response.data.genres : []);
+      } catch (requestError) {
+        if (active && requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+          console.error('Error fetching TV show genres:', requestError);
+        }
       }
     };
 
     fetchGenres();
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, []);
 
   const handlePageChange = (pageNumber) => {
@@ -133,6 +155,7 @@ function TvShows() {
 
   return (
     <div>
+      {error && <p role="alert">{error}</p>}
       <SectionTitle>Popular TV Shows</SectionTitle>
       <FilterWrapper>
         <GenreFilter

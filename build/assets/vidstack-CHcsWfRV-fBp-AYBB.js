@@ -1,1 +1,0 @@
-import{I as e,n as t,r as n}from"./index-bgLOTCcx.js";var r=class extends n{$$PROVIDER_TYPE=`AUDIO`;get type(){return`audio`}airPlay;constructor(n,r){super(n,r),e(()=>{this.airPlay=new t(this.media,r)},this.scope)}setup(){super.setup(),this.type===`audio`&&this.ctx.notify(`provider-setup`,this)}get audio(){return this.media}};export{r as AudioProvider};

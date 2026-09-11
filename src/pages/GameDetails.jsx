@@ -11,6 +11,8 @@ import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { MdGamepad, MdCalendarToday, MdStar, MdLink } from 'react-icons/md';
 import DOMPurify from 'dompurify';
 import { getSafeHttpUrl } from '../utils/externalLinks';
+import { fetchIgdbGames } from '../services/igdbApi';
+import { requestJson } from '../services/requestJson';
 
 
 const Container = styled(motion.div)`
@@ -378,9 +380,8 @@ const GameDetails = () => {
   const [media, setMedia] = useState([]);
   const [fullscreenMedia, setFullscreenMedia] = useState(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [error, setError] = useState('');
 
-  const ACCESS_TOKEN = import.meta.env.VITE_IGDB_ACCESS_TOKEN;
-  const CLIENT_ID = import.meta.env.VITE_IGDB_CLIENT_ID;
   const extractTitleFromSlug = useCallback((slug) => {
     return slug
       .replace(/-/g, ' ')
@@ -402,12 +403,7 @@ const GameDetails = () => {
       .trim();
   }, []);
 
- const fetchIGDBData = useCallback(async (searchTerms) => {
-  if (!ACCESS_TOKEN || !CLIENT_ID) {
-    console.error('IGDB credentials are not configured. Set VITE_IGDB_ACCESS_TOKEN and VITE_IGDB_CLIENT_ID.');
-    return;
-  }
-
+ const fetchIGDBData = useCallback(async (searchTerms, signal) => {
   try {
     // Special cases mapping with direct IGDB IDs
     const specialCases = {
@@ -433,7 +429,10 @@ const GameDetails = () => {
         limit 1;`;
     } else {
       // For other games, use the search query as before
-      const searchQuery = searchTerms.join(' | ');
+      const searchQuery = searchTerms
+        .join(' | ')
+        .replaceAll('\\', '\\\\')
+        .replaceAll('"', '\\"');
       body = `search "${searchQuery}";
         fields name,summary,rating,rating_count,first_release_date,genres.name,
         platforms.name,screenshots.url,artworks.url,cover.url,
@@ -443,86 +442,89 @@ const GameDetails = () => {
         limit 1;`;
     }
 
-    const response = await fetch('https://sudo-proxy-latest-cmp7.onrender.com/?destination=https://api.igdb.com/v4/games', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
-        'Client-ID': CLIENT_ID,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body
-    });
-
-    const [gameData] = await response.json();
+    const igdbResponse = await fetchIgdbGames(body, signal);
+    const [gameData] = Array.isArray(igdbResponse) ? igdbResponse : [];
     
     if (gameData) {
       // Process media
       const allMedia = [];
       
       // Process cover
-      if (gameData.cover) {
+      if (gameData.cover?.url) {
         gameData.cover.url = `https:${gameData.cover.url.replace('t_thumb', 't_cover_big')}`;
       }
 
       // Process screenshots
-      if (gameData.screenshots) {
+      if (Array.isArray(gameData.screenshots)) {
         gameData.screenshots.forEach(screenshot => {
-          allMedia.push({
-            type: 'image',
-            url: `https:${screenshot.url.replace('t_thumb', 't_1080p')}`
-          });
+          if (screenshot.url) {
+            allMedia.push({
+              type: 'image',
+              url: `https:${screenshot.url.replace('t_thumb', 't_1080p')}`
+            });
+          }
         });
       }
 
       // Process artworks
-      if (gameData.artworks) {
+      if (Array.isArray(gameData.artworks)) {
         gameData.artworks.forEach(artwork => {
-          allMedia.push({
-            type: 'image',
-            url: `https:${artwork.url.replace('t_thumb', 't_1080p')}`
-          });
+          if (artwork.url) {
+            allMedia.push({
+              type: 'image',
+              url: `https:${artwork.url.replace('t_thumb', 't_1080p')}`
+            });
+          }
         });
       }
 
       // Process videos
-      if (gameData.videos) {
+      if (Array.isArray(gameData.videos)) {
         gameData.videos.forEach(video => {
-          allMedia.push({
-            type: 'video',
-            videoId: video.video_id
-          });
+          if (video.video_id) {
+            allMedia.push({
+              type: 'video',
+              videoId: video.video_id
+            });
+          }
         });
       }
 
       setMedia(allMedia);
       setIgdbData(gameData);
+    } else {
+      setMedia([]);
+      setIgdbData(null);
     }
   } catch (error) {
-    console.error('Error fetching IGDB data:', error);
+    if (error?.name !== 'AbortError') {
+      console.error('Error fetching IGDB data:', error);
+    }
   }
-}, [ACCESS_TOKEN, CLIENT_ID]);
+}, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (signal) => {
     setIsLoading(true);
+    setError('');
     try {
-      const response = await fetch(`https://games.mda2233.workers.dev/game/${id}`);
-      const data = await response.json();
+      const data = await requestJson(`https://games.mda2233.workers.dev/game/${encodeURIComponent(id)}`, { signal });
       
-      // Clean system requirements HTML
-      if (data.systemRequirements) {
-  Object.keys(data.systemRequirements).forEach(key => {
-    data.systemRequirements[key] = cleanHtml(data.systemRequirements[key])
-      .replace(/<\/?strong>/g, '') // Removes <strong> and </strong>
-      .replace(/<\/?li>/g, '');    // Removes <li> and </li>
-  });
-}
+      const systemRequirements = Object.fromEntries(
+        Object.entries(data.systemRequirements || {}).map(([key, value]) => [
+          key,
+          cleanHtml(String(value ?? '')),
+        ]),
+      );
+      const normalizedData = {
+        ...data,
+        systemRequirements,
+        downloadLinks: Array.isArray(data.downloadLinks) ? data.downloadLinks : [],
+      };
 
-      
-      setGameDetails(data);
+      setGameDetails(normalizedData);
 
       let searchTerms = [];
-      const title = data.systemRequirements?.Title || data.gameInfo?.TITLE;
+      const title = systemRequirements.Title || data.gameInfo?.TITLE;
       
       if (title) {
         searchTerms = cleanTitle(title).split(' ');
@@ -530,27 +532,36 @@ const GameDetails = () => {
         searchTerms = extractTitleFromSlug(id);
       }
 
-      await fetchIGDBData(searchTerms);
+      await fetchIGDBData(searchTerms, signal);
     } catch (error) {
-      console.error('Error fetching game details:', error);
+      if (error?.name !== 'AbortError') {
+        console.error('Error fetching game details:', error);
+        setError('Unable to load this game right now.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!signal.aborted) setIsLoading(false);
     }
   }, [cleanHtml, cleanTitle, extractTitleFromSlug, fetchIGDBData, id]);
 
   useEffect(() => {
-    fetchData();
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
   }, [fetchData]);
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
     if (fullscreenMedia) {
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
     }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [fullscreenMedia]);
 
   if (isLoading) return <LoadingBar isLoading={true} />;
+  if (error) return <div role="alert">{error}</div>;
 
   const getWebsiteIcon = (category) => {
     switch(category) {
@@ -577,7 +588,7 @@ const GameDetails = () => {
     transition={{ duration: 0.5 }}
   >
     <HeroSection>
-      <HeroBackground image={igdbData?.screenshots?.[0]?.url || igdbData?.cover?.url} />
+      <HeroBackground backdrop={igdbData?.screenshots?.[0]?.url || igdbData?.cover?.url} />
       <HeroContent>
         <CoverImage
           src={igdbData?.cover?.url || gameDetails?.image}
@@ -682,7 +693,7 @@ const GameDetails = () => {
     <RequirementsSection>
       <h2>System Requirements</h2>
       <div className="req-grid">
-  {Object.entries(gameDetails.systemRequirements)
+  {Object.entries(gameDetails.systemRequirements || {})
     .filter(([key]) => !['Title', 'TITLE'].includes(key))
     .map(([key, value]) => (
       <motion.div
@@ -692,7 +703,7 @@ const GameDetails = () => {
         transition={{ duration: 0.5 }}
       >
         <h3>{key.replace(/<\/?strong>/g, '').replace(/<\/?li>/g, '')}</h3>
-        <p>{value.replace(/<\/?strong>/g, '').replace(/<\/?li>/g, '')}</p> {/* Cleaned HTML */}
+        <p>{String(value ?? '')}</p>
       </motion.div>
     ))}
 </div>

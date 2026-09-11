@@ -292,40 +292,52 @@ function Sports() {
   const [matches, setMatches] = useState([]);
   const [selectedSport, setSelectedSport] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const sportCardsRef = useRef(null);
   const matchesGridRef = useRef(null);
 
-  const fetchSports = useCallback(async () => {
+  const fetchSports = useCallback(async (signal) => {
     try {
-      const response = await fetch('https://sports.mda2233.workers.dev/api/sports');
+      const response = await fetch('https://sports.mda2233.workers.dev/api/sports', { signal });
+      if (!response.ok) throw new Error(`Sports request failed with status ${response.status}`);
       const data = await response.json();
-      setSports(data);
-    } catch (error) {
-      console.error('Error fetching sports:', error);
+      if (!signal.aborted) setSports(Array.isArray(data) ? data : []);
+    } catch (requestError) {
+      if (requestError?.name !== 'AbortError') {
+        console.error('Error fetching sports:', requestError);
+        setError('Unable to load sports right now.');
+      }
     }
   }, []);
 
-  const fetchMatches = useCallback(async () => {
+  const fetchMatches = useCallback(async (signal) => {
     setLoading(true);
     try {
       const endpoint = selectedSport
         ? `https://sports.mda2233.workers.dev/api/matches/${selectedSport}/popular`
         : 'https://sports.mda2233.workers.dev/api/matches/live/popular';
       
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, { signal });
+      if (!response.ok) throw new Error(`Matches request failed with status ${response.status}`);
       const data = await response.json();
-      setMatches(data);
-    } catch (error) {
-      console.error('Error fetching matches:', error);
-      setMatches([]);
+      if (!signal.aborted) setMatches(Array.isArray(data) ? data : []);
+    } catch (requestError) {
+      if (requestError?.name !== 'AbortError') {
+        console.error('Error fetching matches:', requestError);
+        setMatches([]);
+        setError('Unable to load matches right now.');
+      }
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
   }, [selectedSport]);
 
   useEffect(() => {
-    fetchSports();
-    fetchMatches();
+    const controller = new AbortController();
+    setError('');
+    fetchSports(controller.signal);
+    fetchMatches(controller.signal);
+    return () => controller.abort();
   }, [fetchMatches, fetchSports]);
   const formatCategoryName = (category) => {
   return category
@@ -362,11 +374,12 @@ function Sports() {
 
   return (
     <SportsContainer>
+      {error && <p role="alert">{error}</p>}
       <SectionTitle>
         Sports
         <NavigationButtons>
-          <NavButton onClick={() => scrollSports('left')}>&lt;</NavButton>
-          <NavButton onClick={() => scrollSports('right')}>&gt;</NavButton>
+          <NavButton type="button" aria-label="Scroll sports left" onClick={() => scrollSports('left')}>&lt;</NavButton>
+          <NavButton type="button" aria-label="Scroll sports right" onClick={() => scrollSports('right')}>&gt;</NavButton>
         </NavigationButtons>
       </SectionTitle>
       <SportCardsGrid ref={sportCardsRef}>

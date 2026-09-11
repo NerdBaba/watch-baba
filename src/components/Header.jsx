@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {styled,useTheme} from 'styled-components';
 import { FaSearch, FaDice, FaTimes, FaBook, FaFilm, FaTv, FaUser,FaCompass, FaPlayCircle,FaBaseballBall, FaGamepad} from 'react-icons/fa';
@@ -59,13 +59,16 @@ const CustomIcon = styled.i`
 `;
 
 
-const Logo = styled.div`
+const Logo = styled.button`
   display: flex;
   align-items: center;
   font-size: 25px;
   margin: 0 0 15px 15px;
   font-family: 'Isidora Sans Bold', sans-serif;
-  cursor: pointer; /* Add pointer to indicate it's clickable */
+  cursor: pointer;
+  padding: 0;
+  border: 0;
+  background: transparent;
   
   .logo-text {
     margin-left: 10px;
@@ -148,13 +151,23 @@ const SearchBar = styled.input`
 
 `;
 
-const SearchIcon = styled(FaSearch)`
+const SearchSubmitButton = styled.button`
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
   color: ${props => props.theme.text};
   cursor: pointer;
+  padding: 4px;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover {
+    background: transparent;
+    color: ${props => props.theme.primary};
+  }
 `;
 
 const RandomButton = styled.button`
@@ -170,7 +183,7 @@ const RandomButton = styled.button`
   width: 100%;
   justify-content: center;
   font-family: GeistVF, sans-serif;
-  font-weight: heavy; 
+  font-weight: 700;
 
   @media (min-width: 769px) {
     width: auto;
@@ -240,7 +253,7 @@ const MobileSearchForm = styled(SearchForm)`
 
 
 
-function Header({ toggleSidebar }) {
+function Header() {
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -343,7 +356,7 @@ const handleLogoClick = () => {
         </defs>
       </svg>
       
-      <Logo onClick={handleLogoClick}>
+      <Logo type="button" aria-label="Go to section home" onClick={handleLogoClick}>
         <GradientIcon>
           {typeof IconComponent === 'string' ? (
             <CustomIcon className={IconComponent} />
@@ -358,26 +371,29 @@ const handleLogoClick = () => {
 
     <SearchForm onSubmit={handleSearch}>
       <SearchBarContainer>
-        <SearchBar
-          type="text"
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <SearchIcon onClick={handleSearch} />
+          <SearchBar
+            type="text"
+            placeholder="Search..."
+            aria-label="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        <SearchSubmitButton type="submit" aria-label="Submit search">
+          <FaSearch />
+        </SearchSubmitButton>
       </SearchBarContainer>
     </SearchForm>
     
-    <RandomButton onClick={handleRandomClick}>
+    <RandomButton type="button" onClick={handleRandomClick}>
       <DiceIcon />
       <span className="random-text">Random</span>
     </RandomButton>
     
     <MobileControls>
-      <MobileButton onClick={() => setIsMobileSearchOpen(true)}>
+      <MobileButton type="button" aria-label="Open search" onClick={() => setIsMobileSearchOpen(true)}>
         <FaSearch />
       </MobileButton>
-      <MobileButton onClick={() => setIsTopbarOpen(true)}>
+      <MobileButton type="button" aria-label="Open navigation menu" onClick={() => setIsTopbarOpen(true)}>
         <FaBarsStaggered  />
       </MobileButton>
     </MobileControls>
@@ -389,14 +405,17 @@ const handleLogoClick = () => {
             <SearchBar
               type="text"
               placeholder="Search..."
+              aria-label="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
             />
-            <SearchIcon onClick={handleSearch} />
+            <SearchSubmitButton type="submit" aria-label="Submit search">
+              <FaSearch />
+            </SearchSubmitButton>
           </SearchBarContainer>
         </MobileSearchForm>
-        <CloseButton onClick={() => setIsMobileSearchOpen(false)}>
+        <CloseButton type="button" aria-label="Close search" onClick={() => setIsMobileSearchOpen(false)}>
           <FaTimes />
         </CloseButton>
       </MobileSearchOverlay>

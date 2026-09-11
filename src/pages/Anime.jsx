@@ -106,6 +106,7 @@ function Anime() {
   const [totalPages, setTotalPages] = useState(0);
   const [category, setCategory] = useState('POPULARITY_DESC');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const categoryOptions = [
     
@@ -117,26 +118,42 @@ function Anime() {
   ];
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
     const getAnime = async () => {
       setIsLoading(true);
+      setError('');
       try {
         let data;
         if (category === 'TRENDING') {
-          data = await fetchAnimeHome();
-          setAnimeList(data.results || []);
-          setTotalPages(1); // Assuming trending doesn't have pagination
+          data = await fetchAnimeHome({ signal: controller.signal });
+          if (!active) return;
+          setAnimeList(Array.isArray(data.results) ? data.results : []);
+          setTotalPages(1);
         } else {
-          data = await fetchAnimeByCategory(category, currentPage);
-          setAnimeList(data.animes || []);
-          setTotalPages(data.totalPages);
+          data = await fetchAnimeByCategory(category, currentPage, { signal: controller.signal });
+          if (!active) return;
+          setAnimeList(Array.isArray(data.animes) ? data.animes : []);
+          setTotalPages(data.totalPages || 0);
         }
-      } catch (error) {
-        console.error('Error fetching anime:', error);
+      } catch (requestError) {
+        if (active && requestError?.name !== 'AbortError') {
+          console.error('Error fetching anime:', requestError);
+          setAnimeList([]);
+          setError('Unable to load anime right now.');
+        }
+      } finally {
+        if (active) setIsLoading(false);
       }
-      setIsLoading(false);
     };
     
     getAnime();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [currentPage, category]);
 
   const handlePageChange = (pageNumber) => {
@@ -155,6 +172,7 @@ function Anime() {
   return (
     <AnimeContainer>
       <AnimeTitle>Anime</AnimeTitle>
+      {error && <p role="alert">{error}</p>}
       <FilterContainer>
         <FilterDropdown
           label="Category"

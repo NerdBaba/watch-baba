@@ -6,7 +6,9 @@ import AnimeCard from '../components/AnimeCard';
 import KDramaCard from '../components/KDramaCard';
 import { searchMulti } from '../services/tmdbApi';
 import { searchAnime } from '../services/aniWatchApi';
-import { searchKDramas } from '../services/kDramaApi'
+import { searchKDramas } from '../services/kDramaApi';
+
+const isAbortError = (error) => error?.name === 'AbortError' || error?.code === 'ERR_CANCELED';
 
 const Grid = styled.div`
   display: grid;
@@ -79,12 +81,12 @@ function SearchResults() {
   const [totalMoviePages, setTotalMoviePages] = useState(0);
   const [totalAnimePages, setTotalAnimePages] = useState(0);
   const [totalKDramaPages, setTotalKDramaPages] = useState(0);
+  const [error, setError] = useState('');
   const location = useLocation();
   const searchQuery = new URLSearchParams(location.search).get('q');
 
-  
-  const loadMovieResults = useCallback((page) => {
-    searchMulti(searchQuery, page).then((response) => {
+  const loadMovieResults = useCallback((page, signal) => {
+    return searchMulti(searchQuery, page, { signal }).then((response) => {
       setMovieResults(prevResults => {
         const newResults = response.data.results.filter(
           newItem => !prevResults.some(existingItem => existingItem.id === newItem.id)
@@ -94,12 +96,15 @@ function SearchResults() {
       setTotalMoviePages(response.data.total_pages);
       setCurrentMoviePage(page);
     }).catch(error => {
-      console.error('Error fetching movie search results:', error);
+      if (!isAbortError(error)) {
+        console.error('Error fetching movie search results:', error);
+        setError('Some movie results could not be loaded.');
+      }
     });
   }, [searchQuery]);
 
-  const loadAnimeResults = useCallback((page) => {
-    searchAnime(searchQuery, page).then((response) => {
+  const loadAnimeResults = useCallback((page, signal) => {
+    return searchAnime(searchQuery, page, { signal }).then((response) => {
       setAnimeResults(prevResults => {
         const newResults = response.results.filter(
           newItem => !prevResults.some(existingItem => existingItem.id === newItem.id)
@@ -109,12 +114,15 @@ function SearchResults() {
       setTotalAnimePages(Math.ceil(response.totalResults / 20));
       setCurrentAnimePage(page);
     }).catch(error => {
-      console.error('Error fetching anime search results:', error);
+      if (!isAbortError(error)) {
+        console.error('Error fetching anime search results:', error);
+        setError('Some anime results could not be loaded.');
+      }
     });
   }, [searchQuery]);
 
-  const loadKDramaResults = useCallback((page) => {
-    searchKDramas(searchQuery, page).then((response) => {
+  const loadKDramaResults = useCallback((page, signal) => {
+    return searchKDramas(searchQuery, page, { signal }).then((response) => {
       setKDramaResults(prevResults => {
         const newResults = response.data.results.filter(
           newItem => !prevResults.some(existingItem => existingItem.id === newItem.id)
@@ -124,22 +132,29 @@ function SearchResults() {
       setTotalKDramaPages(response.data.totalPages);
       setCurrentKDramaPage(page);
     }).catch(error => {
-      console.error('Error fetching KDrama search results:', error);
+      if (!isAbortError(error)) {
+        console.error('Error fetching KDrama search results:', error);
+        setError('Some K-Drama results could not be loaded.');
+      }
     });
   }, [searchQuery]);
 
   useEffect(() => {
     if (searchQuery) {
+      const controller = new AbortController();
+      setError('');
       setMovieResults([]);
       setAnimeResults([]);
       setKDramaResults([]);
       setCurrentMoviePage(1);
       setCurrentAnimePage(1);
       setCurrentKDramaPage(1);
-      loadMovieResults(1);
-      loadAnimeResults(1);
-      loadKDramaResults(1);
+      loadMovieResults(1, controller.signal);
+      loadAnimeResults(1, controller.signal);
+      loadKDramaResults(1, controller.signal);
+      return () => controller.abort();
     }
+    return undefined;
   }, [loadAnimeResults, loadKDramaResults, loadMovieResults, searchQuery]);
 
   const handleLoadMoreMovies = () => {
@@ -155,6 +170,7 @@ function SearchResults() {
 
   return (
     <div>
+      {error && <p role="alert">{error}</p>}
       <CategoryTitle>Movies and TV Shows</CategoryTitle>
       <Grid>
         {movieResults.map((item) => {

@@ -1,35 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createGlobalStyle, styled } from 'styled-components';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
-import Topbar from './components/Topbar';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import Discovery from './pages/Discovery';
-import Movies from './pages/Movies';
-import TvShows from './pages/TvShows';
-import Actors from './pages/Actors';
-import MovieDetails from './pages/MovieDetails';
-import TvShowDetails from './pages/TvShowDetails';
-import SearchResults from './pages/SearchResults';
-import ActorDetails from './pages/ActorDetails';
-import AnimeDetails from './pages/AnimeDetails';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import { themes } from './theme';
 import { saveTheme, loadTheme } from './utils/themeStorage';
-import Themes from './pages/Themes';
-import Anime from './pages/Anime';
-import Manga from './pages/Manga';
-import MangaDetails from './pages/MangaDetails';
-import MangaReader from './pages/MangaReader';
-import Sports from './pages/Sports';
-import Watch from './pages/Watch';
-import Books from './pages/Books';
-import Comics from './pages/Comics';
-import ComicReader from './pages/ComicReader';
-import SeriesDetails from './pages/SeriesDetails';
-import Games from './pages/Games';
-import GameDetails from './pages/GameDetails';
+
+const Home = lazy(() => import('./pages/Home'));
+const Discovery = lazy(() => import('./pages/Discovery'));
+const Movies = lazy(() => import('./pages/Movies'));
+const TvShows = lazy(() => import('./pages/TvShows'));
+const Actors = lazy(() => import('./pages/Actors'));
+const MovieDetails = lazy(() => import('./pages/MovieDetails'));
+const TvShowDetails = lazy(() => import('./pages/TvShowDetails'));
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const ActorDetails = lazy(() => import('./pages/ActorDetails'));
+const AnimeDetails = lazy(() => import('./pages/AnimeDetails'));
+const Themes = lazy(() => import('./pages/Themes'));
+const Anime = lazy(() => import('./pages/Anime'));
+const Manga = lazy(() => import('./pages/Manga'));
+const MangaDetails = lazy(() => import('./pages/MangaDetails'));
+const MangaReader = lazy(() => import('./pages/MangaReader'));
+const Sports = lazy(() => import('./pages/Sports'));
+const Watch = lazy(() => import('./pages/Watch'));
+const Books = lazy(() => import('./pages/Books'));
+const Comics = lazy(() => import('./pages/Comics'));
+const ComicReader = lazy(() => import('./pages/ComicReader'));
+const SeriesDetails = lazy(() => import('./pages/SeriesDetails'));
+const Games = lazy(() => import('./pages/Games'));
+const GameDetails = lazy(() => import('./pages/GameDetails'));
 
 
 
@@ -111,7 +112,6 @@ const GlobalStyle = createGlobalStyle`
 function App() {
   const [currentTheme, setCurrentTheme] = useState(themes.default);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isTopbarOpen, setIsTopbarOpen] = useState(false);
   const sidebarRef = useRef(null);
   useEffect(() => {
     const savedThemeName = loadTheme();
@@ -161,15 +161,13 @@ useEffect(() => {
       <Router>
         <GlobalStyle />
         <AppContainer>
-          <Sidebar ref={sidebarRef} setTheme={changeTheme} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+          <Sidebar ref={sidebarRef} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
           <MainContent sidebarOpen={isSidebarOpen}>
-            <Header 
-        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        toggleTopbar={() => setIsTopbarOpen(!isTopbarOpen)}
-      />
-            <Topbar isOpen={isTopbarOpen} onClose={() => setIsTopbarOpen(false)} />
+            <Header />
             <ContentWrapper>
-              <Routes>
+              <Suspense fallback={<div role="status">Loading page…</div>}>
+                <AppErrorBoundary>
+                  <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/discovery" element={<Discovery />} />
                 <Route path="/movies" element={<Movies />} />
@@ -193,7 +191,9 @@ useEffect(() => {
                 <Route path="/books" element={<Books />} />
                 <Route path="/games" element={<Games />} />
                 <Route path="/game/:id" element={<GameDetails />} />
-              </Routes>
+                  </Routes>
+                </AppErrorBoundary>
+              </Suspense>
             </ContentWrapper>
             <Footer />
           </MainContent>

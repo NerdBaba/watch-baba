@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
@@ -6,7 +6,7 @@ import { getTvShowDetails, getTvShowRecommendations, getTvShowCredits, getTvShow
 import VideoPlayer from '../components/VideoPlayer';
 import MovieCard from '../components/MovieCard';
 // import DownloadOption from '../components/DownloadOption';
-import { FaPlay, FaInfoCircle, FaTimes, FaUser} from 'react-icons/fa';
+import { FaPlay, FaInfoCircle, FaTimes, FaUser } from 'react-icons/fa';
 
 
 
@@ -614,86 +614,89 @@ function TvShowDetails() {
   const [externalIds, setExternalIds] = useState(null);
   const [isWatching, setIsWatching] = useState(false);
   const [watchOption, setWatchOption] = useState('server1');
-  const [, setVideoSources] = useState([]);
   const [, setEpisodeId] = useState(null);
-    const [logoUrl, setLogoUrl] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
   // const playerRef = useRef(null);
   const [trailer, setTrailer] = useState(null);
+  const [error, setError] = useState('');
 
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   
 
-  // ... (keep all the existing useEffect and useCallback functions)
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+    setTvShow(null);
+    setExternalIds(null);
+    setError('');
 
-  const fetchVideoSources = useCallback(async (embedUrl) => {
-    try {
-      const response = await axios.get(embedUrl);
-      const html = response.data;
-      const sourceMatch = html.match(/src: (\[[^\]]+\])/);
-      if (sourceMatch) {
-        const sourcesArray = JSON.parse(sourceMatch[1]);
-        const formattedSources = sourcesArray.map(source => ({
-          src: source.src,
-          quality: `${source.height}p`,
-        }));
-        setVideoSources(formattedSources);
-      } else {
-        setVideoSources([]);
-      }
-    } catch (error) {
-      console.error('Error fetching video sources:', error);
-      setVideoSources([]);
-    }
-  }, []);
-
-   useEffect(() => {
     const fetchTvShowData = async () => {
       try {
         const [detailsResponse, recommendationsResponse, creditsResponse, externalIdsResponse, videosResponse] = await Promise.all([
-          getTvShowDetails(id),
-          getTvShowRecommendations(id),
-          getTvShowCredits(id),
-          getTvShowExternalIds(id),
-           getTvShowVideos(id)
+          getTvShowDetails(id, { signal: controller.signal }),
+          getTvShowRecommendations(id, { signal: controller.signal }),
+          getTvShowCredits(id, { signal: controller.signal }),
+          getTvShowExternalIds(id, { signal: controller.signal }),
+          getTvShowVideos(id, { signal: controller.signal }),
         ]);
 
+        if (!active) return;
+
         setTvShow(detailsResponse.data);
-        setRecommendations(recommendationsResponse.data.results.slice(0, 20));
-        setCast(creditsResponse.data.cast.slice(0, 10));
+        setRecommendations((recommendationsResponse.data.results || []).slice(0, 20));
+        setCast((creditsResponse.data.cast || []).slice(0, 10));
         setExternalIds(externalIdsResponse.data);
 
         if (externalIdsResponse.data.imdb_id) {
           setLogoUrl(`https://live.metahub.space/logo/medium/${externalIdsResponse.data.imdb_id}/img`);
         }
 
-        const trailerVideo = videosResponse.data.results.find(video => video.type === 'Trailer');
-        setTrailer(trailerVideo);// The specified snippet has been removed from here
+        const trailerVideo = (videosResponse.data.results || []).find(video => video.type === 'Trailer');
+        setTrailer(trailerVideo);
 
-      } catch (error) {
-        console.error('Error fetching TV show data:', error);
+      } catch (requestError) {
+        if (active && requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+          console.error('Error fetching TV show data:', requestError);
+          setError('Unable to load this TV show right now.');
+        }
       }
     };
 
     fetchTvShowData();
-  }, [id, watchOption, selectedSeason, selectedEpisode, fetchVideoSources]);
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [id]);
  
 
 
  //episode id
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchEpisodeDetails = async () => {
       if (watchOption === 'server8') {
         try {
-          const episodeResponse = await getTvShowEpisodeDetails(id, selectedSeason, selectedEpisode);
+          const episodeResponse = await getTvShowEpisodeDetails(
+            id,
+            selectedSeason,
+            selectedEpisode,
+            { signal: controller.signal },
+          );
           setEpisodeId(episodeResponse.data.id);
-        } catch (error) {
-          console.error('Error fetching episode details:', error);
+        } catch (requestError) {
+          if (requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+            console.error('Error fetching episode details:', requestError);
+          }
         }
       }
     };
 
     fetchEpisodeDetails();
+
+    return () => controller.abort();
   }, [id, watchOption, selectedSeason, selectedEpisode]);
 
 
@@ -777,23 +780,28 @@ useEffect(() => {
 
 
 
-  const fetchMegacloudHash = async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1) => {
+  const fetchMegacloudHash = useCallback(async (title, year, tmdbId, mediaType, seasonId = 1, episodeId = 1, signal) => {
   try {
     const encodedTitle = encodeURIComponent(title);
     const url = `https://api.braflix.gd/megacloud/sources-with-title?title=${encodedTitle}&year=${year}&mediaType=${mediaType}&episodeId=${episodeId}&seasonId=${seasonId}&tmdbId=${tmdbId}`;
-    const response = await axios.get(url);
+    const response = await axios.get(url, signal ? { signal } : undefined);
     return response.data;
-  } catch (error) {
-    console.error('Error fetching Megacloud hash:', error);
+  } catch (requestError) {
+    if (requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+      console.error('Error fetching Megacloud hash:', requestError);
+    }
     return null;
   }
-};
+  }, []);
 
 
 const [megacloudHash, setMegacloudHash] = useState(null);
 
 useEffect(() => {
+  const controller = new AbortController();
+
   const fetchHash = async () => {
+    setMegacloudHash(null);
     if (watchOption === 'server11' && tvShow) {
       const year = new Date(tvShow.first_air_date).getFullYear();
       const hash = await fetchMegacloudHash(
@@ -802,37 +810,19 @@ useEffect(() => {
         tvShow.id, 
         'tv', 
         selectedSeason,
-        selectedEpisode
+        selectedEpisode,
+        controller.signal,
       );
       setMegacloudHash(hash);
     }
   };
   
   fetchHash();
-}, [watchOption, tvShow, selectedSeason, selectedEpisode]);
 
+  return () => controller.abort();
+}, [fetchMegacloudHash, watchOption, tvShow, selectedSeason, selectedEpisode]);
 
-  useEffect(() => {
-  if (watchOption === 'server11') {
-    setMegacloudHash(null);
-    const fetchHash = async () => {
-      if (tvShow) {
-        const year = new Date(tvShow.first_air_date).getFullYear();
-        const hash = await fetchMegacloudHash(
-          tvShow.name, 
-          year, 
-          tvShow.id, 
-          'tv', 
-          selectedSeason,
-          selectedEpisode
-        );
-        setMegacloudHash(hash);
-      }
-    };
-    fetchHash();
-  }
-}, [selectedSeason, selectedEpisode, watchOption, tvShow]);
-
+  if (error) return <div role="alert">{error}</div>;
   if (!tvShow || !externalIds) return <div>Loading...</div>;
 
   // const embedData = {

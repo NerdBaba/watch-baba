@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchAnimeDetails, fetchEpisodeSources } from '../services/aniWatchApi';
@@ -7,6 +7,7 @@ import AnimePlayer from '../components/AnimePlayer';
 import AnimeCard from '../components/AnimeCard';
 import LoadingScreen from '../components/LoadingScreen';
 import Pagination from '../components/Pagination';
+import { requestJson } from '../services/requestJson';
 const AnimeDetailsContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -278,7 +279,7 @@ const TrailerVideo = styled.iframe`
 const EpisodeInput = styled.input`
   padding: 0.75rem 1.5rem;
   border: 2px solid ${props => props.theme.primary}40;
-  gap: 1000000x;
+  gap: 10px;
   border-radius: 8px;
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.text};
@@ -378,6 +379,7 @@ function AnimeDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [streamingData, setStreamingData] = useState(null);
   const [error, setError] = useState(null);
+  const episodeControllerRef = useRef(null);
   const navigate = useNavigate();
 
   const handleReadNow = () => {
@@ -394,7 +396,7 @@ const cleanHtmlTags = (text) => {
     .replace(/<[^>]+>/g, ''); // Remove any remaining HTML tags
 };
 
-  const fetchAnimeData = useCallback(async () => {
+  const fetchAnimeData = useCallback(async (signal) => {
   try {
     setIsLoading(true);
     setError(null);
@@ -402,8 +404,10 @@ const cleanHtmlTags = (text) => {
     
     if (id === "21") {
       // Only fetch GoGoAnime data for One Piece
-      const onePieceResponse = await fetch('https://api-consumet-ten-delta.vercel.app/anime/gogoanime/info/one-piece');
-      const onePieceData = await onePieceResponse.json();
+      const onePieceData = await requestJson(
+        'https://api-consumet-ten-delta.vercel.app/anime/gogoanime/info/one-piece',
+        { signal },
+      );
       
       // Set anime data using GogoAnime data
       setAnime({
@@ -426,7 +430,7 @@ const cleanHtmlTags = (text) => {
       }
     } else {
       // Handle other anime normally with AniList
-      const anilistData = await fetchAnimeDetails(id);
+      const anilistData = await fetchAnimeDetails(id, { signal });
       malId = anilistData.malId;
   setAnime({
     ...anilistData,
@@ -447,42 +451,58 @@ const cleanHtmlTags = (text) => {
     
     // Fetch MAL data if not One Piece and if malId is available
     if (id !== "21" && malId) {
-      const malResponse = await fetch(`https://api-consumet-ten-delta.vercel.app/meta/mal/info/${encodeURIComponent(malId)}`);
-      const malInfo = await malResponse.json();
+      const malInfo = await requestJson(
+        `https://api-consumet-ten-delta.vercel.app/meta/mal/info/${encodeURIComponent(malId)}`,
+        { signal },
+      );
       
       // Remove episodes from malInfo to avoid overwriting episodes
       const { episodes: _, ...malDataWithoutEpisodes } = malInfo;
       
       setMalData(malDataWithoutEpisodes);
     }
-  } catch (error) {
-    console.error('Error fetching anime data:', error);
-    setError('Failed to load anime data. Please try again later.');
+  } catch (requestError) {
+    if (requestError?.name !== 'AbortError') {
+      console.error('Error fetching anime data:', requestError);
+      setError('Failed to load anime data. Please try again later.');
+    }
   } finally {
-    setIsLoading(false);
+    if (!signal.aborted) setIsLoading(false);
   }
 }, [id]);
 
   useEffect(() => {
-  fetchAnimeData();
+  const controller = new AbortController();
   // Reset states when id changes
   setMalData(null);
   setEpisodes([]);
   setSelectedEpisode(null);
   setIsWatching(false);
   setStreamingData(null);
+
+  fetchAnimeData(controller.signal);
+
+  return () => {
+    controller.abort();
+    episodeControllerRef.current?.abort();
+  };
 }, [fetchAnimeData, id]);
 
-  const handleEpisodeSelect = async (episode) => {
+const handleEpisodeSelect = async (episode) => {
+  episodeControllerRef.current?.abort();
+  const controller = new AbortController();
+  episodeControllerRef.current = controller;
   try {
     setSelectedEpisode(episode);
     setIsWatching(true);
     
-    const sources = await fetchEpisodeSources(episode.id);
+    const sources = await fetchEpisodeSources(episode.id, { signal: controller.signal });
     setStreamingData(sources);
-  } catch (error) {
-    console.error('Error fetching episode sources:', error);
-    setError('Failed to load episode. Please try again later.');
+  } catch (requestError) {
+    if (requestError?.name !== 'AbortError') {
+      console.error('Error fetching episode sources:', requestError);
+      setError('Failed to load episode. Please try again later.');
+    }
   }
 };
 

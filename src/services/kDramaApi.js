@@ -23,8 +23,9 @@ export const getKDramaEpisode = async (episodeId, mediaId) => {
   });
 };
 
-export const searchKDramas = async (query, page = 1) => {
+export const searchKDramas = async (query, page = 1, { signal } = {}) => {
   return axios.get(`${BASE_URL}/${encodeURIComponent(query)}`, {
-    params: { page }
+    params: { page },
+    ...(signal ? { signal } : {}),
   });
 };

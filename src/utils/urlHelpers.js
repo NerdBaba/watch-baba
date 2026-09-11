@@ -5,7 +5,7 @@ export const getSlugFromUrl = (url) => {
     const path = urlObj.pathname;
     // Remove leading/trailing slashes and 'category/' if present
     return path.replace(/^\/|\/$/g, '').replace('category/', '');
-  } catch (e) {
+  } catch {
     return url;
   }
 };

@@ -97,8 +97,8 @@ const navItems = [
 
 function Topbar({ isOpen, onClose }) {
   return (
-    <TopbarOverlay $isOpen={isOpen}>
-      <CloseButton onClick={onClose}>
+    <TopbarOverlay $isOpen={isOpen} aria-hidden={!isOpen}>
+      <CloseButton type="button" aria-label="Close navigation menu" onClick={onClose}>
         <FaTimes />
       </CloseButton>
       <NavGrid>

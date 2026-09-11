@@ -1,5 +1,5 @@
 // src/pages/Manga.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -142,51 +142,80 @@ function Manga() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const requestControllerRef = useRef(null);
   const [popularManga, setPopularManga] = useState([]);
   const location = useLocation();
 
-  const fetchPopularManga = useCallback(async () => {
+  const fetchPopularManga = useCallback(async (signal) => {
     setIsLoading(true);
+    setError('');
     try {
-      const response = await axios.get('https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/mangaList?category=Adventure&type=topview&state=all');
-      setPopularManga(response.data.mangaList || []);
-    } catch (error) {
-      console.error('Error fetching popular manga:', error);
+      const response = await axios.get(
+        'https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/mangaList?category=Adventure&type=topview&state=all',
+        signal ? { signal } : undefined,
+      );
+      if (!signal?.aborted) setPopularManga(Array.isArray(response.data.mangaList) ? response.data.mangaList : []);
+    } catch (requestError) {
+      if (requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+        console.error('Error fetching popular manga:', requestError);
+        setError('Unable to load manga right now.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!signal?.aborted) setIsLoading(false);
     }
   }, []);
 
-  const handleSearch = useCallback(async (e, query) => {
+  const handleSearch = useCallback(async (e, query, signal) => {
     if (e) e.preventDefault();
     const normalizedQuery = query?.trim() || '';
     if (!normalizedQuery) return;
 
     setIsLoading(true);
+    setError('');
     try {
-      const response = await axios.get(`https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/search/${encodeURIComponent(normalizedQuery)}`);
-      setSearchResults(response.data.mangaList || []);
-    } catch (error) {
-      console.error('Error searching manga:', error);
+      const response = await axios.get(
+        `https://simple-proxy.mda2233.workers.dev/?destination=https://mangahook-api-jfg5.onrender.com/api/search/${encodeURIComponent(normalizedQuery)}`,
+        signal ? { signal } : undefined,
+      );
+      if (!signal?.aborted) setSearchResults(Array.isArray(response.data.mangaList) ? response.data.mangaList : []);
+    } catch (requestError) {
+      if (requestError?.code !== 'ERR_CANCELED' && requestError?.name !== 'AbortError') {
+        console.error('Error searching manga:', requestError);
+        setSearchResults([]);
+        setError('Unable to search manga right now.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!signal?.aborted) setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     const params = new URLSearchParams(location.search);
     const initialSearch = params.get('search');
     if (initialSearch) {
       setSearchQuery(initialSearch);
-      handleSearch(null, initialSearch);
+      handleSearch(null, initialSearch, controller.signal);
     } else {
-      fetchPopularManga();
+      fetchPopularManga(controller.signal);
     }
+
+    return () => controller.abort();
   }, [fetchPopularManga, handleSearch, location]);
+
+  useEffect(() => () => requestControllerRef.current?.abort(), []);
+
+  const submitSearch = (event) => {
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
+    handleSearch(event, searchQuery, controller.signal);
+  };
 
   return (
     <MangaContainer>
-      <SearchContainer onSubmit={(event) => handleSearch(event, searchQuery)}>
+      <SearchContainer onSubmit={submitSearch}>
         <SearchInput
           type="text"
           placeholder="Search for manga..."
@@ -198,6 +227,7 @@ function Manga() {
           Search
         </SearchButton>
       </SearchContainer>
+      {error && <p role="alert">{error}</p>}
       
       {isLoading ? (
         <LoadingSpinner />

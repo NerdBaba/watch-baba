@@ -1,32 +1,29 @@
+import { requestJson } from './requestJson';
+
 const BASE_URL = 'https://comic.mda2233.workers.dev';
 
-const fetchJson = async (url) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Comic API request failed with status ${response.status}`);
-  }
-  return response.json();
-};
-
-const fetchComics = async (page = 1) => {
-  const data = await fetchJson(`${BASE_URL}/comics?page=${encodeURIComponent(page)}`);
+const fetchComics = async (page = 1, { signal } = {}) => {
+  const data = await requestJson(`${BASE_URL}/comics?page=${encodeURIComponent(page)}`, { signal });
   return {
-    comics: data.comics,
-    totalPages: 17827, // Assuming the API returns totalPages, otherwise default to 1
-    currentPage: data.currentPage || page
+    comics: Array.isArray(data.comics) ? data.comics : [],
+    totalPages: Number.isFinite(data.totalPages)
+      ? data.totalPages
+      : data.hasNextPage ? page + 1 : page,
+    currentPage: data.currentPage || page,
+    hasNextPage: Boolean(data.hasNextPage),
   };
 };
 
-const searchComics = async (query) => {
-  return fetchJson(`${BASE_URL}/search?query=${encodeURIComponent(query)}`);
+const searchComics = async (query, { signal } = {}) => {
+  return requestJson(`${BASE_URL}/search?query=${encodeURIComponent(query)}`, { signal });
 };
 
-const fetchCategoryDetails = async (url) => {
-  return fetchJson(`${BASE_URL}/category?url=${encodeURIComponent(url)}`);
+const fetchCategoryDetails = async (url, { signal } = {}) => {
+  return requestJson(`${BASE_URL}/category?url=${encodeURIComponent(url)}`, { signal });
 };
 
-const fetchComicChapter = async (url) => {
-  return fetchJson(`${BASE_URL}/comic?url=${encodeURIComponent(url)}`);
+const fetchComicChapter = async (url, { signal } = {}) => {
+  return requestJson(`${BASE_URL}/comic?url=${encodeURIComponent(url)}`, { signal });
 };
 
 export { fetchComics, searchComics, fetchCategoryDetails, fetchComicChapter };

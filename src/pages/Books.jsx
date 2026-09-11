@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import {  Download, Globe, FileText, HardDrive, Search, Bookmark, Plus } from 'react-feather';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBook } from '@fortawesome/free-solid-svg-icons';
 import { saveWishlist, getWishlist, isBookWishlisted } from '../utils/WishlistBooks';
+import { requestJson } from '../services/requestJson';
 
 
 const Container = styled.div`
@@ -371,27 +372,38 @@ function Books() {
   const [currentQuery, setCurrentQuery] = useState('');
   const [wishlist, setWishlist] = useState([]);
   const [downloadingBooks, setDownloadingBooks] = useState({});
+  const [error, setError] = useState('');
+  const requestControllerRef = useRef(null);
 
-  const fetchBooks = useCallback(async (query) => {
+  const fetchBooks = useCallback(async (query, signal) => {
     setLoading(true);
+    setError('');
     try {
-      const response = await fetch(`https://backend.bookracy.ru/api/books?query=${encodeURIComponent(query)}`);
-      const data = await response.json();
-      setBooks(data.results || []);
+      const data = await requestJson(
+        `https://backend.bookracy.ru/api/books?query=${encodeURIComponent(query)}`,
+        signal ? { signal } : {},
+      );
+      if (signal?.aborted) return;
+      setBooks(Array.isArray(data.results) ? data.results : []);
       setCurrentQuery(query);
-    } catch (error) {
-      console.error('Error fetching books:', error);
+    } catch (requestError) {
+      if (requestError?.name !== 'AbortError') {
+        console.error('Error fetching books:', requestError);
+        setBooks([]);
+        setError('Unable to load books right now.');
+      }
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
-  const fetchRandomDefaultBooks = useCallback(() => {
+  const fetchRandomDefaultBooks = useCallback((signal) => {
     const randomQuery = defaultQueries[Math.floor(Math.random() * defaultQueries.length)];
-    fetchBooks(randomQuery);
+    fetchBooks(randomQuery, signal);
   }, [fetchBooks]);
 
   useEffect(() => {
+    const controller = new AbortController();
     const savedWishlist = getWishlist();
     setWishlist(savedWishlist);
 
@@ -400,15 +412,18 @@ function Books() {
       setCurrentQuery('Wishlist');
       setLoading(false);
     } else {
-      fetchRandomDefaultBooks();
+      fetchRandomDefaultBooks(controller.signal);
     }
-  }, [fetchBooks, fetchRandomDefaultBooks]);
+
+    return () => controller.abort();
+  }, [fetchRandomDefaultBooks]);
 
     const handleDownload = async (book) => {
     setDownloadingBooks(prev => ({ ...prev, [book.md5]: true }));
     
     try {
       const response = await fetch(book.link);
+      if (!response.ok) throw new Error(`Book download failed with status ${response.status}`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -436,9 +451,14 @@ function Books() {
 
   const handleSearchChange = () => {
     if (searchQuery.trim() !== '') {
-      fetchBooks(searchQuery);
+      requestControllerRef.current?.abort();
+      const controller = new AbortController();
+      requestControllerRef.current = controller;
+      fetchBooks(searchQuery.trim(), controller.signal);
     }
   };
+
+  useEffect(() => () => requestControllerRef.current?.abort(), []);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
@@ -473,6 +493,7 @@ function Books() {
         />
         <SearchButton onClick={handleSearchChange}>Search</SearchButton>
       </SearchBarContainer>
+      {error && <p role="alert">{error}</p>}
       {loading ? (
         <div>Loading...</div>
       ) : (

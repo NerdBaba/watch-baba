@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import GameCard from '../components/GameCard';
@@ -98,8 +98,12 @@ const useProgressiveLoading = (items, batchSize = 6) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    if (!items.length) return;
-    
+    if (!items.length) {
+      setVisibleItems([]);
+      setCurrentIndex(0);
+      return undefined;
+    }
+
     setVisibleItems([]);
     setCurrentIndex(0);
   }, [items]);
@@ -129,6 +133,8 @@ const Games = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const searchControllerRef = useRef(null);
   const visibleGames = useProgressiveLoading(games);
 
   const categories = [
@@ -138,47 +144,73 @@ const Games = () => {
     'SURVIVAL', 'VR'
   ];
 
-  const fetchGames = useCallback(async () => {
+  const fetchGames = useCallback(async (signal) => {
     setIsLoading(true);
+    setError('');
     try {
       let url = 'https://games.mda2233.workers.dev/';
       if (selectedCategory) {
         url += `category/${selectedCategory.toLowerCase()}`;
-        if (currentPage > 1) {
-          url += `?page=${currentPage}`;
-        }
       }
-      const response = await fetch(url);
+      if (currentPage > 1 || selectedCategory) {
+        url += `${url.includes('?') ? '&' : '?'}page=${currentPage}`;
+      }
+      const response = await fetch(url, { signal });
+      if (!response.ok) throw new Error(`Games API request failed with status ${response.status}`);
       const data = await response.json();
-      setGames(selectedCategory ? data.games : data.sections[0].games);
-      setTotalPages(data.hasNextPage ? currentPage + 1 : currentPage);
+      const nextGames = selectedCategory
+        ? data.games
+        : data.sections?.[0]?.games;
+      setGames(Array.isArray(nextGames) ? nextGames : []);
+      setTotalPages(Number.isFinite(data.totalPages)
+        ? data.totalPages
+        : data.hasNextPage ? currentPage + 1 : currentPage);
     } catch (error) {
-      console.error('Error fetching games:', error);
+      if (error.name !== 'AbortError') {
+        console.error('Error fetching games:', error);
+        setGames([]);
+        setError('Unable to load games. Please try again later.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!signal?.aborted) setIsLoading(false);
     }
   }, [currentPage, selectedCategory]);
 
   useEffect(() => {
-    fetchGames();
+    const controller = new AbortController();
+    fetchGames(controller.signal);
+    return () => controller.abort();
   }, [fetchGames]);
 
   const handleSearch = async (query) => {
-    if (query.length > 2) {
+    searchControllerRef.current?.abort();
+    if (query.trim().length > 2) {
+      const controller = new AbortController();
+      searchControllerRef.current = controller;
       setIsLoading(true);
+      setError('');
       try {
-        const response = await fetch(`https://games.mda2233.workers.dev/?s=${encodeURIComponent(query)}`);
+        const response = await fetch(`https://games.mda2233.workers.dev/?s=${encodeURIComponent(query.trim())}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`Games search failed with status ${response.status}`);
         const data = await response.json();
-        setSearchResults(data.results);
+        setSearchResults(Array.isArray(data.results) ? data.results : []);
       } catch (error) {
-        console.error('Error searching games:', error);
+        if (error.name !== 'AbortError') {
+          console.error('Error searching games:', error);
+          setSearchResults([]);
+          setError('Unable to search games. Please try again later.');
+        }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) setIsLoading(false);
       }
     } else {
       setSearchResults([]);
     }
   };
+
+  useEffect(() => () => searchControllerRef.current?.abort(), []);
 
   const handleInputChange = (e) => {
     setSearchQuery(e.target.value);
@@ -229,15 +261,17 @@ const Games = () => {
   </CategoryDropdown>
 </SearchContainer>
 
-      {searchQuery && searchResults.length > 0 ? (
+      {searchQuery.trim().length > 2 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          {searchResults.map((game, index) => (
-            <SearchGameCard key={index} {...game} />
-          ))}
+          {searchResults.length > 0 ? searchResults.map((game, index) => (
+            <SearchGameCard key={game.id ?? game.slug ?? `${game.name}-${index}`} {...game} />
+          )) : (
+            <p>No games found.</p>
+          )}
         </motion.div>
       ) : (
         <>
@@ -248,7 +282,7 @@ const Games = () => {
           >
             {visibleGames.map((game, index) => (
               <motion.div
-                key={index}
+                key={game.id ?? game.slug ?? `${game.name}-${index}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -258,10 +292,11 @@ const Games = () => {
             ))}
           </Grid>
           
+          {error && <p role="alert">{error}</p>}
           {totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
-              totalPages={totalPages + 1}
+              totalPages={totalPages}
               onPageChange={handlePageChange}
             />
           )}
