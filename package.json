@@ -37,7 +37,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build",
+    "build": "bun install --frozen-lockfile --ignore-scripts && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview"
