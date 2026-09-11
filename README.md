@@ -36,3 +36,8 @@ bun run test      # run the test suite once
 bun run build     # create the production bundle in build/
 bun run preview   # preview the production bundle
 ```
+
+For Cloudflare Pages, use Bun 1.3.6 with `bun install --frozen-lockfile` as the
+install command, `bun run build` as the build command, and `build` as the output
+directory. The repository intentionally keeps `bun.lock` as its only dependency
+lockfile.
